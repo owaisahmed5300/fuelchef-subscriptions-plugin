@@ -1,0 +1,33 @@
+#!/bin/bash
+set -e
+
+if [ "$CI" = "true" ]; then
+  exit 0
+fi
+
+# Diff against the upstream branch when there is one. `HEAD~1` is not a fallback: it
+# does not exist in a repository with a single commit, which is exactly the state
+# `git init && git commit --allow-empty` leaves you in.
+if upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)"; then
+  base="$upstream"
+elif [ "$(git rev-list --count HEAD)" -gt 1 ]; then
+  base="HEAD~1"
+else
+  # The empty tree: everything in the repository counts as changed.
+  base="$(git hash-object -t tree /dev/null)"
+fi
+
+if ! git diff --name-only --diff-filter=d "$base" -- '*.php' | grep -q .; then
+  echo "No PHP files changed. Skipping pre-push checks."
+  exit 0
+fi
+
+echo
+echo "========== Pre-push checks =========="
+echo
+
+./scripts/dev phpcs
+./scripts/dev phpstan
+
+echo
+echo "========== All pre-push checks passed =========="

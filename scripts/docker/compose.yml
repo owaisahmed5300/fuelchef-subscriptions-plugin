@@ -1,0 +1,122 @@
+name: wp-plugin-boilerplate
+
+services:
+  # ---------------------------------------------------------------------------------
+  # Database — backs the running site.
+  # ---------------------------------------------------------------------------------
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-root}"
+      MYSQL_DATABASE: "${WORDPRESS_DB_NAME:-wordpress}"
+      MYSQL_USER: "${WORDPRESS_DB_USER:-wordpress}"
+      MYSQL_PASSWORD: "${WORDPRESS_DB_PASSWORD:-wordpress}"
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # ---------------------------------------------------------------------------------
+  # WordPress site — the plugin is bind-mounted live into wp-content/plugins.
+  # ---------------------------------------------------------------------------------
+  wordpress:
+    build:
+      context: ./wordpress
+      args:
+        WORDPRESS_IMAGE: "${WORDPRESS_IMAGE:-wordpress:7.0-php8.3-apache}"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: "${WORDPRESS_DB_HOST:-db}"
+      WORDPRESS_DB_NAME: "${WORDPRESS_DB_NAME:-wordpress}"
+      WORDPRESS_DB_USER: "${WORDPRESS_DB_USER:-wordpress}"
+      WORDPRESS_DB_PASSWORD: "${WORDPRESS_DB_PASSWORD:-wordpress}"
+      WORDPRESS_TABLE_PREFIX: "${WORDPRESS_TABLE_PREFIX:-wp_}"
+      WORDPRESS_DEBUG: "${WORDPRESS_DEBUG:-1}"
+      XDEBUG_MODE: "${XDEBUG_MODE:-off}"
+      WORDPRESS_CONFIG_EXTRA: |
+        define( 'WP_ENVIRONMENT_TYPE', 'local' );
+        define( 'AUTOMATIC_UPDATER_DISABLED', true );
+    ports:
+      - "${WORDPRESS_PORT:-8080}:80"
+    volumes:
+      - wp_core:/var/www/html
+      - ../../plugin:/var/www/html/wp-content/plugins/${PLUGIN_SLUG:-wp-plugin-boilerplate}
+      - ./wordpress/mu-plugins:/var/www/html/wp-content/mu-plugins
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ---------------------------------------------------------------------------------
+  # phpMyAdmin — database UI.
+  # ---------------------------------------------------------------------------------
+  phpmyadmin:
+    image: phpmyadmin:5
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PMA_HOST: "${WORDPRESS_DB_HOST:-db}"
+      PMA_USER: root
+      PMA_PASSWORD: "${MYSQL_ROOT_PASSWORD:-root}"
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "${PHPMYADMIN_PORT:-8081}:80"
+
+  # ---------------------------------------------------------------------------------
+  # Mailpit — catches all outgoing mail (see wordpress/mu-plugins/00-mailpit.php).
+  # ---------------------------------------------------------------------------------
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "${MAILPIT_PORT:-8025}:8025"
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+  # ---------------------------------------------------------------------------------
+  # WP-CLI — run against the running site: `./scripts/dev wp-cli <args>`.
+  # ---------------------------------------------------------------------------------
+  wpcli:
+    image: "${WORDPRESS_CLI_IMAGE:-wordpress:cli-php8.3}"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: "${WORDPRESS_DB_HOST:-db}"
+      WORDPRESS_DB_NAME: "${WORDPRESS_DB_NAME:-wordpress}"
+      WORDPRESS_DB_USER: "${WORDPRESS_DB_USER:-wordpress}"
+      WORDPRESS_DB_PASSWORD: "${WORDPRESS_DB_PASSWORD:-wordpress}"
+      WORDPRESS_TABLE_PREFIX: "${WORDPRESS_TABLE_PREFIX:-wp_}"
+    volumes:
+      - wp_core:/var/www/html
+      - ../../plugin:/var/www/html/wp-content/plugins/${PLUGIN_SLUG:-wp-plugin-boilerplate}
+    # `docker compose run --rm wpcli wp <args>` overrides this default.
+    command: ["wp", "--info"]
+
+  # ---------------------------------------------------------------------------------
+  # Tools — Composer, phpcs, phpstan, phpunit, php-scoper. One-shot, `run --rm`.
+  # ---------------------------------------------------------------------------------
+  tools:
+    build:
+      context: ../..
+      dockerfile: scripts/docker/php/Dockerfile
+    environment:
+      XDEBUG_MODE: "${XDEBUG_MODE:-off}"
+    volumes:
+      - ../..:/app
+      - composer_cache:/composer
+    working_dir: /app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  db_data:
+  wp_core:
+  composer_cache:

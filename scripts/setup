@@ -1,0 +1,394 @@
+#!/usr/bin/env sh
+#
+# setup — interactive wizard to rename the boilerplate and configure the Docker env.
+#
+# Pure POSIX sh + sed/tr/grep/awk, no PHP, Composer or Node required — runs on any
+# Linux distribution, macOS, or Git Bash on Windows. Walks you through every choice
+# step by step with sensible defaults, so you never need to read a flag reference.
+#
+# Without flags it does two things in one pass:
+#
+#   1. Configure the Docker environment — copies scripts/docker/.env.example to
+#      scripts/docker/.env if it does not exist, then optionally prompts for the host
+#      ports (other .env values keep their safe local-development defaults).
+#
+#   2. Rename the boilerplate — rewrites every placeholder token (display name, slug,
+#      namespace, constant/function/scoper prefixes) across source, config, tooling
+#      and docs, then renames the main plugin file to match the slug.
+#
+# The boilerplate ships with these placeholders, which map to the values you provide:
+#
+#   "WP Plugin Boilerplate"      plugin display name
+#   wp-plugin-boilerplate        slug / text domain
+#   WPPluginBoilerplate          PHP namespace
+#   WP_PLUGIN_BOILERPLATE        constant prefix
+#   wp_plugin_boilerplate        function prefix
+#   WPPluginBoilerplate_Deps     php-scoper prefix
+#
+# Flags:
+#   --env      Configure the Docker environment only (skip the rename wizard).
+#              Copies .env.example to .env if missing, then prompts for ports.
+#   --force    Run even if the boilerplate looks already renamed (replaces placeholders
+#              a second time; only useful when the original placeholders are still present).
+#   --help, -h Show this message.
+#
+set -eu
+
+REPO_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+cd "$REPO_DIR"
+
+# --- Placeholders (what we replace) ----------------------------------------------
+PH_NAME='WP Plugin Boilerplate'
+PH_SLUG='wp-plugin-boilerplate'
+PH_NS='WPPluginBoilerplate'
+PH_CONST='WP_PLUGIN_BOILERPLATE'
+PH_FUNC='wp_plugin_boilerplate'
+PH_SCOPER='WPPluginBoilerplate_Deps'
+PH_MAIN="plugin/${PH_SLUG}.php"
+
+# --- Flags -----------------------------------------------------------------------
+ENV_ONLY="false"
+FORCE="false"
+
+# --- Helper functions ------------------------------------------------------------
+
+die() { echo "error: $*" >&2; exit 1; }
+
+usage() {
+    awk 'NR == 1 && /^#!/ { next }
+         /^#/ { sub(/^# ?/, ""); print; next }
+         { exit }' "$0"
+}
+
+# slugify: lowercase, every run of non-alphanumeric collapses to a single hyphen,
+# leading/trailing hyphens trimmed. "Acme Widgets!" -> "acme-widgets".
+slugify() {
+    printf '%s' "$1" \
+        | tr '[:upper:]' '[:lower:]' \
+        | sed -e 's/[^a-z0-9]\{1,\}/-/g' -e 's/^-*//' -e 's/-*$//'
+}
+
+# studly: PascalCase from a slug. "acme-widgets" -> "AcmeWidgets". Uppercases the
+# first letter of every hyphen-separated word with awk (portable, no bashisms).
+studly() {
+    printf '%s' "$1" | awk -F- '
+        { out = "";
+          for (i = 1; i <= NF; i++) {
+              w = $i;
+              if (w == "") continue;
+              out = out toupper(substr(w, 1, 1)) substr(w, 2);
+          }
+          print out
+        }'
+}
+
+# escape_repl: escape a string for safe use on the *replacement* side of `sed s|...|`.
+# Our delimiter is '|', so backslash, ampersand and the delimiter itself must be escaped.
+escape_repl() {
+    printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
+}
+
+# sanitize: strip ANSI escape sequences (ESC[<params><letter>) and all control characters
+# from user-provided input so they cannot be written into source files by the sed loop below.
+sanitize() {
+    esc=$(printf '\033')
+    printf '%s' "$1" \
+        | sed -e "s/${esc}\[[0-9;]*[a-zA-Z]//g" -e "s/${esc}//g" \
+        | tr -d '[:cntrl:]'
+}
+
+# validate_slug: ensure a slug contains only lowercase letters, digits and hyphens.
+validate_slug() {
+    case "$1" in
+        *[!a-z0-9-]*) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
+# validate_ns: ensure a PHP namespace segment contains only valid identifier characters.
+validate_ns() {
+    case "$1" in
+        [A-Za-z_][A-Za-z0-9_]*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# prompt_env_var: prompt user for a .env value, update the file if provided.
+# Usage: prompt_env_var KEY "Human-readable description"
+# Reads from/writes to $ENV_FILE (set at the script level before calling).
+prompt_env_var() {
+    key="$1"
+    desc="$2"
+    # `|| true`: a missing key must not abort the wizard under `set -e`.
+    current="$(grep "^${key}=" "$ENV_FILE" 2>/dev/null | sed 's/^[^=]*=//' || true)"
+    printf '    %-30s [%s]: ' "$desc" "$current"
+    IFS= read -r value
+    if [ -n "$value" ]; then
+        value="$(sanitize "$value")"
+        escaped="$(escape_repl "$value")"
+        sed -e "s|^${key}=.*|${key}=${escaped}|" "$ENV_FILE" > "$ENV_FILE.tmp"
+        mv "$ENV_FILE.tmp" "$ENV_FILE"
+    fi
+}
+
+# --- Parse meta-flags only -------------------------------------------------------
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --env)     ENV_ONLY="true"; shift ;;
+        --force)   FORCE="true"; shift ;;
+        -h|--help) usage; exit 0 ;;
+        *)         die "unknown option '$1' (try --help)" ;;
+    esac
+done
+
+# --- Guard: must have an interactive terminal ------------------------------------
+if [ ! -t 0 ]; then
+    die "this wizard requires an interactive terminal.
+       Run it directly (./scripts/dev setup), not piped or in a non-interactive context."
+fi
+
+# --- Guard against double runs ---------------------------------------------------
+if [ "$ENV_ONLY" = "false" ] && [ ! -f "$PH_MAIN" ] && [ "$FORCE" != "true" ]; then
+    die "this project does not look like the pristine boilerplate ($PH_MAIN is gone).
+       It may already be set up. Re-run with --force to override."
+fi
+
+# ==============================================================================
+# PHASE 1 — Docker Environment
+# ==============================================================================
+echo ""
+echo "============================================================"
+echo "  Step 1: Docker Environment"
+echo "============================================================"
+echo ""
+
+ENV_FILE="scripts/docker/.env"
+ENV_EXAMPLE="scripts/docker/.env.example"
+
+if [ ! -f "$ENV_FILE" ]; then
+    cp "$ENV_EXAMPLE" "$ENV_FILE"
+    echo "  [ok] Created $ENV_FILE from .env.example"
+else
+    echo "  [i] $ENV_FILE already exists — keeping existing values"
+fi
+
+printf "  Would you like to customize the Docker environment now? [y/N] "
+IFS= read -r customize_env
+
+case "$customize_env" in
+    y|Y|yes|YES)
+        echo ""
+        echo "  Leave blank to keep the current value (shown in brackets)."
+        echo ""
+
+        prompt_env_var "WORDPRESS_PORT"   "WordPress HTTP port"
+        prompt_env_var "PHPMYADMIN_PORT"  "phpMyAdmin HTTP port"
+        prompt_env_var "MAILPIT_PORT"     "Mailpit HTTP port"
+        prompt_env_var "DB_PORT"          "MySQL port"
+
+        echo ""
+        echo "  [ok] Docker environment saved to $ENV_FILE"
+        ;;
+esac
+
+# --- Early exit when --env only ------------------------------------------------
+if [ "$ENV_ONLY" = "true" ]; then
+    echo ""
+    echo "==> Docker environment configured. Done."
+    exit 0
+fi
+
+# ==============================================================================
+# PHASE 2 — Plugin Identity
+# ==============================================================================
+echo ""
+echo "============================================================"
+echo "  Step 2: Plugin Identity"
+echo "============================================================"
+echo ""
+
+# --- Collect the plugin display name -------------------------------------------
+printf '  Plugin display name (e.g. "Acme Widgets"): '
+IFS= read -r NEW_NAME
+[ -n "$NEW_NAME" ] || die "the plugin name cannot be empty."
+NEW_NAME="$(sanitize "$NEW_NAME")"
+[ -n "$NEW_NAME" ] || die "the plugin name cannot be empty after sanitization."
+
+# --- Slug ----------------------------------------------------------------------
+DERIVED_SLUG="$(slugify "$NEW_NAME")"
+printf '  Plugin slug / text domain [%s]: ' "$DERIVED_SLUG"
+IFS= read -r NEW_SLUG
+if [ -z "$NEW_SLUG" ]; then
+    NEW_SLUG="$DERIVED_SLUG"
+fi
+NEW_SLUG="$(sanitize "$NEW_SLUG")"
+validate_slug "$NEW_SLUG" || die "slug '$NEW_SLUG' must contain only lowercase letters, digits and hyphens."
+
+# --- PHP namespace -------------------------------------------------------------
+DERIVED_NS="$(studly "$NEW_SLUG")"
+printf '  PHP namespace (e.g. AcmeWidgets) [%s]: ' "$DERIVED_NS"
+IFS= read -r NEW_NS
+if [ -z "$NEW_NS" ]; then
+    NEW_NS="$DERIVED_NS"
+fi
+NEW_NS="$(sanitize "$NEW_NS")"
+validate_ns "$NEW_NS" || die "namespace '$NEW_NS' must start with a letter or underscore and contain only alphanumeric characters."
+
+# --- Coding style --------------------------------------------------------------
+printf '  Prefer PSR-12 naming and coding style over WordPress style? [y/N]: '
+IFS= read -r NEW_STYLE
+case "$NEW_STYLE" in
+    y|Y|yes|YES) NEW_STYLE="psr" ;;
+    *)           NEW_STYLE="tabs" ;;
+esac
+
+# --- Derive everything else ----------------------------------------------------
+SLUG_UNDERSCORE="$(printf '%s' "$NEW_SLUG" | tr '-' '_')"
+NEW_CONST="$(printf '%s' "$SLUG_UNDERSCORE" | tr '[:lower:]' '[:upper:]')"
+NEW_FUNC="$(printf '%s' "$SLUG_UNDERSCORE" | tr '[:upper:]' '[:lower:]')"
+NEW_SCOPER="${NEW_NS}_Deps"
+NEW_MAIN="plugin/${NEW_SLUG}.php"
+
+# ==============================================================================
+# PHASE 3 — Review & Confirm
+# ==============================================================================
+echo ""
+echo "============================================================"
+echo "  Summary of changes"
+echo "============================================================"
+echo ""
+
+ENV_WORDPRESS_PORT="$(grep "^WORDPRESS_PORT=" "$ENV_FILE" 2>/dev/null | sed 's/^[^=]*=//' || true)"
+ENV_DB_PORT="$(grep "^DB_PORT=" "$ENV_FILE" 2>/dev/null | sed 's/^[^=]*=//' || true)"
+
+cat << EOF
+  Plugin identity:
+    Display name     $PH_NAME  ->  $NEW_NAME
+    Slug / domain    $PH_SLUG  ->  $NEW_SLUG
+    Namespace        $PH_NS  ->  $NEW_NS
+    Constant prefix  ${PH_CONST}_  ->  ${NEW_CONST}_
+    Function prefix  ${PH_FUNC}()  ->  ${NEW_FUNC}()
+    Scoper prefix    $PH_SCOPER  ->  $NEW_SCOPER
+    Main file        $PH_MAIN  ->  $NEW_MAIN
+    Coding style     $( [ "$NEW_STYLE" = "psr" ] && echo "PSR-12 (spaces)" || echo "WordPress (tabs)" )
+
+  Docker environment (scripts/docker/.env):
+    WordPress port  $ENV_WORDPRESS_PORT
+    MySQL port      $ENV_DB_PORT
+    (Full file at $ENV_FILE)
+
+EOF
+
+printf 'Proceed with these changes? [Y/n] '
+IFS= read -r confirm
+case "$confirm" in
+    n|N|no|NO) echo "Aborted."; exit 1 ;;
+    *) : ;;
+esac
+
+# ==============================================================================
+# PHASE 4 — Apply Changes
+# ==============================================================================
+echo ""
+echo "==> Rewriting placeholders..."
+
+# --- Build the list of files to rewrite ----------------------------------------
+# Every text file that can contain a placeholder. vendor/build/cache trees
+# are excluded because they are generated and never committed.
+FILES="$(
+    find . \
+        \( -path './.git' -o -path './vendor' -o -path './node_modules' \
+           -o -path './build' -o -path './plugin/vendor' \
+           -o -path './plugin/vendor-prefixed' -o -path './.phpstan' \) -prune \
+        -o -type f \( \
+            -name '*.php' -o -name '*.json' -o -name '*.xml' -o -name '*.dist' \
+            -o -name '*.neon' -o -name '*.md' -o -name '*.yml' -o -name '*.yaml' \
+            -o -name '*.env' -o -name '.env' -o -name '.env.example' \
+            -o -name 'dev' -o -name 'scope' -o -name 'runtime' \
+        \) -print
+)"
+
+# --- Prepare escaped replacements ----------------------------------------------
+r_name="$(escape_repl "$NEW_NAME")"
+r_slug="$(escape_repl "$NEW_SLUG")"
+r_ns="$(escape_repl "$NEW_NS")"
+r_const="$(escape_repl "$NEW_CONST")"
+r_func="$(escape_repl "$NEW_FUNC")"
+r_scoper="$(escape_repl "$NEW_SCOPER")"
+
+# Replacement order matters: rewrite the most specific tokens first so a general
+# token never eats a substring of a specific one.
+#   1. scoper prefix  (contains the namespace)
+#   2. display name   (contains a space; unrelated to the identifiers)
+#   3. constant prefix (uppercase; unique)
+#   4. namespace      (PascalCase)
+#   5. function prefix (lowercase with underscores)
+#   6. slug           (lowercase with hyphens; also the text domain)
+printf '%s\n' "$FILES" | while IFS= read -r file; do
+    [ -n "$file" ] || continue
+    sed \
+        -e "s|$PH_SCOPER|$r_scoper|g" \
+        -e "s|$PH_NAME|$r_name|g" \
+        -e "s|$PH_CONST|$r_const|g" \
+        -e "s|$PH_NS|$r_ns|g" \
+        -e "s|$PH_FUNC|$r_func|g" \
+        -e "s|$PH_SLUG|$r_slug|g" \
+        "$file" > "$file.tmp"
+    if ! cmp -s "$file" "$file.tmp"; then
+        mv "$file.tmp" "$file"
+        echo "    updated $file"
+    else
+        rm -f "$file.tmp"
+    fi
+done
+
+# --- Ensure slug-derived .env keys match the new slug ---------------------------
+# The sed loop above handles these when the original placeholder is still present.
+# On a re-run (--force) the placeholder may already have been renamed, so set the
+# slug-derived keys (PLUGIN_SLUG, COMPOSE_PROJECT_NAME) explicitly here.
+for f in "$ENV_FILE" "$ENV_EXAMPLE"; do
+    if [ -f "$f" ]; then
+        sed -e "s|^PLUGIN_SLUG=.*|PLUGIN_SLUG=${r_slug}|" \
+            -e "s|^COMPOSE_PROJECT_NAME=.*|COMPOSE_PROJECT_NAME=${r_slug}|" \
+            "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+        echo "    updated $f (slug-derived keys)"
+    fi
+done
+
+# --- Rename the main plugin file ------------------------------------------------
+if [ "$PH_MAIN" != "$NEW_MAIN" ] && [ -f "$PH_MAIN" ]; then
+    mv "$PH_MAIN" "$NEW_MAIN"
+    echo "    renamed $PH_MAIN -> $NEW_MAIN"
+fi
+
+# --- Optionally switch the coding style to PSR-12 -------------------------------
+if [ "$NEW_STYLE" = "psr" ]; then
+    echo "==> Switching coding style to PSR-12 (spaces)..."
+    if [ -f phpcs.xml.dist ]; then
+        sed 's/"WPTechnix-PSR4"/"WPTechnix-PSR"/g; s/ref="WPTechnix-PSR4"/ref="WPTechnix-PSR"/g' \
+            phpcs.xml.dist > phpcs.xml.dist.tmp && mv phpcs.xml.dist.tmp phpcs.xml.dist
+    fi
+    if [ -f .editorconfig ]; then
+        awk '
+            /^\[\*\.php\]/ { inphp = 1; print; next }
+            /^\[/          { inphp = 0; print; next }
+            inphp && /^indent_style[[:space:]]*=/ { print "indent_style = space"; next }
+            { print }
+        ' .editorconfig > .editorconfig.tmp && mv .editorconfig.tmp .editorconfig
+    fi
+fi
+
+# --- Wrap-up --------------------------------------------------------------------
+cat << EOF
+
+==> Done.
+
+Next steps:
+  1. Review the changes (git diff) and commit them.
+  2. ./scripts/dev composer install
+  3. ./scripts/dev up
+  4. ./scripts/dev test
+
+If you no longer need the rename wizard (e.g. after personalising the boilerplate),
+         you can delete scripts/setup. Keep it if you use `setup --env` to configure ports.
+EOF

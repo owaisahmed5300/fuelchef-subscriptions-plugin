@@ -1,0 +1,71 @@
+# shellcheck shell=sh
+#
+# Docker-aware helpers for scripts/dev. This file is SOURCED, not executed, so it
+# has no shebang and sets no options of its own — it inherits `set -eu` from the
+# caller and relies on the caller's $0 to locate the repository.
+#
+# Nothing here runs PHP, Composer or php-scoper directly: those live inside the
+# `tools` container and are reached through the compose wrappers below. The scripts
+# that DO run them (scripts/scope) are deliberately
+# Docker-agnostic and never source this file, so they work unchanged both inside the
+# container and natively in CI.
+
+# --- Paths -----------------------------------------------------------------------
+# scripts/dev is the entry point, so $0 resolves to scripts/dev and its directory is
+# scripts/. The repository root is one level up.
+DEV_SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+REPO_DIR="$(CDPATH= cd -- "$DEV_SCRIPT_DIR/.." && pwd)"
+DOCKER_DIR="$REPO_DIR/scripts/docker"
+
+# Docker on Windows needs native paths (E:/...), and MSYS must be told to stop
+# rewriting both the arguments it passes to docker and the container-side paths such
+# as /app. Everything after this point uses the *_HOST variants for Docker.
+DOCKER_DIR_HOST="$DOCKER_DIR"
+case "$(uname -s 2>/dev/null || echo unknown)" in
+    MINGW* | MSYS* | CYGWIN*)
+        DOCKER_DIR_HOST="$(cd "$DOCKER_DIR" && pwd -W)"
+        export MSYS_NO_PATHCONV=1
+        export MSYS2_ARG_CONV_EXCL='*'
+        ;;
+esac
+
+# A stable project name keeps containers, networks and volumes namespaced and lets
+# `dev down` find exactly what `dev up` created, regardless of the current directory.
+# Source .env so COMPOSE_PROJECT_NAME reflects the user's slug after setup.
+[ -f "$DOCKER_DIR/.env" ] && . "$DOCKER_DIR/.env"
+COMPOSE_PROJECT="${COMPOSE_PROJECT_NAME:-wp-plugin-boilerplate}"
+
+# --- Guards ----------------------------------------------------------------------
+require_docker() {
+    command -v docker >/dev/null 2>&1 || {
+        echo "error: docker is required but was not found on PATH." >&2
+        echo "       install Docker Desktop (or the Docker Engine) and try again." >&2
+        exit 127
+    }
+    docker compose version >/dev/null 2>&1 || {
+        echo "error: the Docker Compose v2 plugin is required ('docker compose ...')." >&2
+        exit 127
+    }
+}
+
+# --- Compose ---------------------------------------------------------------------
+# --project-directory pins the base that compose.yml's relative paths resolve
+# against (its own directory, scripts/docker), so `context: ../..` reaches the repo
+# root no matter where dev was invoked from. .env is loaded from there automatically.
+compose() {
+    docker compose \
+        --project-name "$COMPOSE_PROJECT" \
+        --project-directory "$DOCKER_DIR_HOST" \
+        -f "$DOCKER_DIR_HOST/compose.yml" \
+        "$@"
+}
+
+# Run a one-shot command in a fresh, auto-removed container. Allocate a TTY only when
+# attached to one so interactive use is pretty while pipes (husky, CI) stay clean.
+compose_run() {
+    if [ -t 0 ] && [ -t 1 ]; then
+        compose run --rm "$@"
+    else
+        compose run --rm -T "$@"
+    fi
+}

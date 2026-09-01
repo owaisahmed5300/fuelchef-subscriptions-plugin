@@ -1,0 +1,59 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "timezone": "UTC",
+  "schedule": ["before 09:00 on monday"],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "semanticCommits": "enabled",
+  "rangeStrategy": "replace",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 09:00 on the first day of the month"],
+    "automerge": true
+  },
+  "packageRules": [
+    {
+      "description": "Dev and build tooling. Never ships, and CI (PHPUnit + PHPStan + PHPCS + commitlint) covers it, so minor and patch automerge.",
+      "matchDepTypes": ["require-dev", "devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "semanticCommitType": "build",
+      "automerge": true
+    },
+    {
+      "description": "Runtime dependencies are scoped into the release zip and reach users, so every bump gets a human — including patches.",
+      "matchDepTypes": ["require", "dependencies"],
+      "semanticCommitType": "build",
+      "automerge": false,
+      "addLabels": ["runtime-dependency"]
+    },
+    {
+      "description": "PHPUnit is capped at ^9.6 by the plugin's PHP 8.0 floor: PHPUnit 10 requires PHP 8.1+.",
+      "matchPackageNames": ["phpunit/phpunit"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "GitHub Actions: group into one PR, pin to commit SHAs, and automerge minor/patch/digest.",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "semanticCommitType": "ci",
+      "addLabels": ["ci"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest", "pin", "pinDigest"],
+      "automerge": true
+    },
+    {
+      "description": "Major bumps always need a human — never automerge, and flag them.",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "addLabels": ["major-update"]
+    }
+  ]
+}

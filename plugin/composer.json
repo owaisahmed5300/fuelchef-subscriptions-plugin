@@ -1,0 +1,21 @@
+{
+  "name": "wptechnix/wp-plugin-boilerplate",
+  "description": "A boilerplate for building modern WordPress plugins.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": "^8.0",
+    "wptechnix/di-container": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPluginBoilerplate\\": "src/"
+    }
+  },
+  "config": {
+    "platform": {
+      "php": "8.0"
+    },
+    "sort-packages": true
+  }
+}

@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+
+if [ "$CI" = "true" ]; then
+  exit 0
+fi
+
+# Only the staged PHP files, and only those that still exist after the diff.
+staged="$(git diff --cached --name-only --diff-filter=d -- '*.php')"
+
+if [ -z "$staged" ]; then
+  exit 0
+fi
+
+echo "Running phpcbf on staged files..."
+
+# Naming the files explicitly overrides the <file> list in config/phpcs.xml, so this
+# stays fast no matter how large the project grows.
+#
+# phpcbf exit codes: 0 nothing to fix, 1 fixed some, 2 some unfixable. A commit hook
+# is a convenience, not a gate — CI is the gate — so none of them stop the commit.
+printf '%s\n' "$staged" | xargs ./scripts/dev phpcbf || true
+
+# Re-stage only what phpcbf actually rewrote.
+#
+# The old hook `git add`-ed every staged file unconditionally, which silently swallowed
+# the unstaged half of a partial commit made with `git add -p`. This still cannot tell a
+# phpcbf edit from a pre-existing unstaged edit in the same file, but it no longer
+# touches files phpcbf left alone.
+printf '%s\n' "$staged" | while IFS= read -r file; do
+  [ -n "$file" ] || continue
+  if ! git diff --quiet -- "$file"; then
+    git add -- "$file"
+    echo "  restaged $file"
+  fi
+done

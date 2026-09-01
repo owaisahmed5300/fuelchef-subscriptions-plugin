@@ -1,0 +1,19 @@
+{
+  "name": "wp-plugin-boilerplate",
+  "description": "Node.js development tooling for the WP Plugin Boilerplate.",
+  "private": true,
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "prepare": "husky",
+    "commitlint": "commitlint --edit"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.1.0",
+    "@commitlint/config-conventional": "^21.1.0",
+    "husky": "^9.1.7"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  }
+}

@@ -1,0 +1,61 @@
+<?xml version="1.0" ?>
+<ruleset name="WP Plugin Boilerplate PHPCS">
+    <description>WP Plugin Boilerplate coding standards.</description>
+
+    <rule ref="WPTechnix-PSR4" />
+    <rule ref="WPTechnix-Strict" />
+
+    <file>plugin</file>
+    <file>tests</file>
+
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/vendor-prefixed/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+
+    <!--
+        The pre-flight files must parse on PHP 5.6 (see docs/architecture.md), so
+        they cannot use type declarations or strict_types. Every other rule,
+        including the security and i18n sniffs, still applies to them.
+    -->
+    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint">
+        <exclude-pattern>plugin/src/Requirements.php</exclude-pattern>
+        <exclude-pattern>plugin/wp-plugin-boilerplate.php</exclude-pattern>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint">
+        <exclude-pattern>plugin/src/Requirements.php</exclude-pattern>
+        <exclude-pattern>plugin/wp-plugin-boilerplate.php</exclude-pattern>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.PropertyTypeHint">
+        <exclude-pattern>plugin/src/Requirements.php</exclude-pattern>
+    </rule>
+    <rule ref="Generic.PHP.RequireStrictTypes">
+        <exclude-pattern>plugin/src/Requirements.php</exclude-pattern>
+        <exclude-pattern>plugin/wp-plugin-boilerplate.php</exclude-pattern>
+    </rule>
+
+    <!-- A test method's name is its documentation; a required docblock only repeats it. -->
+    <rule ref="Squiz.Commenting.FunctionComment.Missing">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+
+    <!-- Bootstraps report failures on STDERR before WordPress, so WP_Filesystem cannot apply. -->
+    <rule ref="WordPress.WP.AlternativeFunctions.file_system_operations_fwrite">
+        <exclude-pattern>tests/bootstrap/*</exclude-pattern>
+    </rule>
+
+    <arg name="extensions" value="php" />
+    <arg name="colors" />
+    <arg name="cache" value=".phpcs.cache" />
+    <arg value="sp" />
+
+    <config name="testVersion" value="8.0-" />
+
+    <!-- Must match the `Text Domain:` header in the main plugin file. -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="wp-plugin-boilerplate" />
+            </property>
+        </properties>
+    </rule>
+</ruleset>

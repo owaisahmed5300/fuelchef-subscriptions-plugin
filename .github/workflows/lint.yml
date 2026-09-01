@@ -1,0 +1,158 @@
+name: Lint
+
+# Static quality gate: coding standards, static analysis and EditorConfig conformance.
+# Runs natively (no Docker) via shivammathur/setup-php for speed. PHPCS and PHPStan
+# findings are surfaced as inline PR annotations (cs2pr / GitHub error format).
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.gitignore'
+      - '.gitattributes'
+      - 'LICENSE'
+      - '.github/renovate.json'
+      - '.github/workflows/commitlint.yml'
+      - '.github/workflows/release.yml'
+      - '.github/workflows/test.yml'
+      - '.husky/**'
+      - 'commitlint.config.cjs'
+      - 'package.json'
+      - 'scripts/docker/**'
+      - 'scripts/setup'
+      - 'scripts/lib/runtime'
+
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.gitignore'
+      - '.gitattributes'
+      - 'LICENSE'
+      - '.github/renovate.json'
+      - '.github/workflows/commitlint.yml'
+      - '.github/workflows/release.yml'
+      - '.github/workflows/test.yml'
+      - '.husky/**'
+      - 'commitlint.config.cjs'
+      - 'package.json'
+      - 'scripts/docker/**'
+      - 'scripts/setup'
+      - 'scripts/lib/runtime'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coding-standards:
+    name: PHPCS & PHPStan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: cs2pr
+
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Install php-scoper
+        # Pinned PHAR, matching the tools image and release.yml: php-scoper is
+        # deliberately not a Composer dependency (it drags a PHP-Parser version that
+        # fights PHPStan's when installed in the same tree).
+        run: |
+          curl -fsSL "https://github.com/humbug/php-scoper/releases/download/0.18.19/php-scoper.phar" -o php-scoper
+          chmod +x php-scoper
+          sudo mv php-scoper /usr/local/bin/php-scoper
+          php-scoper --version
+
+      - name: Scope plugin dependencies
+        # Build plugin/vendor-prefixed/ before static analysis. plugin/src imports
+        # WPPluginBoilerplate_Deps\ symbols that only exist in the scoped tree (gitignored,
+        # absent from a fresh checkout), and phpstan.neon.dist scans it. Keep the lint
+        # run in step with release.yml and the local ./scripts/dev scope flow.
+        run: bash scripts/scope
+
+      - name: PHP_CodeSniffer
+        # checkstyle output piped through cs2pr becomes inline annotations. Calling the
+        # binary directly keeps stdout pure checkstyle XML; pipefail (GitHub's default
+        # bash flags) makes a phpcs failure fail the step despite the pipe.
+        run: vendor/bin/phpcs -q --report=checkstyle | cs2pr
+
+      - name: Cross-version compatibility of the pre-flight files
+        # PHPCompatibility catches semantic problems (new functions, removed
+        # behaviour) that a parser cannot. It does NOT catch every modern syntax
+        # construct — 9.3.5 predates arrow functions, so `fn()` slips past it.
+        # The `legacy-parse` job below is the authoritative syntax check.
+        run: composer lint:compat
+
+      - name: PHPStan
+        # PHPStan emits GitHub-native error annotations directly.
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=2048M --error-format=github
+
+  editorconfig:
+    name: EditorConfig
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup editorconfig-checker
+        uses: editorconfig-checker/action-editorconfig-checker@v2
+
+      - name: Check EditorConfig conformance
+        # Keeps the meaningful checks — indent_style (tabs vs spaces), trailing
+        # whitespace, final newline, charset and LF endings — while disabling the two
+        # that clash with legitimate content the generic checker can't reason about:
+        #   -disable-max-line-length: owned by PHPCS, which understands PHP context.
+        #   -disable-indent-size:     "leading spaces must be a multiple of N" fires on
+        #                             markdown list continuations, shell heredoc bodies
+        #                             and embedded awk; PHPCS already enforces exact PHP
+        #                             indentation.
+        # There is no local config file: all toggles are passed here on purpose.
+        run: editorconfig-checker -disable-max-line-length -disable-indent-size
+
+  legacy-parse:
+    name: Pre-flight files parse on PHP 5.6
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    # The main plugin file and the requirements gate run BEFORE the plugin's PHP
+    # version has been checked, and PHP parses a whole file before executing any
+    # of it. A single modern construct in either one turns "your PHP is too old"
+    # into a white screen. Only a real old parser proves they are safe.
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP 5.6
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '5.6'
+          coverage: none
+
+      - name: Lint the pre-flight files
+        run: |
+          php -l plugin/wp-plugin-boilerplate.php
+          php -l plugin/src/Requirements.php

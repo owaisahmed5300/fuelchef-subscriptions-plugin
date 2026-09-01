@@ -1,0 +1,49 @@
+# IDE & AI
+.claude/
+.opencode/
+.cursor/
+.codex/
+.zed/
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.phpstorm.meta.php
+_nbproject/
+
+# PHP
+vendor/
+plugin/vendor-prefixed/
+# The root composer.lock is committed (this repo is tooling, not a library).
+# plugin/composer.lock is a build-time artifact of scripts/scope — regenerated on
+# every release build, so it is not tracked.
+plugin/composer.lock
+
+# Cache
+.phpcs.cache
+.phpstan.cache/
+.php-cs-fixer.cache
+.phpunit.result.cache
+scripts/.cache/
+
+# Local tooling overrides (committed configs are the *.dist variants). Drop a bare
+# phpcs.xml / phpstan.neon / phpunit-*.xml to override the shared config locally; the
+# tools auto-discover the non-dist file first.
+phpcs.xml
+phpstan.neon
+phpunit.xml
+
+# Release build artifacts
+build/
+*.zip
+
+# Node
+node_modules/
+# package-lock.json
+
+# Docker local environment (generated from .env.example by scripts/setup)
+scripts/docker/.env
+
+# temp
+*.tmp
+.opencode

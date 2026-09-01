@@ -1,0 +1,88 @@
+#!/usr/bin/env sh
+#
+# scope — build plugin/vendor-prefixed/, the autoloader the plugin loads at runtime.
+#
+# The plugin always loads its dependencies (and its own PSR-4 classes) from
+# vendor-prefixed/, so this must run before the plugin works — both when packaging a
+# release and when developing locally, so what runs locally matches what ships. Any
+# third-party dependency is prefixed with php-scoper (namespaced under the prefix in
+# scoper.inc.php) so a release cannot collide with another plugin shipping the same
+# library at a different version.
+#
+# The script is deliberately environment-agnostic: it assumes `php`, `composer` and
+# `php-scoper` are already on PATH and knows nothing about Docker. Locally it runs
+# inside the tools container (`./scripts/dev scope`); in the release workflow it runs
+# natively after setup-php. One code path serves both.
+#
+set -eu
+
+REPO_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+PLUGIN_DIR="$REPO_DIR/plugin"
+VENDOR_DIR="$PLUGIN_DIR/vendor"
+PREFIXED_DIR="$PLUGIN_DIR/vendor-prefixed"
+
+# --- Preconditions ---------------------------------------------------------------
+for bin in php composer php-scoper; do
+    command -v "$bin" >/dev/null 2>&1 || {
+        echo "error: '$bin' is required but was not found on PATH." >&2
+        exit 127
+    }
+done
+
+[ -f "$PLUGIN_DIR/composer.json" ] || {
+    echo "error: $PLUGIN_DIR/composer.json not found." >&2
+    exit 1
+}
+
+# --- Install the plugin's production dependencies --------------------------------
+# `composer update` (not install) so the tree always reflects the CURRENT
+# plugin/composer.json: plugin/composer.lock is a gitignored build artifact, regenerated
+# on every scope run, so there is nothing to reproduce from and a stale lock can never
+# make this fail. --optimize-autoloader (but not --classmap-authoritative) keeps a PSR-4
+# fallback, so new classes added to plugin/src are autoloadable without re-running scope.
+echo "==> Resolving plugin runtime dependencies (no dev)..."
+rm -rf "$VENDOR_DIR" "$PREFIXED_DIR"
+composer update \
+    --working-dir="$PLUGIN_DIR" \
+    --no-dev \
+    --prefer-dist \
+    --no-interaction \
+    --optimize-autoloader
+
+# --- Fast path: nothing third-party to prefix ------------------------------------
+# A fresh `composer install` with no `require`d packages leaves only vendor/composer
+# and vendor/autoload.php behind — the plugin's own PSR-4 autoloader. There is nothing
+# to scope, so just rename it to the directory the plugin loads from. Composer's
+# autoloader uses __DIR__-relative paths, so it keeps working after the move.
+dep_count="$(find "$VENDOR_DIR" -mindepth 1 -maxdepth 1 -type d ! -name composer 2>/dev/null | wc -l | tr -d ' ')"
+
+if [ "$dep_count" -eq 0 ]; then
+    echo "==> No third-party dependencies to prefix; using the plugin's own autoloader."
+    mv "$VENDOR_DIR" "$PREFIXED_DIR"
+    echo "==> Done. plugin/vendor-prefixed/ is ready."
+    exit 0
+fi
+
+# --- Prefix the dependencies -----------------------------------------------------
+echo "==> Prefixing $dep_count package(s) with php-scoper..."
+php-scoper add-prefix \
+    --config="$REPO_DIR/scoper.inc.php" \
+    --output-dir="$PREFIXED_DIR" \
+    --force \
+    --no-interaction
+
+# --- Regenerate the autoloader over the prefixed tree ----------------------------
+# php-scoper rewrote the packages and vendor/composer/installed.json under
+# vendor-prefixed/. Pointing Composer's vendor dir at it and dumping a fresh optimized
+# autoloader gives a clean map that also covers the plugin's own WPPluginBoilerplate\
+# namespace (from plugin/composer.json). PSR-4 stays available for new plugin classes.
+echo "==> Regenerating the scoped autoloader..."
+COMPOSER_VENDOR_DIR=vendor-prefixed composer dump-autoload \
+    --working-dir="$PLUGIN_DIR" \
+    --no-dev \
+    --optimize
+
+# --- Drop the unscoped tree -------------------------------------------------------
+rm -rf "$VENDOR_DIR"
+
+echo "==> Done. Scoped dependencies are in plugin/vendor-prefixed/."

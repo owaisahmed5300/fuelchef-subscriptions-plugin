@@ -1,0 +1,147 @@
+name: Release
+
+# Triggered by pushing a version tag (e.g. v1.2.3 or v1.2.3-beta.1). Builds a
+# distribution zip with scoped dependencies and a fresh translation template, then
+# publishes a GitHub release. A tag containing a hyphen (semver pre-release) is marked
+# as a pre-release and does not become "latest".
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Parse tag
+        id: tag
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          version_base="${version%%-*}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "version_base=$version_base" >> "$GITHUB_OUTPUT"
+          case "$version" in
+            *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT" ;;
+            *)   echo "prerelease=false" >> "$GITHUB_OUTPUT" ;;
+          esac
+          echo "Tag $GITHUB_REF_NAME -> version $version (base $version_base)"
+
+      - name: Locate main plugin file
+        id: plugin
+        run: |
+          # `|| true` guards the pipeline: with pipefail, grep closing after head
+          # reads its line (or finding nothing) must not abort before the check below.
+          main="$(grep -rl 'Plugin Name:' plugin --include='*.php' | head -n1 || true)"
+          if [ -z "$main" ]; then
+            echo "::error::Could not find the main plugin file (no 'Plugin Name:' header in plugin/)."
+            exit 1
+          fi
+          slug="$(basename "$main" .php)"
+          echo "main=$main" >> "$GITHUB_OUTPUT"
+          echo "slug=$slug" >> "$GITHUB_OUTPUT"
+          echo "Main file: $main (slug: $slug)"
+
+      - name: Verify version consistency
+        # Expressions are passed through env (never interpolated into the script body)
+        # so a crafted tag or path can't inject shell.
+        # Compares the tag's base version (with any pre-release suffix stripped) against
+        # the plugin header and constant, so pre-release tags (e.g. v1.0.0-rc.1) match
+        # a stable plugin version (1.0.0).
+        env:
+          MAIN: ${{ steps.plugin.outputs.main }}
+          TAG: ${{ steps.tag.outputs.version_base }}
+        run: |
+          header="$(sed -n 's/^[[:space:]]*\*[[:space:]]*Version:[[:space:]]*//p' "$MAIN" | head -n1 | tr -d '[:space:]')"
+          const="$(sed -n "s/.*_VERSION'[[:space:]]*,[[:space:]]*'\([^']*\)'.*/\1/p" "$MAIN" | head -n1)"
+          echo "tag=$TAG  header=$header  constant=$const"
+          if [ "$header" != "$TAG" ] || [ "$const" != "$TAG" ]; then
+            echo "::error::Version mismatch. Tag base=$TAG, plugin header=$header, VERSION constant=$const."
+            echo "::error::Update the plugin header and the *_VERSION constant to $TAG before releasing."
+            exit 1
+          fi
+
+      - name: Generate translation template (POT)
+        # Run before scoping so only first-party source is scanned, never vendor code.
+        uses: wptechnix/wp-pot-generator@v1
+        with:
+          working-directory: plugin
+          source: .
+          slug: ${{ steps.plugin.outputs.slug }}
+          output-file: languages/${{ steps.plugin.outputs.slug }}.pot
+          exclude: vendor,vendor-prefixed,node_modules
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          # php-scoper requires PHP >= 8.2; the produced plugin still targets 8.0.
+          php-version: '8.3'
+          coverage: none
+          tools: composer
+
+      - name: Install php-scoper
+        run: |
+          curl -fsSL "https://github.com/humbug/php-scoper/releases/download/0.18.19/php-scoper.phar" -o php-scoper
+          chmod +x php-scoper
+          sudo mv php-scoper /usr/local/bin/php-scoper
+          php-scoper --version
+
+      - name: Install root dependencies
+        # Provides the php-scoper-wordpress-excludes package that scoper.inc.php reads,
+        # needed even when the plugin itself has no runtime dependencies. (php-scoper's
+        # Symfony Finder is bundled in the PHAR, so it is not a project dependency.)
+        uses: ramsey/composer-install@v3
+
+      - name: Scope dependencies
+        run: bash scripts/scope
+
+      - name: Stage plugin for packaging
+        id: package
+        env:
+          SLUG: ${{ steps.plugin.outputs.slug }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          dest="build/$SLUG"
+          rm -rf build
+          mkdir -p "$dest"
+          # Ship runtime files only: keep src, assets, templates, languages and the scoped
+          # vendor tree; drop Composer manifests and development scaffolding.
+          rsync -a \
+            --exclude='composer.json' \
+            --exclude='composer.lock' \
+            --exclude='.gitkeep' \
+            --exclude='node_modules/' \
+            plugin/ "$dest/"
+          zip="$SLUG-$VERSION.zip"
+          (cd build && zip -qr "../$zip" "$SLUG")
+          echo "zip=$zip" >> "$GITHUB_OUTPUT"
+          echo "Built $zip:"
+          # `|| true`: this listing is informational, and head closing the pipe early
+          # (a real plugin has far more than 40 files) would otherwise SIGPIPE-fail the
+          # step under pipefail after the zip was already built successfully.
+          unzip -l "$zip" | head -n 40 || true
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: ${{ steps.package.outputs.zip }}
+          prerelease: ${{ steps.tag.outputs.prerelease }}
+          make_latest: ${{ steps.tag.outputs.prerelease == 'false' }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true

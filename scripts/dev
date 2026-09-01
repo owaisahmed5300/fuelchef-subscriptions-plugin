@@ -1,0 +1,178 @@
+#!/usr/bin/env sh
+#
+# dev — the single entry point for local plugin development.
+#
+# Everything runs in Docker, so the only host requirement is Docker itself (no PHP,
+# Composer, MySQL or WP-CLI on the host). Long-running services (the site, database,
+# phpMyAdmin, Mailpit) are started with `up`; one-shot tooling (composer, phpcs,
+# phpstan, phpunit, wp-cli, php, scope) runs in a fresh `--rm` container each time.
+# `shell tools` opens an interactive shell in the tools container so you can run
+# multiple commands without the per-invocation container overhead.
+#
+#   ./scripts/dev up                 start the WordPress stack
+#   ./scripts/dev shell tools        open an interactive shell in the tools container
+#   ./scripts/dev composer install   install dev tooling dependencies
+#   ./scripts/dev plugin install     install plugin runtime dependencies
+#   ./scripts/dev phpcs              run the coding-standard check
+#   ./scripts/dev test               run the unit suite
+#   ./scripts/dev help               list every command
+#
+set -eu
+
+# Locate and load the shared Docker helpers relative to this script.
+DEV_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+# shellcheck source=scripts/lib/runtime
+. "$DEV_DIR/lib/runtime"
+
+usage() {
+    cat <<'EOF'
+Usage: ./scripts/dev <command> [args]
+
+Getting started:
+  setup              Rename the boilerplate and configure Docker env (interactive wizard).
+  setup --env        Configure Docker env only (ports, creds; works after rename).
+
+Environment:
+  up                 Start the stack (WordPress, database, phpMyAdmin, Mailpit).
+  down [-v]          Stop the stack. -v also removes named volumes (wipes data).
+  ps                 Show the status of the stack's containers.
+  logs [service]     Follow logs (all services, or one).
+  shell [service]    Open a shell in a running service (default: wordpress).
+                     Use `shell tools` for an interactive tools session
+                     (avoids per-command container overhead).
+
+Tooling (each runs in a throwaway container):
+  php [args]         Run the PHP CLI.
+  composer [args]    Run Composer against the root composer.json.
+  plugin [args]      Run Composer against plugin/composer.json (shortcut) and auto-scope.
+  wp-cli [args]      Run WP-CLI against the running site.
+  phpcs [args]       Run PHP_CodeSniffer (coding-standard check).
+  phpcbf [args]      Run PHP Code Beautifier and Fixer (auto-fix).
+  phpstan            Run PHPStan static analysis.
+  scope              Build plugin/vendor-prefixed with php-scoper.
+
+Testing:
+  test               Run the unit suite (no WordPress; Brain Monkey).
+
+  help               Show this message.
+EOF
+}
+
+cmd="${1:-help}"
+[ "$#" -gt 0 ] && shift || true
+
+# Commands that must work on a bare host, before Docker is even installed, run before
+# the Docker guard. `setup` is the very first thing a new plugin does; help is help.
+case "$cmd" in
+    help | -h | --help)
+        usage
+        exit 0
+        ;;
+    setup)
+        # Pure POSIX sh; runs on the host, no container required.
+        exec sh "$DEV_DIR/setup" "$@"
+        ;;
+esac
+
+require_docker
+
+case "$cmd" in
+    up)
+        compose up -d wordpress db phpmyadmin mailpit
+        echo
+        echo "Stack is up:"
+        # shellcheck source=scripts/docker/.env
+        [ -f "$DOCKER_DIR/.env" ] && . "$DOCKER_DIR/.env"
+        echo "  WordPress    http://localhost:${WORDPRESS_PORT:-8080}"
+        echo "  phpMyAdmin   http://localhost:${PHPMYADMIN_PORT:-8081}"
+        echo "  Mailpit      http://localhost:${MAILPIT_PORT:-8025}"
+        ;;
+    down)
+        compose down "$@"
+        ;;
+    ps)
+        compose ps "$@"
+        ;;
+    logs)
+        compose logs -f "$@"
+        ;;
+    shell)
+        svc="${1:-wordpress}"
+        [ "$#" -gt 0 ] && shift || true
+        case "$svc" in
+            tools)
+                # tools is a run-once service, not a long-running daemon,
+                # so use run --rm instead of exec.
+                compose_run tools sh "$@"
+                ;;
+            *)
+                compose exec "$svc" sh "$@"
+                ;;
+        esac
+        ;;
+    php)
+        compose_run tools php "$@"
+        ;;
+    composer)
+        compose_run tools composer "$@"
+        # Auto-scope plugin runtime dependencies after any command that modifies
+        # or installs plugin/composer.json dependencies. The nested composer
+        # update inside scripts/scope runs directly inside the container, never
+        # through this wrapper, so there is no re-entry / infinite loop.
+        case " $* " in
+            *" --working-dir=plugin "*|*" --working-dir plugin "*|*" -d plugin "*)
+                case " $* " in
+                    *" require "*|*" remove "*|*" install "*|*" update "*)
+                        compose_run tools sh scripts/scope
+                        ;;
+                esac
+                ;;
+        esac
+        ;;
+    plugin)
+        # Shorthand for `composer --working-dir=plugin ...` — runs Composer
+        # against the plugin's own composer.json and auto-scopes on any command
+        # that changes the dependency tree.
+        compose_run tools composer --working-dir=plugin "$@"
+        case "$*" in
+            *require*|*remove*|*install*|*update*) compose_run tools sh scripts/scope ;;
+        esac
+        ;;
+    wp-cli | wp)
+        # WP-CLI needs the site and database, so bring its dependencies up first.
+        compose up -d wordpress
+
+        wp_user="www-data"
+
+        for arg in "$@"; do
+            if [ "$arg" = "--allow-root" ]; then
+                wp_user="root"
+                break
+            fi
+        done
+
+        compose_run --user "$wp_user" wpcli wp "$@"
+        ;;
+    phpcs)
+        compose_run tools vendor/bin/phpcs "$@"
+        ;;
+    phpcbf)
+        # phpcbf exits non-zero when it fixes things; that is success for us.
+        compose_run tools vendor/bin/phpcbf "$@" || true
+        ;;
+    phpstan)
+        compose_run tools vendor/bin/phpstan analyse --memory-limit=2048M --no-progress "$@"
+        ;;
+    scope)
+        compose_run tools sh scripts/scope "$@"
+        ;;
+    test)
+        compose_run tools vendor/bin/phpunit "$@"
+        ;;
+    *)
+        echo "error: unknown command '$cmd'" >&2
+        echo >&2
+        usage >&2
+        exit 2
+        ;;
+esac
