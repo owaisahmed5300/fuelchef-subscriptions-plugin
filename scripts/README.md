@@ -34,8 +34,20 @@ stale:
 ./scripts/dev plugin install     Install plugin runtime deps (auto-scopes)
 ./scripts/dev phpcs              Coding-standard check
 ./scripts/dev phpstan            Static analysis
+./scripts/dev preflight          Syntax-check the pre-flight files on PHP 5.6
 ./scripts/dev test               Unit tests
 ```
+
+## `preflight` — old-PHP syntax check
+
+`./scripts/dev preflight` runs `php -l` on `plugin/fuelchef-subscriptions.php` and
+`plugin/src/Requirements.php` under a real **PHP 5.6** (`php:5.6-cli`), matching the CI
+`legacy-parse` job. The files themselves are written for **PHP 5.3** (maximum reach for
+the pre-flight gate), but 5.6 is the oldest interpreter `shivammathur/setup-php` and the
+official Docker image still make reliably available — 5.3 is no longer installable on
+current GitHub-hosted runners and its Docker images are abandoned. 5.6 parses every
+construct 5.3 does, so passing it proves the files hold no modern syntax. Set the
+`PREFLIGHT_IMAGE` env var to override the image (e.g. `php:7.0-cli`) if you ever need to.
 
 ## `setup` — rename wizard
 
@@ -52,7 +64,7 @@ prefix, scoper prefix, and Docker host ports. Pure shell, no Docker or PHP neede
 ## `scope` — dependency scoping
 
 Builds `plugin/vendor-prefixed/` — the autoloader the plugin actually loads at
-runtime. Third-party dependencies are namespaced under `WPPluginBoilerplate_Deps\`
+runtime. Third-party dependencies are namespaced under `FuelChef\Subscriptions\Dependencies\`
 so releases cannot collide with other plugins.
 
 ```

@@ -5,21 +5,23 @@
 
 declare(strict_types=1);
 
-namespace WPPluginBoilerplate\Tests\Unit;
+namespace FuelChef\Subscriptions\Tests\Unit;
 
 use Brain\Monkey\Functions;
-use WPPluginBoilerplate\Database\Installer;
-use WPPluginBoilerplate\Plugin_Activator;
-use WPPluginBoilerplate\Tests\TestCase;
+use FuelChef\Subscriptions\Database\Installer;
+use FuelChef\Subscriptions\Plugin_Activator;
+use FuelChef\Subscriptions\Tests\TestCase;
 
 /**
  * The installer is real rather than mocked: `install()` is final, so Mockery cannot
  * intercept it. With no schemas and no migrations declared it does nothing but write
  * the version option, which makes `update_option` a faithful count of installs.
  *
- * @covers \WPPluginBoilerplate\Plugin_Activator
+ * @covers \FuelChef\Subscriptions\Plugin_Activator
  */
 final class Plugin_Activator_Test extends TestCase {
+
+
 
 	protected function setUp(): void {
 		parent::setUp();

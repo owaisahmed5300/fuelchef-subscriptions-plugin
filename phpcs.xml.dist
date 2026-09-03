@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
-<ruleset name="WP Plugin Boilerplate PHPCS">
-    <description>WP Plugin Boilerplate coding standards.</description>
+<ruleset name="FuelChef Subscriptions PHPCS">
+    <description>FuelChef Subscriptions coding standards.</description>
 
     <rule ref="WPTechnix-PSR4" />
     <rule ref="WPTechnix-Strict" />
@@ -13,24 +13,40 @@
     <exclude-pattern>*/node_modules/*</exclude-pattern>
 
     <!--
-        The pre-flight files must parse on PHP 5.6 (see docs/architecture.md), so
-        they cannot use type declarations or strict_types. Every other rule,
-        including the security and i18n sniffs, still applies to them.
+        The pre-flight files (the main plugin file and the requirements gate)
+        target PHP 5.3 - they run before the PHP-version check, so a single
+        newer construct would fatal instead of showing the notice that explains
+        why. See docs/architecture.md. CI verifies their syntax under PHP 5.6
+        and their semantics under 5.3 via `composer lint:compat`; here PHPCS
+        just exempts them from the sniffs that would force a language feature
+        newer than 5.3 (scalar type hints, typed properties, strict_types,
+        short array syntax, static closures). Every other rule - security,
+        i18n, naming, spacing - still applies to them.
     -->
     <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint">
         <exclude-pattern>plugin/src/Requirements.php</exclude-pattern>
-        <exclude-pattern>plugin/wp-plugin-boilerplate.php</exclude-pattern>
+        <exclude-pattern>plugin/fuelchef-subscriptions.php</exclude-pattern>
     </rule>
     <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint">
         <exclude-pattern>plugin/src/Requirements.php</exclude-pattern>
-        <exclude-pattern>plugin/wp-plugin-boilerplate.php</exclude-pattern>
+        <exclude-pattern>plugin/fuelchef-subscriptions.php</exclude-pattern>
     </rule>
     <rule ref="SlevomatCodingStandard.TypeHints.PropertyTypeHint">
         <exclude-pattern>plugin/src/Requirements.php</exclude-pattern>
     </rule>
+    <rule ref="SlevomatCodingStandard.Functions.StaticClosure">
+        <!-- The main file's container resolver must not be `static`:
+             static closures are PHP 5.4+, and the pre-flight files target PHP 5.3. -->
+        <exclude-pattern>plugin/src/Requirements.php</exclude-pattern>
+        <exclude-pattern>plugin/fuelchef-subscriptions.php</exclude-pattern>
+    </rule>
     <rule ref="Generic.PHP.RequireStrictTypes">
         <exclude-pattern>plugin/src/Requirements.php</exclude-pattern>
-        <exclude-pattern>plugin/wp-plugin-boilerplate.php</exclude-pattern>
+        <exclude-pattern>plugin/fuelchef-subscriptions.php</exclude-pattern>
+    </rule>
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax">
+        <exclude-pattern>plugin/src/Requirements.php</exclude-pattern>
+        <exclude-pattern>plugin/fuelchef-subscriptions.php</exclude-pattern>
     </rule>
 
     <!-- A test method's name is its documentation; a required docblock only repeats it. -->
@@ -54,7 +70,7 @@
     <rule ref="WordPress.WP.I18n">
         <properties>
             <property name="text_domain" type="array">
-                <element value="wp-plugin-boilerplate" />
+                <element value="fuelchef-subscriptions" />
             </property>
         </properties>
     </rule>

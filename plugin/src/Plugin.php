@@ -5,9 +5,11 @@
 
 declare(strict_types=1);
 
-namespace WPPluginBoilerplate;
+namespace FuelChef\Subscriptions;
 
 defined( 'ABSPATH' ) || exit;
+
+use Automattic\WooCommerce\Utilities\FeaturesUtil;
 
 /**
  * Bootstraps the plugin by registering its hooks.
@@ -18,15 +20,32 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Plugin {
 
+
+	/**
+	 * WooCommerce feature compatibility declarations.
+	 */
+	private const WOOCOMMERCE_COMPATIBILITY = [
+		'custom_order_tables' => true,
+	];
+
 	/**
 	 * Constructor.
+	 *
+	 * @param Plugin_Activator $activator Plugin activator.
 	 */
 	public function __construct(
 		protected Plugin_Activator $activator,
 	) {
 		add_action( 'init', [ $this, 'load_plugin_textdomain' ] );
+		add_action(
+			'before_woocommerce_init',
+			[ $this, 'declare_woocommerce_compatibility' ]
+		);
 
-		register_activation_hook( WP_PLUGIN_BOILERPLATE_FILE, [ $this->activator, 'activate' ] );
+		register_activation_hook(
+			FUELCHEF_SUBSCRIPTIONS_FILE,
+			[ $this->activator, 'activate' ]
+		);
 	}
 
 	/**
@@ -34,9 +53,22 @@ final class Plugin {
 	 */
 	public function load_plugin_textdomain(): void {
 		load_plugin_textdomain(
-			'wp-plugin-boilerplate',
+			'fuelchef-subscriptions',
 			false,
-			plugin_basename( WP_PLUGIN_BOILERPLATE_DIR ) . '/languages'
+			plugin_basename( FUELCHEF_SUBSCRIPTIONS_DIR ) . '/languages'
 		);
+	}
+
+	/**
+	 * Declare WooCommerce feature compatibility.
+	 */
+	public function declare_woocommerce_compatibility(): void {
+		foreach ( self::WOOCOMMERCE_COMPATIBILITY as $feature => $compatible ) {
+			FeaturesUtil::declare_compatibility(
+				$feature,
+				FUELCHEF_SUBSCRIPTIONS_FILE,
+				$compatible
+			);
+		}
 	}
 }

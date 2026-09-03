@@ -10,7 +10,7 @@ parameters:
     tmpDir: .phpstan.cache
 
     paths:
-        - plugin/wp-plugin-boilerplate.php
+        - plugin/fuelchef-subscriptions.php
         - plugin/src
         - plugin/uninstall.php
 
@@ -26,8 +26,8 @@ parameters:
 
     # Built by WordPress at runtime, so their values are never knowable here.
     dynamicConstantNames:
-        - WP_PLUGIN_BOILERPLATE_DIR
-        - WP_PLUGIN_BOILERPLATE_URL
+        - FUELCHEF_SUBSCRIPTIONS_DIR
+        - FUELCHEF_SUBSCRIPTIONS_URL
 
     ignoreErrors:
         # Schema and migration methods are resolved from their names.

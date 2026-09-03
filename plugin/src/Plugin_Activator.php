@@ -3,11 +3,11 @@
  * Plugin activation handler.
  */
 
-declare( strict_types=1 );
+declare(strict_types=1);
 
-namespace WPPluginBoilerplate;
+namespace FuelChef\Subscriptions;
 
-use WPPluginBoilerplate\Database\Installer as DB_Installer;
+use FuelChef\Subscriptions\Database\Installer as DB_Installer;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -16,6 +16,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Plugin_Activator {
 
+
 	/**
 	 * Constructor.
 	 *
@@ -23,7 +24,8 @@ final class Plugin_Activator {
 	 */
 	public function __construct(
 		private DB_Installer $db_installer,
-	) {}
+	) {
+	}
 
 	/**
 	 * Activates the plugin.
@@ -32,7 +34,6 @@ final class Plugin_Activator {
 	 *                           network-wide.
 	 */
 	public function activate( bool $network_wide ): void {
-
 		if ( ! is_multisite() || ! $network_wide ) {
 			$this->db_installer->install();
 

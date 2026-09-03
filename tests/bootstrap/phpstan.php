@@ -12,5 +12,5 @@
 
 declare(strict_types=1);
 
-define( 'WP_PLUGIN_BOILERPLATE_DIR', '' );
-define( 'WP_PLUGIN_BOILERPLATE_URL', '' );
+define( 'FUELCHEF_SUBSCRIPTIONS_DIR', '' );
+define( 'FUELCHEF_SUBSCRIPTIONS_URL', '' );

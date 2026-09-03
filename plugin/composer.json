@@ -1,5 +1,5 @@
 {
-  "name": "wptechnix/wp-plugin-boilerplate",
+  "name": "wptechnix/fuelchef-subscriptions",
   "description": "A boilerplate for building modern WordPress plugins.",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
@@ -9,7 +9,7 @@
   },
   "autoload": {
     "psr-4": {
-      "WPPluginBoilerplate\\": "src/"
+      "FuelChef\\Subscriptions\\": "src/"
     }
   },
   "config": {

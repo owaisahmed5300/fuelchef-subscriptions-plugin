@@ -8,14 +8,14 @@ a release.
 
 ## The gates
 
-| Gate | Runs | Protects against |
-| --- | --- | --- |
-| **Husky pre-commit** | `phpcbf` on staged PHP | Style noise in the diff |
-| **Husky pre-push** | `phpcs`, `phpstan` | Pushing a branch CI will obviously reject |
-| **commitlint** | Every commit on a PR | History that cannot be read or released from |
-| **lint.yml** | PHPCS, PHPStan, editorconfig, PHP 5.6 parse | Style drift, type errors, whitespace, a pre-flight file that cannot parse on old PHP |
-| **test.yml** | The unit suite across PHP 8.0–8.5 | Behaviour regressions, version-specific breakage |
-| **release.yml** | Tag push | Shipping a mismatched version or an unscoped build |
+| Gate                 | Runs                                        | Protects against                                                                     |
+|----------------------|---------------------------------------------|--------------------------------------------------------------------------------------|
+| **Husky pre-commit** | `phpcbf` on staged PHP                      | Style noise in the diff                                                              |
+| **Husky pre-push**   | `phpcs`, `phpstan`                          | Pushing a branch CI will obviously reject                                            |
+| **commitlint**       | Every commit on a PR                        | History that cannot be read or released from                                         |
+| **lint.yml**         | PHPCS, PHPStan, editorconfig, old-PHP parse (5.6) | Style drift, type errors, whitespace, a pre-flight file (target: 5.3) that cannot parse on old PHP |
+| **test.yml**         | The unit suite across PHP 8.0–8.5           | Behaviour regressions, version-specific breakage                                     |
+| **release.yml**      | Tag push                                    | Shipping a mismatched version or an unscoped build                                   |
 
 **The Husky hooks are a convenience, not the gate.** They run locally, they can be
 skipped, and they check a subset. CI is the gate. Never use `--no-verify` to get past a
@@ -24,11 +24,15 @@ hook — if a hook is wrong, fix the hook.
 ## Run the gate before it runs you
 
 ```sh
-./scripts/dev phpcbf && ./scripts/dev phpcs && ./scripts/dev phpstan && ./scripts/dev test
+./scripts/dev phpcbf && ./scripts/dev phpcs && ./scripts/dev phpstan \
+  && ./scripts/dev preflight && ./scripts/dev test
 ```
 
-Everything except the version matrix, in about a minute. There is no reason to discover
-a PHPCS violation from a CI email.
+Everything except the version matrix, in about a minute. `preflight` is the local twin of
+CI's `legacy-parse` job: it runs both pre-flight files through a real PHP 5.6 interpreter
+to prove they hold no modern syntax (the files themselves are written for PHP 5.3 — see
+[`../standards.md`](../standards.md#the-pre-flight-files-target-php-53-verified-under-php-56)).
+There is no reason to discover a PHPCS violation from a CI email.
 
 ---
 
@@ -112,7 +116,7 @@ at the stable version — only the tag differs.
 - [ ] The changes since the last tag are ones you meant to ship.
 - [ ] Any database migration has been run forwards on a copy of real data.
 - [ ] Anything that needs a live WordPress has been checked by hand against
-      `./scripts/dev up`.
+  `./scripts/dev up`.
 
 **Cutting a release is the repository owner's call.** An agent prepares the version
 bump and opens the PR; it does not push the tag unless asked.

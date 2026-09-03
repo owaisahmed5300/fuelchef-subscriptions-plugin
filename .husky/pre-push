@@ -29,5 +29,13 @@ echo
 ./scripts/dev phpcs
 ./scripts/dev phpstan
 
+# The pre-flight files are verified under PHP 5.6 (the oldest interpreter CI can
+# still install; the files themselves stay written for PHP 5.3). Only run the
+# check when one of those two files changed, to avoid pulling php:5.6 on every push.
+if git diff --name-only --diff-filter=ACMR "$base" -- \
+    'plugin/fuelchef-subscriptions.php' 'plugin/src/Requirements.php' | grep -q .; then
+  ./scripts/dev preflight
+fi
+
 echo
 echo "========== All pre-push checks passed =========="

@@ -1,4 +1,4 @@
-name: wp-plugin-boilerplate
+name: fuelchef-subscriptions-plugin
 
 services:
   # ---------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ services:
       - "${WORDPRESS_PORT:-8080}:80"
     volumes:
       - wp_core:/var/www/html
-      - ../../plugin:/var/www/html/wp-content/plugins/${PLUGIN_SLUG:-wp-plugin-boilerplate}
+      - ../../plugin:/var/www/html/wp-content/plugins/${PLUGIN_SLUG:-fuelchef-subscriptions}
       - ./wordpress/mu-plugins:/var/www/html/wp-content/mu-plugins
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -96,7 +96,7 @@ services:
       WORDPRESS_TABLE_PREFIX: "${WORDPRESS_TABLE_PREFIX:-wp_}"
     volumes:
       - wp_core:/var/www/html
-      - ../../plugin:/var/www/html/wp-content/plugins/${PLUGIN_SLUG:-wp-plugin-boilerplate}
+      - ../../plugin:/var/www/html/wp-content/plugins/${PLUGIN_SLUG:-fuelchef-subscriptions}
     # `docker compose run --rm wpcli wp <args>` overrides this default.
     command: ["wp", "--info"]
 

@@ -3,7 +3,7 @@
  * PHPUnit bootstrap for the unit test suite.
  *
  * No WordPress is loaded. WordPress functions are mocked with Brain Monkey through
- * WPPluginBoilerplate\Tests\TestCase, so this only needs the Composer autoloader,
+ * FuelChef\Subscriptions\Tests\TestCase, so this only needs the Composer autoloader,
  * which maps the plugin classes and the test classes.
  */
 
@@ -15,8 +15,8 @@ define( 'ABSPATH', dirname( __DIR__, 2 ) . '/wordpress/' );
 
 // Defined by the main plugin file, which the suite never runs. Classes that read them
 // need them to exist; no test asserts on these values.
-define( 'WP_PLUGIN_BOILERPLATE_FILE', dirname( __DIR__, 2 ) . '/plugin/wp-plugin-boilerplate.php' );
-define( 'WP_PLUGIN_BOILERPLATE_DIR', dirname( __DIR__, 2 ) . '/plugin/' );
+define( 'FUELCHEF_SUBSCRIPTIONS_FILE', dirname( __DIR__, 2 ) . '/plugin/fuelchef-subscriptions.php' );
+define( 'FUELCHEF_SUBSCRIPTIONS_DIR', dirname( __DIR__, 2 ) . '/plugin/' );
 
 $autoload = dirname( __DIR__, 2 ) . '/vendor/autoload.php';
 

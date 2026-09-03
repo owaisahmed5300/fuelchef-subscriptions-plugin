@@ -3,9 +3,9 @@
  * Site database installer.
  */
 
-declare( strict_types=1 );
+declare(strict_types=1);
 
-namespace WPPluginBoilerplate\Database;
+namespace FuelChef\Subscriptions\Database;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -14,20 +14,21 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Installer extends Abstract_Installer {
 
+
 	/**
-	 * Database Version
+	 * Database version.
 	 */
 	public const DB_VERSION = '1.0.0';
 
 	/**
 	 * Site database version option.
 	 */
-	public const OPTION_KEY = 'wp_plugin_boilerplate_db_version';
+	public const OPTION_KEY = 'fuelchef_subscriptions_db_version';
 
 	/**
-	 * Site schema definition methods.
+	 * Site database schema definitions.
 	 *
-	 * @var list<string>|array{}
+	 * @var list<string>
 	 */
 	protected array $schemas = [];
 
@@ -39,14 +40,16 @@ final class Installer extends Abstract_Installer {
 	protected array $migrations = [];
 
 	/**
-	 * @inheritDoc
+	 * Returns the currently installed database version.
 	 */
 	protected function get_current_version(): string {
-		return (string) get_option( self::OPTION_KEY, '0.0.0' );
+		$version = get_option( self::OPTION_KEY, '0.0.0' );
+
+		return is_string( $version ) ? $version : '0.0.0';
 	}
 
 	/**
-	 * @inheritDoc
+	 * Updates the installed database version.
 	 */
 	protected function update_version(): void {
 		update_option( self::OPTION_KEY, self::DB_VERSION );

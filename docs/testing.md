@@ -11,7 +11,7 @@ How the suite is wired. What makes a test worth keeping is
 ## How the suite is wired
 
 - `tests/Unit/`, config `phpunit.xml.dist`, bootstrap `tests/bootstrap/unit.php`.
-- Test cases extend `WPPluginBoilerplate\Tests\TestCase`, which is the whole framework:
+- Test cases extend `FuelChef\Subscriptions\Tests\TestCase`, which is the whole framework:
   it calls `Monkey\setUp()` / `Monkey\tearDown()` and uses Mockery's PHPUnit adapter, so an
   unmet expectation fails the test rather than passing silently.
 - **No WordPress is loaded.** WordPress functions are mocked with
@@ -24,11 +24,11 @@ How the suite is wired. What makes a test worth keeping is
 
 ## Conventions
 
-| | |
-| --- | --- |
-| Directory | `tests/Unit/`, mirroring `plugin/src/` |
-| Namespace | `WPPluginBoilerplate\Tests\Unit` |
-| Base class | `WPPluginBoilerplate\Tests\TestCase` |
+|            |                                         |
+|------------|-----------------------------------------|
+| Directory  | `tests/Unit/`, mirroring `plugin/src/`  |
+| Namespace  | `FuelChef\Subscriptions\Tests\Unit`     |
+| Base class | `FuelChef\Subscriptions\Tests\TestCase` |
 
 - **Naming follows the plugin's `Snake_Case` class style**, not PSR-4 studly caps:
   `Requirements` is tested by `Requirements_Test`.

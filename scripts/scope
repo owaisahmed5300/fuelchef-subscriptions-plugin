@@ -74,7 +74,7 @@ php-scoper add-prefix \
 # --- Regenerate the autoloader over the prefixed tree ----------------------------
 # php-scoper rewrote the packages and vendor/composer/installed.json under
 # vendor-prefixed/. Pointing Composer's vendor dir at it and dumping a fresh optimized
-# autoloader gives a clean map that also covers the plugin's own WPPluginBoilerplate\
+# autoloader gives a clean map that also covers the plugin's own FuelChef\Subscriptions\
 # namespace (from plugin/composer.json). PSR-4 stays available for new plugin classes.
 echo "==> Regenerating the scoped autoloader..."
 COMPOSER_VENDOR_DIR=vendor-prefixed composer dump-autoload \

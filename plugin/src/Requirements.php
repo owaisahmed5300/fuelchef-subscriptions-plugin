@@ -3,11 +3,11 @@
  * Pre-flight requirements gate.
  *
  * Loaded before the Composer autoloader, so it can have no dependencies.
- * Must parse and run on PHP 5.6: its purpose is to determine whether the
+ * Must parse and run on PHP 5.3: its purpose is to determine whether the
  * plugin meets its minimum requirements, including the minimum PHP version.
  */
 
-namespace WPPluginBoilerplate;
+namespace FuelChef\Subscriptions;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -27,6 +27,7 @@ defined( 'ABSPATH' ) || exit;
  *     }
  */
 final class Requirements {
+
 
 	/**
 	 * Absolute path to the main plugin file.
@@ -73,7 +74,7 @@ final class Requirements {
 	/**
 	 * Cached failures, or null before the checks have run.
 	 *
-	 * @var array<int, array<string, string>>|null
+	 * @var list<array<string, string>>|null
 	 */
 	private $failures = null;
 
@@ -119,7 +120,7 @@ final class Requirements {
 	 *
 	 * @param string $version Minimum PHP version.
 	 *
-	 * @return $this
+	 * @return self
 	 */
 	public function require_php( $version ) {
 		$this->min_php = $version;
@@ -132,7 +133,7 @@ final class Requirements {
 	 *
 	 * @param string $version Minimum WordPress version.
 	 *
-	 * @return $this
+	 * @return self
 	 */
 	public function require_wp( $version ) {
 		$this->min_wp = $version;
@@ -143,11 +144,11 @@ final class Requirements {
 	/**
 	 * Require another plugin, optionally at a minimum version.
 	 *
-	 * @param string $slug        Plugin slug on WordPress.org, e.g. `woocommerce`.
-	 * @param string $name        Plugin display name, e.g. `WooCommerce`.
+	 * @param string $slug Plugin slug on WordPress.org, e.g. `woocommerce`.
+	 * @param string $name Plugin display name, e.g. `WooCommerce`.
 	 * @param string $min_version Minimum version, or an empty string for any.
 	 *
-	 * @return $this
+	 * @return self
 	 */
 	public function require_plugin( $slug, $name, $min_version = '' ) {
 		$this->required_plugins[ $slug ] = [
@@ -161,12 +162,16 @@ final class Requirements {
 	/**
 	 * Require a Composer autoloader, given candidate paths in preference order.
 	 *
-	 * @param string ...$paths Candidate autoloader paths, most specific first.
+	 * Accepts any number of string paths, most specific first; the first that
+	 * exists on disk is the one that loads. Variadic by `func_get_args()` rather
+	 * than `...$paths`, which is PHP 5.6+.
 	 *
-	 * @return $this
+	 * @return self
 	 */
-	public function require_autoloader( ...$paths ) {
-		$this->autoloader_candidates = array_values( $paths );
+	public function require_autoloader() {
+		/** @var list<string> $paths */
+		$paths                       = func_get_args();
+		$this->autoloader_candidates = $paths;
 
 		return $this;
 	}
@@ -175,8 +180,8 @@ final class Requirements {
 	 * Whether every requirement is met.
 	 *
 	 * On the first call, when anything is unmet, this also registers the admin
-	 * notice and the activation guard, so the caller only has to `return`. The
-	 * side effect is deliberate and happens at most once.
+	 * notice and the activation guard, so the caller only has to `return`.
+	 * The side effect is deliberate and happens at most once.
 	 *
 	 * @return bool
 	 */
@@ -196,7 +201,7 @@ final class Requirements {
 	 * Each entry has a `type` key: `php`, `wp`, `plugin_missing`,
 	 * `plugin_inactive`, `plugin_version` or `autoloader`.
 	 *
-	 * @return array<int, array<string, string>>
+	 * @return list<array<string, string>>
 	 */
 	public function failures() {
 		if ( null !== $this->failures ) {
@@ -241,11 +246,13 @@ final class Requirements {
 		}
 
 		echo '<div class="notice notice-error"><p><strong>';
+
 		printf(
 		/* translators: %s: Plugin name. */
-			esc_html__( '%s could not be loaded.', 'wp-plugin-boilerplate' ),
+			esc_html__( '%s could not be loaded.', 'fuelchef-subscriptions' ),
 			esc_html( $this->plugin_name )
 		);
+
 		echo '</strong></p>';
 
 		if ( 1 === count( $failures ) ) {
@@ -255,7 +262,7 @@ final class Requirements {
 			return;
 		}
 
-		echo '<p>' . esc_html__( 'The following requirements are not met:', 'wp-plugin-boilerplate' ) . '</p>';
+		echo '<p>' . esc_html__( 'The following requirements are not met:', 'fuelchef-subscriptions' ) . '</p>';
 		echo '<ul>';
 
 		foreach ( $failures as $failure ) {
@@ -278,14 +285,14 @@ final class Requirements {
 		}
 
 		$body = sprintf(
-			/* translators: %s: Plugin name. */
-			'<p>' . esc_html__( '%s could not be activated.', 'wp-plugin-boilerplate' ) . '</p>',
+				/* translators: %s: Plugin name. */
+			'<p>' . esc_html__( '%s could not be activated.', 'fuelchef-subscriptions' ) . '</p>',
 			esc_html( $this->plugin_name )
 		) . '<ul>' . implode( '', $messages ) . '</ul>';
 
 		wp_die(
 			wp_kses_post( $body ),
-			esc_html__( 'Plugin activation failed', 'wp-plugin-boilerplate' ),
+			esc_html__( 'Plugin activation failed', 'fuelchef-subscriptions' ),
 			[ 'back_link' => true ]
 		);
 	}
@@ -309,7 +316,7 @@ final class Requirements {
 	/**
 	 * Check the PHP version.
 	 *
-	 * @return array<int, array<string, string>>
+	 * @return list<array<string, string>>
 	 */
 	private function php_failures() {
 		if ( '' === $this->min_php || version_compare( PHP_VERSION, $this->min_php, '>=' ) ) {
@@ -328,7 +335,7 @@ final class Requirements {
 	/**
 	 * Check the WordPress version.
 	 *
-	 * @return array<int, array<string, string>>
+	 * @return list<array<string, string>>
 	 */
 	private function wordpress_failures() {
 		if ( '' === $this->min_wp ) {
@@ -353,7 +360,7 @@ final class Requirements {
 	/**
 	 * Check every required plugin is installed, active and new enough.
 	 *
-	 * @return array<int, array<string, string>>
+	 * @return list<array<string, string>>
 	 */
 	private function plugin_failures() {
 		$failures = [];
@@ -408,7 +415,7 @@ final class Requirements {
 	/**
 	 * Check that a Composer autoloader was shipped.
 	 *
-	 * @return array<int, array<string, string>>
+	 * @return list<array<string, string>>
 	 */
 	private function autoloader_failures() {
 		if ( [] === $this->autoloader_candidates || '' !== $this->autoloader() ) {
@@ -434,7 +441,10 @@ final class Requirements {
 			case 'php':
 				return sprintf(
 				/* translators: 1: Plugin name. 2: Required PHP version. 3: Installed PHP version. */
-					esc_html__( '%1$s requires PHP %2$s or later. This site is running PHP %3$s. Please ask your host to upgrade.', 'wp-plugin-boilerplate' ),
+					esc_html__(
+						'%1$s requires PHP %2$s or later. This site is running PHP %3$s. Please ask your host to upgrade.',
+						'fuelchef-subscriptions'
+					),
 					esc_html( $this->plugin_name ),
 					esc_html( $failure['required'] ),
 					esc_html( $failure['current'] )
@@ -443,7 +453,10 @@ final class Requirements {
 			case 'wp':
 				return sprintf(
 				/* translators: 1: Plugin name. 2: Required WordPress version. 3: Installed WordPress version. */
-					esc_html__( '%1$s requires WordPress %2$s or later. This site is running WordPress %3$s.', 'wp-plugin-boilerplate' ),
+					esc_html__(
+						'%1$s requires WordPress %2$s or later. This site is running WordPress %3$s.',
+						'fuelchef-subscriptions'
+					),
 					esc_html( $this->plugin_name ),
 					esc_html( $failure['required'] ),
 					esc_html( $failure['current'] )
@@ -453,44 +466,53 @@ final class Requirements {
 				return $this->plugin_action_message(
 					sprintf(
 					/* translators: 1: Plugin name. 2: Required plugin name. */
-						esc_html__( '%1$s requires %2$s, which is not installed.', 'wp-plugin-boilerplate' ),
+						esc_html__( '%1$s requires %2$s, which is not installed.', 'fuelchef-subscriptions' ),
 						esc_html( $this->plugin_name ),
 						esc_html( $failure['name'] )
 					),
 					'install_plugins',
 					$this->install_url( $failure['slug'] ),
-					esc_html__( 'Install Plugin', 'wp-plugin-boilerplate' )
+					esc_html__( 'Install Plugin', 'fuelchef-subscriptions' )
 				);
 
 			case 'plugin_inactive':
 				return $this->plugin_action_message(
 					sprintf(
 					/* translators: 1: Plugin name. 2: Required plugin name. */
-						esc_html__( '%1$s requires %2$s, which is installed but not active.', 'wp-plugin-boilerplate' ),
+						esc_html__(
+							'%1$s requires %2$s, which is installed but not active.',
+							'fuelchef-subscriptions'
+						),
 						esc_html( $this->plugin_name ),
 						esc_html( $failure['name'] )
 					),
 					'activate_plugins',
 					$this->activate_url( $failure['file'] ),
-					esc_html__( 'Activate Plugin', 'wp-plugin-boilerplate' )
+					esc_html__( 'Activate Plugin', 'fuelchef-subscriptions' )
 				);
 
 			case 'plugin_version':
 				return sprintf(
 				/* translators: 1: Plugin name. 2: Required plugin name. 3: Required version. 4: Installed version. */
-					esc_html__( '%1$s requires %2$s %3$s or later. This site has %2$s %4$s.', 'wp-plugin-boilerplate' ),
+					esc_html__(
+						'%1$s requires %2$s %3$s or later. This site has %2$s %4$s.',
+						'fuelchef-subscriptions'
+					),
 					esc_html( $this->plugin_name ),
 					esc_html( $failure['name'] ),
 					esc_html( $failure['required'] ),
 					'' === $failure['current']
-						? esc_html__( 'an unknown version', 'wp-plugin-boilerplate' )
+						? esc_html__( 'an unknown version', 'fuelchef-subscriptions' )
 						: esc_html( $failure['current'] )
 				);
 
 			default:
 				return sprintf(
 				/* translators: %s: Plugin name. */
-					esc_html__( '%s is missing its Composer dependencies. Please reinstall the plugin.', 'wp-plugin-boilerplate' ),
+					esc_html__(
+						'%s is missing its Composer dependencies. Please reinstall the plugin.',
+						'fuelchef-subscriptions'
+					),
 					esc_html( $this->plugin_name )
 				);
 		}
@@ -499,10 +521,10 @@ final class Requirements {
 	/**
 	 * Append an action link to a message when the user may act on it.
 	 *
-	 * @param string $message    The message itself.
+	 * @param string $message The message itself.
 	 * @param string $capability Capability required to act.
-	 * @param string $url        Target URL.
-	 * @param string $label      Link label.
+	 * @param string $url Target URL.
+	 * @param string $label Link label.
 	 *
 	 * @return string
 	 */

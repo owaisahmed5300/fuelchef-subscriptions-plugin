@@ -8,7 +8,7 @@ isolated for release.
 - **`plugin/`** is the only thing a release contains. Its `composer.json` declares the
   plugin's **runtime** dependencies and nothing else.
 - **The root** holds development tooling, and its `composer.json` installs all of it. The
-  root autoloader also maps `WPPluginBoilerplate\ => plugin/src/`, so tests and analysis
+  root autoloader also maps `FuelChef\Subscriptions\ => plugin/src/`, so tests and analysis
   find plugin classes without the plugin's own `vendor/` existing.
 
 That is why there are two `composer.json` files. You install the root one during
@@ -16,7 +16,7 @@ development; the plugin one is installed only as part of scoping.
 
 ## The boot sequence
 
-`plugin/wp-plugin-boilerplate.php` does four things, in order:
+`plugin/fuelchef-subscriptions.php` does four things, in order:
 
 1. Defines the plugin constants.
 2. `require_once`s `src/Requirements.php` and declares what the plugin needs.
@@ -28,11 +28,11 @@ development; the plugin one is installed only as part of scoping.
 Read the file itself for the detail; it is short, commented for the choices you will make
 when you personalise it, and the only copy that cannot go stale.
 
-**Both that file and `src/Requirements.php` must parse on PHP 5.6.** PHP parses an entire
+**Both that file and `src/Requirements.php` must parse on PHP 5.3.** PHP parses an entire
 file before executing any of it, so one arrow function anywhere in either is a fatal error
 on old PHP and the gate never runs to explain why. That is why neither carries
 `declare(strict_types=1)`, type hints, or closure shorthand. Two checks hold them to it:
-[`standards.md`](standards.md#the-pre-flight-files-target-php-56).
+[`standards.md`](standards.md#the-pre-flight-files-target-php-53-verified-under-php-56).
 
 ### The requirements gate
 
@@ -59,11 +59,11 @@ something, **that plugin's own WordPress minimum sets the floor, not you.** WooC
 for instance, raises its own roughly every other release:
 
 | WooCommerce | Requires WordPress |
-| --- | --- |
-| 9.4 | 6.5 |
-| 9.8 | 6.6 |
-| 10.0 | 6.7 |
-| 11.0 | 6.9 |
+|-------------|--------------------|
+| 9.4         | 6.5                |
+| 9.8         | 6.6                |
+| 10.0        | 6.7                |
+| 11.0        | 6.9                |
 
 Declaring a WordPress version below what your required plugin needs describes a site
 nobody can build: anyone able to install the dependency is already above your floor. Pick
@@ -90,7 +90,7 @@ cloning.
 WordPress loads every active plugin into one PHP process, so two plugins bundling the same
 library at different versions will break each other — whichever loads first wins.
 [php-scoper](https://github.com/humbug/php-scoper) prevents that by rewriting your
-dependencies into a private namespace, `WPPluginBoilerplate_Deps\`.
+dependencies into a private namespace, `FuelChef\Subscriptions\Dependencies\`.
 
 That is why plugin code imports the prefixed name. **The unprefixed one resolves against
 the dev tree and then fatals in a release.**
@@ -131,10 +131,10 @@ the tools image, downloaded in the release workflow — and kept out of `compose
 
 ## Development vs release, side by side
 
-| | Development checkout | Test suite | Released zip |
-| --- | --- | --- | --- |
-| Autoloader | `plugin/vendor-prefixed/autoload.php` | root `vendor/autoload.php` | `plugin/vendor-prefixed/autoload.php` |
-| Plugin classes from | `plugin/src/` | `plugin/src/` | `plugin/src/` |
-| Dependencies | scoped under `WPPluginBoilerplate_Deps\` | not loaded (mocked or unused) | scoped under `WPPluginBoilerplate_Deps\` |
-| Composer manifests | present | present | stripped from zip |
-| Needs `scripts/scope` first | yes | no | built by `release.yml` |
+|                             | Development checkout                                | Test suite                    | Released zip                                        |
+|-----------------------------|-----------------------------------------------------|-------------------------------|-----------------------------------------------------|
+| Autoloader                  | `plugin/vendor-prefixed/autoload.php`               | root `vendor/autoload.php`    | `plugin/vendor-prefixed/autoload.php`               |
+| Plugin classes from         | `plugin/src/`                                       | `plugin/src/`                 | `plugin/src/`                                       |
+| Dependencies                | scoped under `FuelChef\Subscriptions\Dependencies\` | not loaded (mocked or unused) | scoped under `FuelChef\Subscriptions\Dependencies\` |
+| Composer manifests          | present                                             | present                       | stripped from zip                                   |
+| Needs `scripts/scope` first | yes                                                 | no                            | built by `release.yml`                              |

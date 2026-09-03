@@ -22,9 +22,9 @@ A test file mirrors the namespace and directory of the class it covers under
 `plugin/src/`:
 
 - `plugin/src/Database/Installer.php` → `tests/Unit/Database/Installer_Test.php`,
-  namespace `WPPluginBoilerplate\Tests\Unit\Database`
+  namespace `FuelChef\Subscriptions\Tests\Unit\Database`
 - `plugin/src/Plugin.php` → `tests/Unit/Plugin_Test.php`, namespace
-  `WPPluginBoilerplate\Tests\Unit`
+  `FuelChef\Subscriptions\Tests\Unit`
 
 The class under test gets a test class named `X_Test`, and the file must end in
 `Test.php` or PHPUnit will not collect it. Shared scaffolding must therefore *not* end

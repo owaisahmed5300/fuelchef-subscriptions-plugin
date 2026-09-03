@@ -1,16 +1,16 @@
 {
-  "name": "wptechnix/wp-plugin-boilerplate-tools",
+  "name": "wptechnix/fuelchef-subscriptions-tools",
   "description": "Development tooling for the WPTechnix WordPress Plugin Boilerplate.",
   "type": "project",
   "license": "GPL-2.0-or-later",
   "autoload": {
     "psr-4": {
-      "WPPluginBoilerplate\\": "plugin/src/"
+      "FuelChef\\Subscriptions\\": "plugin/src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "WPPluginBoilerplate\\Tests\\": "tests/"
+      "FuelChef\\Subscriptions\\Tests\\": "tests/"
     }
   },
   "require-dev": {
@@ -44,7 +44,7 @@
       "@phpstan"
     ],
     "test": "phpunit",
-    "lint:compat": "phpcs plugin/wp-plugin-boilerplate.php plugin/src/Requirements.php --standard=PHPCompatibility --runtime-set testVersion 5.6- --report=full"
+    "lint:compat": "phpcs plugin/fuelchef-subscriptions.php plugin/src/Requirements.php --standard=PHPCompatibility --runtime-set testVersion 5.3- --report=full"
   },
   "scripts-descriptions": {
     "phpcs": "Checks code against WordPress coding standards.",
@@ -52,6 +52,6 @@
     "phpstan": "Runs static analysis on the codebase.",
     "lint": "Runs full code quality checks (PHPCBF, PHPCS, PHPStan).",
     "test": "Runs the unit test suite (no WordPress; Brain Monkey).",
-    "lint:compat": "Verifies the pre-flight gate and the main plugin file still parse on PHP 5.6."
+    "lint:compat": "Verifies the pre-flight gate and the main plugin file still parse on PHP 5.3."
   }
 }

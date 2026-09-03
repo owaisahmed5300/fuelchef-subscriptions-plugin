@@ -46,10 +46,10 @@ return [
 	// will be generated instead.
 	//
 	// For more see: https://github.com/humbug/php-scoper/blob/master/docs/configuration.md#prefix
-	'prefix' => 'WPPluginBoilerplate_Deps',
+	'prefix'                  => 'FuelChef\Subscriptions\Dependencies',
 
 	// Scope ONLY the plugin's installed runtime dependencies (plugin/vendor), never the
-	// plugin's own source in plugin/src. That keeps the public `WPPluginBoilerplate\`
+	// plugin's own source in plugin/src. That keeps the public `FuelChef\Subscriptions\`
 	// namespace intact for WordPress hooks and other plugins to reference.
 	//
 	// php-scoper strips the longest common base path shared by every scanned file and
@@ -61,11 +61,11 @@ return [
 	// `composer dump-autoload` in scripts/scope.
 	//
 	// For more see: https://github.com/humbug/php-scoper/blob/master/docs/configuration.md#finders-and-paths
-	'finders' => is_dir(__DIR__ . '/plugin/vendor')
+	'finders'                 => is_dir(__DIR__ . '/plugin/vendor')
 		? [
 			SymfonyFinder::create()
-				->files()
-				->in('plugin/vendor'),
+			             ->files()
+			             ->in('plugin/vendor'),
 		]
 		: [],
 
@@ -74,7 +74,7 @@ return [
 	// absolute.
 	//
 	// For more see: https://github.com/humbug/php-scoper/blob/master/docs/configuration.md#patchers
-	'exclude-files' => [],
+	'exclude-files'           => [],
 
 	// When scoping PHP files, there will be scenarios where some of the code
 	// being scoped indirectly references the original namespace. These include,
@@ -83,33 +83,33 @@ return [
 	// to manipulate the file as needed.
 	//
 	// For more see: https://github.com/humbug/php-scoper/blob/master/docs/configuration.md#patchers
-	'patchers' => [],
+	'patchers'                => [],
 
 	// List of symbols to consider internal, i.e. to leave untouched.
 	//
 	// For more information see:
 	// https://github.com/humbug/php-scoper/blob/master/docs/configuration.md#excluded-symbols
-	'exclude-namespaces' => [
-		'WPPluginBoilerplate',
+	'exclude-namespaces'      => [
+		'FuelChef',
 	],
-	'exclude-classes' => $excludeClasses,
-	'exclude-functions' => $excludeFunctions,
-	'exclude-constants' => $excludeConstants,
+	'exclude-classes'         => $excludeClasses,
+	'exclude-functions'       => $excludeFunctions,
+	'exclude-constants'       => $excludeConstants,
 
 	// List of symbols to expose.
 	//
 	// For more information see:
 	// https://github.com/humbug/php-scoper/blob/master/docs/configuration.md#exposed-symbols
 	'expose-global-constants' => false,
-	'expose-global-classes' => false,
+	'expose-global-classes'   => false,
 	'expose-global-functions' => false,
-	'expose-namespaces' => [
+	'expose-namespaces'       => [
 		// 'Acme\Foo'                  // The Acme\Foo namespace (and sub-namespaces)
 		// '~^PHPUnit\\\\Framework$~', // The PHPUnit\Framework namespace only.
 		// '~^$~',                     // The root namespace only.
 		// '',                         // Any namespace.
 	],
-	'expose-classes' => [],
-	'expose-functions' => [],
-	'expose-constants' => [],
+	'expose-classes'          => [],
+	'expose-functions'        => [],
+	'expose-constants'        => [],
 ];

@@ -1,6 +1,6 @@
 {
-  "name": "wp-plugin-boilerplate",
-  "description": "Node.js development tooling for the WP Plugin Boilerplate.",
+  "name": "fuelchef-subscriptions",
+  "description": "Node.js development tooling for the FuelChef Subscriptions.",
   "private": true,
   "license": "GPL-2.0-or-later",
   "scripts": {

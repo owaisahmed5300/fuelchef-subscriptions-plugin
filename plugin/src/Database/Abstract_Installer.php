@@ -3,9 +3,9 @@
  * Abstract database installer.
  */
 
-declare( strict_types=1 );
+declare(strict_types=1);
 
-namespace WPPluginBoilerplate\Database;
+namespace FuelChef\Subscriptions\Database;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || exit;
  * Provides the common database installation and migration workflow.
  */
 abstract class Abstract_Installer {
+
 
 	/**
 	 * Site schema definition methods.
@@ -51,7 +52,6 @@ abstract class Abstract_Installer {
 	 * Synchronizes database tables using dbDelta().
 	 */
 	private function sync_schema(): void {
-
 		if ( [] === $this->schemas ) {
 			return;
 		}
@@ -83,5 +83,32 @@ abstract class Abstract_Installer {
 				}
 			}
 		}
+	}
+
+	/**
+	 * The site's character set and collation, in the form dbDelta expects.
+	 */
+	protected function charset_collate(): string {
+		global $wpdb;
+
+		return $wpdb->get_charset_collate();
+	}
+
+
+	/**
+	 * The full name of one of the plugin's tables.
+	 *
+	 * Static because repositories need it without taking the installer as a dependency, and
+	 * the answer depends only on `$wpdb`.
+	 *
+	 * @param string $name The table name without the site prefix or the `fcs_` prefix, such
+	 *                     as `deliveries`.
+	 *
+	 * @return string The name to use in a query, prefixed for the current site.
+	 */
+	public static function table( string $name ): string {
+		global $wpdb;
+
+		return $wpdb->prefix . 'fcs_' . $name;
 	}
 }

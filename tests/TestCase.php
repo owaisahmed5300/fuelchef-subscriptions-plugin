@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace WPPluginBoilerplate\Tests;
+namespace FuelChef\Subscriptions\Tests;
 
 use Brain\Monkey;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -17,6 +17,7 @@ use PHPUnit\Framework\TestCase as PHPUnit_TestCase;
  * The file name does not end in `Test.php`, so PHPUnit never collects it.
  */
 abstract class TestCase extends PHPUnit_TestCase {
+
 
 	/**
 	 * Counts Mockery expectations as assertions and verifies them on teardown.

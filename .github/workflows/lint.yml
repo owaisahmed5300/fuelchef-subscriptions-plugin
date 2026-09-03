@@ -24,7 +24,7 @@ on:
       - 'scripts/lib/runtime'
 
   push:
-    branches: [main]
+    branches: [ main ]
     paths-ignore:
       - 'docs/**'
       - '**.md'
@@ -83,7 +83,7 @@ jobs:
 
       - name: Scope plugin dependencies
         # Build plugin/vendor-prefixed/ before static analysis. plugin/src imports
-        # WPPluginBoilerplate_Deps\ symbols that only exist in the scoped tree (gitignored,
+        # FuelChef\Subscriptions\Dependencies\ symbols that only exist in the scoped tree (gitignored,
         # absent from a fresh checkout), and phpstan.neon.dist scans it. Keep the lint
         # run in step with release.yml and the local ./scripts/dev scope flow.
         run: bash scripts/scope
@@ -132,14 +132,22 @@ jobs:
         run: editorconfig-checker -disable-max-line-length -disable-indent-size
 
   legacy-parse:
-    name: Pre-flight files parse on PHP 5.6
+    name: Pre-flight files parse on old PHP
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
-    # The main plugin file and the requirements gate run BEFORE the plugin's PHP
-    # version has been checked, and PHP parses a whole file before executing any
-    # of it. A single modern construct in either one turns "your PHP is too old"
-    # into a white screen. Only a real old parser proves they are safe.
+    # The main plugin file and the requirements gate are written for PHP 5.3 and
+    # run BEFORE the plugin's PHP version has been checked, and PHP parses a whole
+    # file before executing any of it. A single modern construct in either one
+    # turns "your PHP is too old" into a white screen. Only a real old parser
+    # proves they are safe.
+    #
+    # The script still targets PHP 5.3, but this job lints under PHP 5.6: PHP 5.3
+    # is no longer reliably installable by shivammathur/setup-php on current
+    # GitHub-hosted runners, and the official php:5.3 Docker images are abandoned
+    # (built from dead download URLs). 5.6 parses every construct 5.3 does and more,
+    # so it is the oldest interpreter we can still run in CI. The PHPCompatibility
+    # check (composer lint:compat, testVersion 5.3-) is what guards 5.3 semantics.
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -154,5 +162,5 @@ jobs:
 
       - name: Lint the pre-flight files
         run: |
-          php -l plugin/wp-plugin-boilerplate.php
+          php -l plugin/fuelchef-subscriptions.php
           php -l plugin/src/Requirements.php

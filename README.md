@@ -1,6 +1,6 @@
-# WP Plugin Boilerplate
+# FuelChef Subscriptions
 
-**WP Plugin Boilerplate** is a WordPress plugin that ships with a batteries-included
+**FuelChef Subscriptions** is a WordPress plugin that ships with a batteries-included
 development setup: a Dockerised dev environment, coding standards, static analysis, unit
 tests, dependency scoping, and CI/release automation, all wired up and ready to use, so
 development is productive from the first commit.

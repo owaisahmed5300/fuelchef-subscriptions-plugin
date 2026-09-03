@@ -7,16 +7,16 @@ tests a document.
 
 ## Where things are
 
-| I want to… | Read |
-| --- | --- |
-| Set this up as my own plugin | [Making it yours](#making-it-yours) |
-| Know how to work here — branching, commits, tests, CI | [`docs/guidelines/`](docs/guidelines/README.md) |
-| Run, test, lint or release | [`scripts/README.md`](scripts/README.md) |
-| Understand the repository layout, autoloading or scoping | [`docs/architecture.md`](docs/architecture.md) |
-| Configure or debug PHPCS and PHPStan | [`docs/standards.md`](docs/standards.md) |
-| Write a test | [`docs/testing.md`](docs/testing.md) |
-| Fix a CI failure or cut a release | [`docs/workflows.md`](docs/workflows.md) |
-| Know where your own product docs go | [`docs/README.md`](docs/README.md#where-your-own-documentation-goes) |
+| I want to…                                               | Read                                                                 |
+|----------------------------------------------------------|----------------------------------------------------------------------|
+| Set this up as my own plugin                             | [Making it yours](#making-it-yours)                                  |
+| Know how to work here — branching, commits, tests, CI    | [`docs/guidelines/`](docs/guidelines/README.md)                      |
+| Run, test, lint or release                               | [`scripts/README.md`](scripts/README.md)                             |
+| Understand the repository layout, autoloading or scoping | [`docs/architecture.md`](docs/architecture.md)                       |
+| Configure or debug PHPCS and PHPStan                     | [`docs/standards.md`](docs/standards.md)                             |
+| Write a test                                             | [`docs/testing.md`](docs/testing.md)                                 |
+| Fix a CI failure or cut a release                        | [`docs/workflows.md`](docs/workflows.md)                             |
+| Know where your own product docs go                      | [`docs/README.md`](docs/README.md#where-your-own-documentation-goes) |
 
 **Read [`docs/guidelines/README.md`](docs/guidelines/README.md) before your first
 change.** Its ten rules are one screen, and they are what review holds work to.
@@ -44,9 +44,9 @@ database installer.
 ```
 .
 ├── plugin/                       # The distributable plugin (this is what ships)
-│   ├── wp-plugin-boilerplate.php # Main file: headers, constants, gate, bootstrap
+│   ├── fuelchef-subscriptions.php # Main file: headers, constants, gate, bootstrap
 │   ├── uninstall.php             # Runs on uninstall (bare WP context, self-contained)
-│   ├── src/                      # PSR-4 classes (WPPluginBoilerplate\ => src/)
+│   ├── src/                      # PSR-4 classes (FuelChef\Subscriptions\ => src/)
 │   ├── assets/  templates/  languages/
 │   └── composer.json             # The plugin's *runtime* dependencies only
 │
@@ -89,10 +89,10 @@ in a row, open a shell instead: `./scripts/dev shell tools`.
 
 ### Two execution contexts, one script layer
 
-| Context | How PHP tooling runs | Entry point |
-| --- | --- | --- |
-| Local development | Inside Docker containers | `./scripts/dev …` |
-| CI (GitHub Actions) | Natively via `shivammathur/setup-php` | the workflows |
+| Context             | How PHP tooling runs                  | Entry point       |
+|---------------------|---------------------------------------|-------------------|
+| Local development   | Inside Docker containers              | `./scripts/dev …` |
+| CI (GitHub Actions) | Natively via `shivammathur/setup-php` | the workflows     |
 
 `scripts/scope` assumes `php`, `composer` and `php-scoper` are already on `PATH`, so the
 same code runs in both. Only `scripts/dev` knows about Docker.
@@ -108,7 +108,7 @@ all of them, is in [`docs/guidelines/`](docs/guidelines/README.md).
 - **Never commit generated artifacts** — `vendor/`, `plugin/vendor/`,
   `plugin/vendor-prefixed/`, `plugin/composer.lock`, `node_modules/`, build zips, caches.
 - **Import the prefixed namespace in plugin code**
-  (`WPPluginBoilerplate_Deps\WPTechnix\DI\Container`). The unprefixed name resolves
+  (`FuelChef\Subscriptions\Dependencies\WPTechnix\DI\Container`). The unprefixed name resolves
   against the dev tree and then fatals in a release.
 - **Keep the four PHP-version declarations in step**
   ([`docs/standards.md`](docs/standards.md#the-php-floor-is-declared-in-four-places)).

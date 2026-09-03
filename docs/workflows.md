@@ -15,8 +15,9 @@ to one of those lists.**
 ## `lint.yml`
 
 Three jobs on every PR and push to `main`: PHPCS and PHPStan, an editorconfig check, and
-`legacy-parse`, which lints the pre-flight files under a real PHP 5.6 — the only check
-with [no blind spots](standards.md#the-pre-flight-files-target-php-56). How each is
+`legacy-parse`, which lints the pre-flight files under a real old PHP — currently 5.6, the
+oldest interpreter still reliably available in CI — the only check with [no blind
+spots](standards.md#the-pre-flight-files-target-php-53-verified-under-php-56). How each is
 configured, and why the editorconfig job disables two checks:
 [`standards.md`](standards.md).
 

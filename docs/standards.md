@@ -18,17 +18,17 @@ break. For what to write when a linter cannot help, see
   syntax (`[]`).
 - **`WPTechnix-Strict`** — modern-PHP quality sniffs on top.
 
-It scans `plugin/` and `tests/`. The text domain is `wp-plugin-boilerplate` and must
+It scans `plugin/` and `tests/`. The text domain is `fuelchef-subscriptions` and must
 match the `Text Domain:` header in the main plugin file, or the i18n sniffs report every
 translated string.
 
 ### The exclusions, and why each exists
 
-| Excluded | Where | Why |
-| --- | --- | --- |
-| Three `SlevomatCodingStandard.TypeHints` sniffs, `Generic.PHP.RequireStrictTypes` | The two pre-flight files | They target PHP 5.6, which has no type declarations — see [below](#the-pre-flight-files-target-php-56) |
-| `Squiz.Commenting.FunctionComment.Missing` | `tests/*` | A test method's name is its documentation; a required docblock only repeats it |
-| `WordPress.WP.AlternativeFunctions...fwrite` | `tests/bootstrap/*` | The bootstrap reports failures on STDERR before WordPress exists, so `WP_Filesystem` cannot apply |
+| Excluded                                                                                                                       | Where                    | Why                                                                                                                          |
+|------------------------------------------------------------------------------------------------------------------------------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `SlevomatCodingStandard.TypeHints.*`, `Generic.PHP.RequireStrictTypes`, `SlevomatCodingStandard.Functions.StaticClosure`, `Generic.Arrays.DisallowLongArraySyntax` | The two pre-flight files | Each forces a feature newer than PHP 5.3 (type hints, `strict_types`, static closures, `[]`) — see [below](#the-pre-flight-files-target-php-53-verified-under-php-56) |
+| `Squiz.Commenting.FunctionComment.Missing`                                                                                        | `tests/*`                | A test method's name is its documentation; a required docblock only repeats it                                                  |
+| `WordPress.WP.AlternativeFunctions...fwrite`                                                                                      | `tests/bootstrap/*`      | The bootstrap reports failures on STDERR before WordPress exists, so `WP_Filesystem` cannot apply                              |
 
 Add an exclusion only when the sniff is wrong for that file, never to silence a finding
 you could fix. Each one above names the file it applies to rather than switching the
@@ -70,35 +70,53 @@ existing entry.
 
 Change one and you must change all four, or the tools disagree about what is legal:
 
-| Where | Setting |
-| --- | --- |
-| `plugin/wp-plugin-boilerplate.php` | `Requires PHP:` header |
-| `plugin/composer.json` | `require.php` and `config.platform.php` |
-| `phpcs.xml.dist` | `testVersion` |
-| `phpstan.neon.dist` | `phpVersion.min` |
+| Where                               | Setting                                 |
+|-------------------------------------|-----------------------------------------|
+| `plugin/fuelchef-subscriptions.php` | `Requires PHP:` header                  |
+| `plugin/composer.json`              | `require.php` and `config.platform.php` |
+| `phpcs.xml.dist`                    | `testVersion`                           |
+| `phpstan.neon.dist`                 | `phpVersion.min`                        |
 
 The committed `composer.lock` must also stay installable on that floor — the unit matrix
 installs it on the lowest supported version. `config.platform.php` in the root
 `composer.json` makes Composer enforce this, so do not remove it to resolve a conflict.
 
-## The pre-flight files target PHP 5.6
+## The pre-flight files target PHP 5.3, verified under PHP 5.6
 
 `plugin/src/Requirements.php` and the main plugin file both run *before* the plugin's PHP
 version has been checked. [`architecture.md`](architecture.md#the-requirements-gate)
 explains why that matters; this is how it is held.
+
+The files themselves stay **PHP 5.3 compatible** for maximum reach — anyone on PHP 5.3
+must still get a clean "your PHP is too old" message rather than a white screen. The tools
+that *verify* that run an interpreter old enough to prove it, but not so old it no longer
+exists in CI: the `legacy-parse` job and the Docker commands below use **PHP 5.6**, the
+oldest version `shivammathur/setup-php` and the official Docker image still make
+available anywhere. 5.6 parses everything 5.3 can, so passing it still proves the files
+avoid modern syntax; the PHPCompatibility check below is what guards 5.3 *semantics*.
 
 Two checks cover it, and the difference between them matters:
 
 - **`composer lint:compat`** runs PHPCompatibility, which catches *semantic* problems: a
   function that did not exist yet, behaviour that was removed. It does **not** catch every
   modern syntax construct — the pinned 9.3.5 release predates arrow functions and cannot
-  see `fn()` at all.
-- **The `legacy-parse` CI job** lints both files with a real PHP 5.6. This is the check
-  with no blind spots. Locally:
+  see `fn()` at all. Its `testVersion` stays `5.3-`, holding the files to their PHP 5.3
+  target.
+- **The `legacy-parse` CI job** lints both files with a real old PHP — currently 5.6, the
+  oldest interpreter still reliably installable on GitHub-hosted runners (PHP 5.3 has been
+  dropped by `shivammathur/setup-php` on modern Ubuntus and the official `php:5.3` Docker
+  images are abandoned, built from dead download URLs). 5.6 parses every construct 5.3
+  does, so it still proves the files hold no modern syntax — the check with no blind spots.
+  Locally — the wrapper is the local twin of the CI job; the raw Docker commands do the
+  same thing by hand:
+
+  ```sh
+  ./scripts/dev preflight
+  ```
 
   ```sh
   docker run --rm -v "$PWD:/app" -w /app php:5.6-cli php -l plugin/src/Requirements.php
-  docker run --rm -v "$PWD:/app" -w /app php:5.6-cli php -l plugin/wp-plugin-boilerplate.php
+  docker run --rm -v "$PWD:/app" -w /app php:5.6-cli php -l plugin/fuelchef-subscriptions.php
   ```
 
 ## EditorConfig

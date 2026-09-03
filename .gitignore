@@ -47,3 +47,6 @@ scripts/docker/.env
 # temp
 *.tmp
 .opencode
+
+plugin/templates/admin/html/*
+plugin/templates/frontend/html/*

@@ -5,14 +5,16 @@
 
 declare(strict_types=1);
 
-namespace WPPluginBoilerplate\Tests\Unit;
+namespace FuelChef\Subscriptions\Tests\Unit;
 
 use Brain\Monkey\Actions;
 
 /**
- * @covers \WPPluginBoilerplate\Requirements
+ * @covers \FuelChef\Subscriptions\Requirements
  */
 final class Requirements_Test extends Requirements_TestCase {
+
+
 
 	/**
 	 * A path that certainly does not exist.
@@ -149,8 +151,8 @@ final class Requirements_Test extends Requirements_TestCase {
 		$this->install_woocommerce( $installed );
 
 		$failures = $this->requirements()
-			->require_plugin( 'woocommerce', 'WooCommerce', '10.0' )
-			->failures();
+						->require_plugin( 'woocommerce', 'WooCommerce', '10.0' )
+						->failures();
 
 		$this->assertSame( $expected_failure, isset( $failures[0] ) );
 	}
@@ -171,8 +173,8 @@ final class Requirements_Test extends Requirements_TestCase {
 		$this->install_woocommerce( '9.9' );
 
 		$failures = $this->requirements()
-			->require_plugin( 'woocommerce', 'WooCommerce', '10.0' )
-			->failures();
+						->require_plugin( 'woocommerce', 'WooCommerce', '10.0' )
+						->failures();
 
 		$this->assertSame(
 			[
@@ -229,11 +231,11 @@ final class Requirements_Test extends Requirements_TestCase {
 		$this->wp_version = '6.4';
 
 		$failures = $this->requirements()
-			->require_php( '99.0' )
-			->require_wp( '6.5' )
-			->require_plugin( 'woocommerce', 'WooCommerce' )
-			->require_autoloader( self::MISSING_FILE )
-			->failures();
+						->require_php( '99.0' )
+						->require_wp( '6.5' )
+						->require_plugin( 'woocommerce', 'WooCommerce' )
+						->require_autoloader( self::MISSING_FILE )
+						->failures();
 
 		$this->assertSame(
 			[ 'php', 'wp', 'plugin_missing', 'autoloader' ],
@@ -245,8 +247,8 @@ final class Requirements_Test extends Requirements_TestCase {
 		$this->install_woocommerce( '10.0' );
 
 		$requirements = $this->requirements()
-			->require_plugin( 'woocommerce', 'WooCommerce', '10.0' )
-			->require_plugin( 'jetpack', 'Jetpack' );
+							->require_plugin( 'woocommerce', 'WooCommerce', '10.0' )
+							->require_plugin( 'jetpack', 'Jetpack' );
 
 		$requirements->failures();
 		$requirements->failures();

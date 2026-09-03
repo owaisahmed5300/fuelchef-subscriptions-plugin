@@ -5,11 +5,11 @@
 
 declare(strict_types=1);
 
-namespace WPPluginBoilerplate\Tests\Unit;
+namespace FuelChef\Subscriptions\Tests\Unit;
 
 use Brain\Monkey\Functions;
-use WPPluginBoilerplate\Requirements;
-use WPPluginBoilerplate\Tests\TestCase;
+use FuelChef\Subscriptions\Requirements;
+use FuelChef\Subscriptions\Tests\TestCase;
 
 /**
  * Base test case for the Requirements gate.
@@ -27,8 +27,9 @@ use WPPluginBoilerplate\Tests\TestCase;
  */
 abstract class Requirements_TestCase extends TestCase {
 
-	protected const PLUGIN_NAME = 'WP Plugin Boilerplate';
-	protected const PLUGIN_FILE = '/plugins/wp-plugin-boilerplate/wp-plugin-boilerplate.php';
+
+	protected const PLUGIN_NAME = 'FuelChef Subscriptions';
+	protected const PLUGIN_FILE = '/plugins/fuelchef-subscriptions/fuelchef-subscriptions.php';
 
 	/**
 	 * The WordPress version the fake site reports.
@@ -105,8 +106,8 @@ abstract class Requirements_TestCase extends TestCase {
 	/**
 	 * Record a plugin as installed on the fake site.
 	 *
-	 * @param string $file    Plugin file, e.g. `woocommerce/woocommerce.php`.
-	 * @param string $name    Plugin name.
+	 * @param string $file Plugin file, e.g. `woocommerce/woocommerce.php`.
+	 * @param string $name Plugin name.
 	 * @param string $version Installed version. An empty string mimics a plugin
 	 *                        whose header declares no version.
 	 */
@@ -121,7 +122,7 @@ abstract class Requirements_TestCase extends TestCase {
 	 * Install WooCommerce at a given version, optionally activating it.
 	 *
 	 * @param string $version WooCommerce version.
-	 * @param bool   $active  Whether WordPress reports it as active.
+	 * @param bool   $active Whether WordPress reports it as active.
 	 */
 	protected function install_woocommerce( string $version, bool $active = true ): void {
 		$this->install_plugin( 'woocommerce/woocommerce.php', 'WooCommerce', $version );

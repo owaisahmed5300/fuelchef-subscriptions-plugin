@@ -53,7 +53,7 @@ memory of why.
 
 - Runtime dependencies go in `plugin/composer.json`; dev tooling in the root one.
 - **Import the prefixed namespace** in plugin code — for the DI container that is
-  `WPPluginBoilerplate_Deps\WPTechnix\DI\Container`. The unprefixed name resolves against
+  `FuelChef\Subscriptions\Dependencies\WPTechnix\DI\Container`. The unprefixed name resolves against
   the dev tree and then fatals in a release.
 - Constructor injection, always. A class that constructs its own collaborators cannot be
   tested, and this is the most common reason a test needs an awkward fixture.
@@ -66,18 +66,18 @@ memory of why.
 
 These are the ones that turn into security advisories.
 
-| Rule | |
-| --- | --- |
-| **Escape on output, every time** | `esc_html()`, `esc_attr()`, `esc_url()`, `wp_kses_post()`. Escape late, at the point of echo — not once on the way in |
-| **Sanitise on input** | `sanitize_text_field()`, `absint()`, and friends. Validate that it is one of the values you expect, not merely that it is a string |
-| **Never trust `$_GET`/`$_POST`/`$_REQUEST`** | Unslash (`wp_unslash()`), sanitise, validate — in that order |
-| **Nonce + capability on every state change** | A nonce proves intent, a capability check proves permission. Neither substitutes for the other |
-| **No `GET` changes state** | A link must never delete, charge or mutate. Use a form with a nonce |
-| **Always `$wpdb->prepare()`** | Every interpolated value, without exception. Table names come from `$wpdb->prefix`, never from input |
-| **WooCommerce data through its CRUD API** | `wc_get_order()` / `wc_get_orders()`, never `WP_Query` or direct SQL — with HPOS the posts table may not hold them |
-| **Translate every user-facing string** | With the `wp-plugin-boilerplate` text domain, and a `/* translators: */` comment on every placeholder |
-| **Prefix everything global** | Hooks, options, post meta, tables, transients, CSS classes. Two plugins share one namespace |
-| **Check ownership before acting** | An endpoint serving a logged-in user verifies the record belongs to them, and returns 404 rather than 403 — a 403 confirms the record exists |
+| Rule                                         |                                                                                                                                              |
+|----------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| **Escape on output, every time**             | `esc_html()`, `esc_attr()`, `esc_url()`, `wp_kses_post()`. Escape late, at the point of echo — not once on the way in                        |
+| **Sanitise on input**                        | `sanitize_text_field()`, `absint()`, and friends. Validate that it is one of the values you expect, not merely that it is a string           |
+| **Never trust `$_GET`/`$_POST`/`$_REQUEST`** | Unslash (`wp_unslash()`), sanitise, validate — in that order                                                                                 |
+| **Nonce + capability on every state change** | A nonce proves intent, a capability check proves permission. Neither substitutes for the other                                               |
+| **No `GET` changes state**                   | A link must never delete, charge or mutate. Use a form with a nonce                                                                          |
+| **Always `$wpdb->prepare()`**                | Every interpolated value, without exception. Table names come from `$wpdb->prefix`, never from input                                         |
+| **WooCommerce data through its CRUD API**    | `wc_get_order()` / `wc_get_orders()`, never `WP_Query` or direct SQL — with HPOS the posts table may not hold them                           |
+| **Translate every user-facing string**       | With the `fuelchef-subscriptions` text domain, and a `/* translators: */` comment on every placeholder                                       |
+| **Prefix everything global**                 | Hooks, options, post meta, tables, transients, CSS classes. Two plugins share one namespace                                                  |
+| **Check ownership before acting**            | An endpoint serving a logged-in user verifies the record belongs to them, and returns 404 rather than 403 — a 403 confirms the record exists |
 
 ## Errors and failure
 
