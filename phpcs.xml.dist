@@ -48,6 +48,12 @@
         <exclude-pattern>plugin/src/Requirements.php</exclude-pattern>
         <exclude-pattern>plugin/fuelchef-subscriptions.php</exclude-pattern>
     </rule>
+    <rule ref="SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator">
+        <!-- The null coalesce operator (??) is PHP 7.0+, and the pre-flight files target
+             PHP 5.3. -->
+        <exclude-pattern>plugin/src/Requirements.php</exclude-pattern>
+        <exclude-pattern>plugin/fuelchef-subscriptions.php</exclude-pattern>
+    </rule>
 
     <!-- A test method's name is its documentation; a required docblock only repeats it. -->
     <rule ref="Squiz.Commenting.FunctionComment.Missing">

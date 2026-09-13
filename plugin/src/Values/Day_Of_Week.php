@@ -61,8 +61,9 @@ final class Day_Of_Week {
 	 * @return list<int>
 	 */
 	public static function in_site_order(): array {
-		$start = (int) get_option( 'start_of_week', 0 );
-		$days  = [];
+		$raw_start = get_option( 'start_of_week', 0 );
+		$start     = is_numeric( $raw_start ) ? (int) $raw_start : 0;
+		$days      = [];
 
 		for ( $offset = 0; $offset < 7; $offset++ ) {
 			$days[] = ( $start + $offset ) % 7;

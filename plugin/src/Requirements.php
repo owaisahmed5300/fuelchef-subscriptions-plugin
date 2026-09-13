@@ -593,7 +593,10 @@ final class Requirements {
 		if ( null === $this->installed_plugins ) {
 			$this->load_plugin_functions();
 
-			$this->installed_plugins = get_plugins();
+			/** @var array<string, array<string, mixed>> $plugins */
+			$plugins = get_plugins();
+
+			$this->installed_plugins = $plugins;
 		}
 
 		return $this->installed_plugins;
@@ -608,8 +611,9 @@ final class Requirements {
 	 */
 	private function installed_version( $file ) {
 		$plugins = $this->installed_plugins();
+		$version = isset( $plugins[ $file ]['Version'] ) ? $plugins[ $file ]['Version'] : '';
 
-		return isset( $plugins[ $file ]['Version'] ) ? (string) $plugins[ $file ]['Version'] : '';
+		return is_string( $version ) ? $version : '';
 	}
 
 	/**
