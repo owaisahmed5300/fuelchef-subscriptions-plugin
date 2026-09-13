@@ -18,7 +18,6 @@
 
 use FuelChef\Subscriptions\Container;
 use FuelChef\Subscriptions\Requirements;
-use FuelChef\Subscriptions\Plugin;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -56,11 +55,12 @@ require_once $fcs_requirements->autoloader();
 
 $fcs_container = Container::instance();
 
+// ::class is PHP 5.5+; this file must still parse on PHP 5.3, so plain strings instead.
 $fcs_container->singleton(
-	Requirements::class,
+	'FuelChef\Subscriptions\Requirements',
 	function () use ( $fcs_requirements ) {
 		return $fcs_requirements;
 	}
 );
 
-$fcs_container->get( Plugin::class );
+$fcs_container->get( 'FuelChef\Subscriptions\Plugin' );
