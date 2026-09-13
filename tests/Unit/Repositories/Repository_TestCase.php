@@ -60,8 +60,13 @@ abstract class Repository_TestCase extends TestCase {
 	/**
 	 * A mocked `wpdb`, with `$prefix` set and `prepare()` stubbed to
 	 * interpolate placeholders literally.
+	 *
+	 * Plain native return type: intersection types are PHP 8.1+, and this
+	 * plugin supports 8.0.
+	 *
+	 * @return wpdb&MockInterface
 	 */
-	protected function wpdb(): wpdb&MockInterface {
+	protected function wpdb(): wpdb {
 		$wpdb         = Mockery::mock( wpdb::class );
 		$wpdb->prefix = 'wp_';
 
