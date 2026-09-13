@@ -62,14 +62,14 @@ final class Requirements {
 	 *
 	 * @var array<string, array{name: string, min_version: string}>
 	 */
-	private $required_plugins = [];
+	private $required_plugins = array();
 
 	/**
 	 * Candidate autoloader paths, most specific first.
 	 *
 	 * @var list<string>
 	 */
-	private $autoloader_candidates = [];
+	private $autoloader_candidates = array();
 
 	/**
 	 * Cached failures, or null before the checks have run.
@@ -151,10 +151,10 @@ final class Requirements {
 	 * @return self
 	 */
 	public function require_plugin( $slug, $name, $min_version = '' ) {
-		$this->required_plugins[ $slug ] = [
+		$this->required_plugins[ $slug ] = array(
 			'name'        => $name,
 			'min_version' => $min_version,
-		];
+		);
 
 		return $this;
 	}
@@ -186,7 +186,7 @@ final class Requirements {
 	 * @return bool
 	 */
 	public function satisfied() {
-		if ( [] === $this->failures() ) {
+		if ( array() === $this->failures() ) {
 			return true;
 		}
 
@@ -241,7 +241,7 @@ final class Requirements {
 	public function render_notice() {
 		$failures = $this->failures();
 
-		if ( [] === $failures ) {
+		if ( array() === $failures ) {
 			return;
 		}
 
@@ -278,7 +278,7 @@ final class Requirements {
 	 * @return void
 	 */
 	public function block_activation() {
-		$messages = [];
+		$messages = array();
 
 		foreach ( $this->failures() as $failure ) {
 			$messages[] = '<li>' . $this->message( $failure ) . '</li>';
@@ -293,7 +293,7 @@ final class Requirements {
 		wp_die(
 			wp_kses_post( $body ),
 			esc_html__( 'Plugin activation failed', 'fuelchef-subscriptions' ),
-			[ 'back_link' => true ]
+			array( 'back_link' => true )
 		);
 	}
 
@@ -309,8 +309,8 @@ final class Requirements {
 
 		$this->handled = true;
 
-		add_action( 'admin_notices', [ $this, 'render_notice' ] );
-		register_activation_hook( $this->plugin_file, [ $this, 'block_activation' ] );
+		add_action( 'admin_notices', array( $this, 'render_notice' ) );
+		register_activation_hook( $this->plugin_file, array( $this, 'block_activation' ) );
 	}
 
 	/**
@@ -320,16 +320,16 @@ final class Requirements {
 	 */
 	private function php_failures() {
 		if ( '' === $this->min_php || version_compare( PHP_VERSION, $this->min_php, '>=' ) ) {
-			return [];
+			return array();
 		}
 
-		return [
-			[
+		return array(
+			array(
 				'type'     => 'php',
 				'required' => $this->min_php,
 				'current'  => PHP_VERSION,
-			],
-		];
+			),
+		);
 	}
 
 	/**
@@ -339,22 +339,22 @@ final class Requirements {
 	 */
 	private function wordpress_failures() {
 		if ( '' === $this->min_wp ) {
-			return [];
+			return array();
 		}
 
 		$current = get_bloginfo( 'version' );
 
 		if ( version_compare( $current, $this->min_wp, '>=' ) ) {
-			return [];
+			return array();
 		}
 
-		return [
-			[
+		return array(
+			array(
 				'type'     => 'wp',
 				'required' => $this->min_wp,
 				'current'  => $current,
-			],
-		];
+			),
+		);
 	}
 
 	/**
@@ -363,28 +363,28 @@ final class Requirements {
 	 * @return list<array<string, string>>
 	 */
 	private function plugin_failures() {
-		$failures = [];
+		$failures = array();
 
 		foreach ( $this->required_plugins as $slug => $plugin ) {
 			$file = $this->plugin_file_for( $slug );
 
 			if ( null === $file ) {
-				$failures[] = [
+				$failures[] = array(
 					'type' => 'plugin_missing',
 					'slug' => $slug,
 					'name' => $plugin['name'],
-				];
+				);
 
 				continue;
 			}
 
 			if ( ! $this->is_plugin_active( $file ) ) {
-				$failures[] = [
+				$failures[] = array(
 					'type' => 'plugin_inactive',
 					'slug' => $slug,
 					'name' => $plugin['name'],
 					'file' => $file,
-				];
+				);
 
 				continue;
 			}
@@ -399,14 +399,14 @@ final class Requirements {
 				continue;
 			}
 
-			$failures[] = [
+			$failures[] = array(
 				'type'     => 'plugin_version',
 				'slug'     => $slug,
 				'name'     => $plugin['name'],
 				'file'     => $file,
 				'required' => $plugin['min_version'],
 				'current'  => $current,
-			];
+			);
 		}
 
 		return $failures;
@@ -418,15 +418,15 @@ final class Requirements {
 	 * @return list<array<string, string>>
 	 */
 	private function autoloader_failures() {
-		if ( [] === $this->autoloader_candidates || '' !== $this->autoloader() ) {
-			return [];
+		if ( array() === $this->autoloader_candidates || '' !== $this->autoloader() ) {
+			return array();
 		}
 
-		return [
-			[
+		return array(
+			array(
 				'type' => 'autoloader',
-			],
-		];
+			),
+		);
 	}
 
 	/**
@@ -593,7 +593,10 @@ final class Requirements {
 		if ( null === $this->installed_plugins ) {
 			$this->load_plugin_functions();
 
-			$this->installed_plugins = get_plugins();
+			/** @var array<string, array<string, mixed>> $plugins */
+			$plugins = get_plugins();
+
+			$this->installed_plugins = $plugins;
 		}
 
 		return $this->installed_plugins;
@@ -608,8 +611,9 @@ final class Requirements {
 	 */
 	private function installed_version( $file ) {
 		$plugins = $this->installed_plugins();
+		$version = isset( $plugins[ $file ]['Version'] ) ? $plugins[ $file ]['Version'] : '';
 
-		return isset( $plugins[ $file ]['Version'] ) ? (string) $plugins[ $file ]['Version'] : '';
+		return is_string( $version ) ? $version : '';
 	}
 
 	/**
@@ -622,10 +626,10 @@ final class Requirements {
 	private function install_url( $slug ) {
 		return wp_nonce_url(
 			add_query_arg(
-				[
+				array(
 					'action' => 'install-plugin',
 					'plugin' => $slug,
-				],
+				),
 				self_admin_url( 'update.php' )
 			),
 			'install-plugin_' . $slug
@@ -642,10 +646,10 @@ final class Requirements {
 	private function activate_url( $file ) {
 		return wp_nonce_url(
 			add_query_arg(
-				[
+				array(
 					'action' => 'activate',
 					'plugin' => $file,
-				],
+				),
 				self_admin_url( 'plugins.php' )
 			),
 			'activate-plugin_' . $file

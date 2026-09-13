@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Database;
 
+use wpdb;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -62,7 +64,10 @@ abstract class Abstract_Installer {
 		}
 
 		foreach ( $this->schemas as $method ) {
-			dbDelta( $this->$method() );
+			/** @var array<string>|string $schema */
+			$schema = $this->$method();
+
+			dbDelta( $schema );
 		}
 	}
 
@@ -89,7 +94,8 @@ abstract class Abstract_Installer {
 	 * The site's character set and collation, in the form dbDelta expects.
 	 */
 	protected function charset_collate(): string {
-		global $wpdb;
+		/** @var wpdb $wpdb */
+		$wpdb = $GLOBALS['wpdb'];
 
 		return $wpdb->get_charset_collate();
 	}
@@ -107,7 +113,8 @@ abstract class Abstract_Installer {
 	 * @return string The name to use in a query, prefixed for the current site.
 	 */
 	public static function table( string $name ): string {
-		global $wpdb;
+		/** @var wpdb $wpdb */
+		$wpdb = $GLOBALS['wpdb'];
 
 		return $wpdb->prefix . 'fcs_' . $name;
 	}

@@ -1,42 +1,42 @@
 parameters:
-    level: 8
+  level: 10
 
-    # The whole supported range, so a construct that is valid on 8.5 but broken on
-    # 8.0 is caught here. Keep in step with the matrix in .github/workflows/test.yml.
-    phpVersion:
-        min: 80000
-        max: 80500
+  # The whole supported range, so a construct that is valid on 8.5 but broken on
+  # 8.0 is caught here. Keep in step with the matrix in .github/workflows/test.yml.
+  phpVersion:
+    min: 80000
+    max: 80500
 
-    tmpDir: .phpstan.cache
+  tmpDir: .phpstan.cache
 
-    paths:
-        - plugin/fuelchef-subscriptions.php
-        - plugin/src
-        - plugin/uninstall.php
+  paths:
+    - plugin/fuelchef-subscriptions.php
+    - plugin/src
+    - plugin/uninstall.php
 
-    bootstrapFiles:
-        - tests/bootstrap/phpstan.php
+  bootstrapFiles:
+    - tests/bootstrap/phpstan.php
 
-    scanDirectories:
-        - plugin/vendor-prefixed
+  scanDirectories:
+    - plugin/vendor-prefixed
 
-    scanFiles:
-        - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
-        - vendor/php-stubs/woocommerce-stubs/woocommerce-packages-stubs.php
+  scanFiles:
+    - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+    - vendor/php-stubs/woocommerce-stubs/woocommerce-packages-stubs.php
 
-    # Built by WordPress at runtime, so their values are never knowable here.
-    dynamicConstantNames:
-        - FUELCHEF_SUBSCRIPTIONS_DIR
-        - FUELCHEF_SUBSCRIPTIONS_URL
+  # Built by WordPress at runtime, so their values are never knowable here.
+  dynamicConstantNames:
+    - FUELCHEF_SUBSCRIPTIONS_DIR
+    - FUELCHEF_SUBSCRIPTIONS_URL
 
-    ignoreErrors:
-        # Schema and migration methods are resolved from their names.
-        - identifier: method.dynamicName
-          paths:
-            - plugin/src/Database/Abstract_Installer.php
+  ignoreErrors:
+    # Schema and migration methods are resolved from their names.
+    - identifier: method.dynamicName
+      paths:
+        - plugin/src/Database/Abstract_Installer.php
 
-    treatPhpDocTypesAsCertain: false
+  treatPhpDocTypesAsCertain: false
 
 includes:
-    - vendor/szepeviktor/phpstan-wordpress/extension.neon
-    - vendor/phpstan/phpstan-strict-rules/rules.neon
+  - vendor/szepeviktor/phpstan-wordpress/extension.neon
+  - vendor/phpstan/phpstan-strict-rules/rules.neon
