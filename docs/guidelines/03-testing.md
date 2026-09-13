@@ -199,6 +199,9 @@ Effort spent here is effort not spent on the branchy code that actually breaks.
 - **WordPress or WooCommerce itself.** Assume `get_option()` works.
 - **Language behaviour.** Constructors assign; PHP handles that.
 - **Getters with no logic.**
+- **Controllers.** They pull request data, call a service, and render a template or send
+  a response — view/glue code with no branchy logic of its own to break. The service
+  underneath it gets the test.
 - **Private methods directly.** Test them through the public API. If a private method is
   unreachable that way, the class needs a better seam, not a reflection hack.
 - **Escaping, via identity-stubbed `esc_*` functions.** You would be asserting on the
