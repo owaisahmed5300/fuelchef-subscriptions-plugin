@@ -64,8 +64,8 @@ return [
 	'finders'                 => is_dir(__DIR__ . '/plugin/vendor')
 		? [
 			SymfonyFinder::create()
-			             ->files()
-			             ->in('plugin/vendor'),
+				->files()
+				->in('plugin/vendor'),
 		]
 		: [],
 
