@@ -26,3 +26,7 @@ if ( ! is_file( $autoload ) ) {
 }
 
 require_once $autoload;
+
+// The real wpdb class does not exist without WordPress, but repositories and the
+// installer type-hint against it.
+require_once __DIR__ . '/wpdb.php';
