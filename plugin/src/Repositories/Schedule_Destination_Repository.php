@@ -1,0 +1,144 @@
+<?php
+/**
+ * Schedule destination repository.
+ */
+
+declare(strict_types=1);
+
+namespace FuelChef\Subscriptions\Repositories;
+
+use FuelChef\Subscriptions\Contracts\Entity;
+use FuelChef\Subscriptions\Database\Tables;
+use FuelChef\Subscriptions\Entities\Schedule_Destination;
+use FuelChef\Subscriptions\Repositories\Abstracts\Abstract_Repository;
+use FuelChef\Subscriptions\Utils\Row_Caster;
+use FuelChef\Subscriptions\Values\DateTime;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * @extends Abstract_Repository<Schedule_Destination>
+ */
+final class Schedule_Destination_Repository extends Abstract_Repository {
+
+
+	/**
+	 * Bare table name.
+	 */
+	protected static string $table = Tables::SCHEDULE_DESTINATIONS;
+
+	/**
+	 * WordPress object cache group.
+	 */
+	protected static string $cache_group = 'fcs_schedule_destinations';
+
+	/**
+	 * Every destination assigned to a schedule.
+	 *
+	 * @return list<Schedule_Destination>
+	 */
+	public function find_by_schedule( int $schedule_id ): array {
+		$cache_key = $this->by_schedule_cache_key( $schedule_id );
+
+		/** @var list<Schedule_Destination>|false $cached */
+		$cached = wp_cache_get( $cache_key, self::$cache_group );
+
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
+
+		/** @var list<array<string, mixed>>|null $rows */
+		$rows = $this->wpdb->get_results(
+			$this->wpdb->prepare(
+				'SELECT * FROM %i WHERE schedule_id = %d ORDER BY id ASC',
+				$this->table_name(),
+				$schedule_id
+			),
+			ARRAY_A
+		);
+
+		$destinations = [];
+
+		if ( is_array( $rows ) ) {
+			foreach ( $rows as $row ) {
+				$destinations[] = $this->hydrate( $row );
+			}
+		}
+
+		wp_cache_set( $cache_key, $destinations, self::$cache_group );
+
+		return $destinations;
+	}
+
+	/**
+	 * Deletes every destination assigned to a schedule.
+	 */
+	public function delete_by_schedule( int $schedule_id ): void {
+		foreach ( $this->find_by_schedule( $schedule_id ) as $destination ) {
+			$id = $destination->id();
+
+			if ( null === $id ) {
+				continue;
+			}
+
+			$this->delete( $id );
+		}
+	}
+
+	/**
+	 * Replaces every destination assigned to a schedule with a new set.
+	 *
+	 * @param int                        $schedule_id Schedule ID.
+	 * @param list<Schedule_Destination> $destinations Destinations to assign.
+	 */
+	public function replace_for_schedule( int $schedule_id, array $destinations ): void {
+		$this->delete_by_schedule( $schedule_id );
+
+		foreach ( $destinations as $destination ) {
+			$this->insert( $destination );
+		}
+	}
+
+	/**
+	 * @param array<string, mixed> $row Raw database row.
+	 */
+	protected function hydrate( array $row ): Schedule_Destination {
+		$destination = new Schedule_Destination(
+			Row_Caster::int( $row['schedule_id'] ?? null ),
+			Row_Caster::string( $row['destination_type'] ?? null ),
+			Row_Caster::string( $row['destination_key'] ?? null )
+		);
+
+		$destination
+			->set_id( Row_Caster::int( $row['id'] ?? null ) )
+			->set_date_created( DateTime::from_database( Row_Caster::string( $row['date_created'] ?? null ) ) )
+			->set_date_updated( DateTime::from_database( Row_Caster::string( $row['date_updated'] ?? null ) ) );
+
+		return $destination;
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	protected function dehydrate( Entity $entity ): array {
+		return [
+			'schedule_id'      => $entity->schedule_id(),
+			'destination_type' => $entity->destination_type(),
+			'destination_key'  => $entity->destination_key(),
+		];
+	}
+
+	/**
+	 * Invalidates the cached destination list for this entity's schedule.
+	 */
+	protected function invalidate_related( Entity $entity ): void {
+		wp_cache_delete( $this->by_schedule_cache_key( $entity->schedule_id() ), self::$cache_group );
+	}
+
+	/**
+	 * Cache key for a schedule's destination list.
+	 */
+	private function by_schedule_cache_key( int $schedule_id ): string {
+		return 'by_schedule_' . $schedule_id;
+	}
+}
