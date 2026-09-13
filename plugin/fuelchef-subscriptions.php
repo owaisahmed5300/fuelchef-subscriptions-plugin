@@ -18,6 +18,7 @@
 
 use FuelChef\Subscriptions\Container;
 use FuelChef\Subscriptions\Requirements;
+use FuelChef\Subscriptions\Plugin;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -62,4 +63,4 @@ $fcs_container->singleton(
 	}
 );
 
-$fcs_container->get( FuelChef\Subscriptions\Plugin::class );
+$fcs_container->get( Plugin::class );
