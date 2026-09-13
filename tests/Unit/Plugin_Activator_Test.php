@@ -11,11 +11,13 @@ use Brain\Monkey\Functions;
 use FuelChef\Subscriptions\Database\Installer;
 use FuelChef\Subscriptions\Plugin_Activator;
 use FuelChef\Subscriptions\Tests\TestCase;
+use Mockery;
+use wpdb;
 
 /**
  * The installer is real rather than mocked: `install()` is final, so Mockery cannot
- * intercept it. With no schemas and no migrations declared it does nothing but write
- * the version option, which makes `update_option` a faithful count of installs.
+ * intercept it. `update_option` is called once per site installed, which makes it a
+ * faithful count of installs.
  *
  * @covers \FuelChef\Subscriptions\Plugin_Activator
  */
@@ -27,6 +29,23 @@ final class Plugin_Activator_Test extends TestCase {
 		parent::setUp();
 
 		Functions\when( 'get_option' )->justReturn( '0.0.0' );
+
+		// Also satisfies the source's function_exists( 'dbDelta' ) guard, so the
+		// installer never reaches for the admin include.
+		Functions\when( 'dbDelta' )->justReturn( null );
+
+		// The schema builders read $wpdb->prefix and call get_charset_collate();
+		// dbDelta() is stubbed above, so the SQL they build is never parsed.
+		$wpdb         = Mockery::mock( wpdb::class )->shouldIgnoreMissing();
+		$wpdb->prefix = 'wp_';
+
+		$GLOBALS['wpdb'] = $wpdb;
+	}
+
+	protected function tearDown(): void {
+		unset( $GLOBALS['wpdb'] );
+
+		parent::tearDown();
 	}
 
 	public function test_a_single_site_activation_installs_once(): void {

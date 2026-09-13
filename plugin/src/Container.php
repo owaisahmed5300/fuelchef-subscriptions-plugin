@@ -11,6 +11,9 @@ namespace FuelChef\Subscriptions;
 
 use FuelChef\Subscriptions\Database\Installer as DB_Installer;
 use FuelChef\Subscriptions\Dependencies\WPTechnix\DI\Container as Base_Container;
+use FuelChef\Subscriptions\Repositories\Provider as Repositories_Provider;
+use FuelChef\Subscriptions\Utils\Clock;
+use wpdb;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -46,6 +49,16 @@ final class Container {
 			$container
 				->singleton( Plugin::class )
 				->addParameter( Plugin_Activator::class, true );
+
+			$container->singleton(
+				wpdb::class,
+				static function () {
+					return $GLOBALS['wpdb'];
+				}
+			);
+			$container->singleton( Clock::class );
+
+			$container->provider( new Repositories_Provider() );
 
 			$container->boot();
 

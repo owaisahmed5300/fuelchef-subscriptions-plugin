@@ -12,6 +12,10 @@
     <exclude-pattern>*/vendor-prefixed/*</exclude-pattern>
     <exclude-pattern>*/node_modules/*</exclude-pattern>
 
+    <!-- A shape-only stand-in for WordPress's own wpdb class (naming, visibility and
+         unused parameters all follow its real signature, not ours to restyle). -->
+    <exclude-pattern>tests/bootstrap/wpdb.php</exclude-pattern>
+
     <!--
         The pre-flight files (the main plugin file and the requirements gate)
         target PHP 5.3 - they run before the PHP-version check, so a single
@@ -55,6 +59,16 @@
         <exclude-pattern>plugin/fuelchef-subscriptions.php</exclude-pattern>
     </rule>
 
+    <!--
+        The sniff expects a bare `$wpdb->prepare()` call and does not recognise
+        `$this->wpdb->prepare()` (constructor-injected, so a test can supply a mocked
+        `wpdb` - see docs/technical/data-layer.md). Every dynamic value in a repository
+        query is still a genuine `%s`/`%d`/`%i` placeholder for `prepare()`.
+    -->
+    <rule ref="WordPress.DB.PreparedSQL.NotPrepared">
+        <exclude-pattern>plugin/src/Repositories/*</exclude-pattern>
+    </rule>
+
     <!-- A test method's name is its documentation; a required docblock only repeats it. -->
     <rule ref="Squiz.Commenting.FunctionComment.Missing">
         <exclude-pattern>tests/*</exclude-pattern>
@@ -63,6 +77,20 @@
     <!-- Bootstraps report failures on STDERR before WordPress, so WP_Filesystem cannot apply. -->
     <rule ref="WordPress.WP.AlternativeFunctions.file_system_operations_fwrite">
         <exclude-pattern>tests/bootstrap/*</exclude-pattern>
+    </rule>
+
+    <!-- No WordPress is loaded, so $GLOBALS['wpdb'] is a test's own fixture, not a real
+         global being clobbered. -->
+    <rule ref="WordPress.WP.GlobalVariablesOverride">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+
+    <!-- Entity and Timestamped declare their setters as returning `static`. PHP requires
+         an implementation to match that exactly - narrowing it to `self`, even in a
+         final class, is a fatal "declaration must be compatible" error, not a style
+         choice. -->
+    <rule ref="Universal.CodeAnalysis.StaticInFinalClass.ReturnType">
+        <exclude-pattern>plugin/src/Entities/*</exclude-pattern>
     </rule>
 
     <arg name="extensions" value="php" />

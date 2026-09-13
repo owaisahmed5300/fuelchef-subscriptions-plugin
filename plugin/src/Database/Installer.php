@@ -30,7 +30,12 @@ final class Installer extends Abstract_Installer {
 	 *
 	 * @var list<string>
 	 */
-	protected array $schemas = [];
+	protected array $schemas = [
+		'schema_schedules',
+		'schema_schedule_weekdays',
+		'schema_blackouts',
+		'schema_schedule_destinations',
+	];
 
 	/**
 	 * Site database migrations.
@@ -53,5 +58,83 @@ final class Installer extends Abstract_Installer {
 	 */
 	protected function update_version(): void {
 		update_option( self::OPTION_KEY, self::DB_VERSION );
+	}
+
+	/**
+	 * Schema for the schedules table.
+	 */
+	protected function schema_schedules(): string {
+		$table           = self::table( Tables::SCHEDULES );
+		$charset_collate = $this->charset_collate();
+
+		return "CREATE TABLE {$table} (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			name VARCHAR(191) NOT NULL,
+			date_created DATETIME NOT NULL,
+			date_updated DATETIME NOT NULL,
+			PRIMARY KEY  (id)
+		) {$charset_collate};";
+	}
+
+	/**
+	 * Schema for the schedule weekdays table.
+	 */
+	protected function schema_schedule_weekdays(): string {
+		$table           = self::table( Tables::SCHEDULE_WEEKDAYS );
+		$charset_collate = $this->charset_collate();
+
+		return "CREATE TABLE {$table} (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			schedule_id BIGINT UNSIGNED NOT NULL,
+			day_of_week TINYINT UNSIGNED NOT NULL,
+			enabled TINYINT(1) NOT NULL DEFAULT 0,
+			start_time TIME NOT NULL DEFAULT '12:00:00',
+			date_created DATETIME NOT NULL,
+			date_updated DATETIME NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY schedule_day (schedule_id, day_of_week)
+		) {$charset_collate};";
+	}
+
+	/**
+	 * Schema for the blackouts table.
+	 *
+	 * `schedule_id` is nullable: null means a store-wide closure rather than
+	 * one scoped to a schedule.
+	 */
+	protected function schema_blackouts(): string {
+		$table           = self::table( Tables::BLACKOUTS );
+		$charset_collate = $this->charset_collate();
+
+		return "CREATE TABLE {$table} (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			schedule_id BIGINT UNSIGNED NULL,
+			blackout_date DATE NOT NULL,
+			reason VARCHAR(255) NULL,
+			date_created DATETIME NOT NULL,
+			date_updated DATETIME NOT NULL,
+			PRIMARY KEY  (id),
+			KEY schedule_id (schedule_id),
+			KEY blackout_date (blackout_date)
+		) {$charset_collate};";
+	}
+
+	/**
+	 * Schema for the schedule destinations table.
+	 */
+	protected function schema_schedule_destinations(): string {
+		$table           = self::table( Tables::SCHEDULE_DESTINATIONS );
+		$charset_collate = $this->charset_collate();
+
+		return "CREATE TABLE {$table} (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			schedule_id BIGINT UNSIGNED NOT NULL,
+			destination_type VARCHAR(20) NOT NULL,
+			destination_key VARCHAR(191) NOT NULL,
+			date_created DATETIME NOT NULL,
+			date_updated DATETIME NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY schedule_destination (schedule_id, destination_type, destination_key)
+		) {$charset_collate};";
 	}
 }
