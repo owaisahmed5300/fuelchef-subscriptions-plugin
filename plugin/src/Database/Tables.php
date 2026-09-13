@@ -24,16 +24,34 @@ final class Tables {
 
 
 	/**
+	 * Bare name of the schedules table.
+	 */
+	public const SCHEDULES = 'schedules';
+
+	/**
+	 * Bare name of the schedule weekdays table.
+	 */
+	public const SCHEDULE_WEEKDAYS = 'schedule_weekdays';
+
+	/**
+	 * Bare name of the blackouts table.
+	 */
+	public const BLACKOUTS = 'blackouts';
+
+	/**
+	 * Bare name of the schedule destinations table.
+	 */
+	public const SCHEDULE_DESTINATIONS = 'schedule_destinations';
+
+	/**
 	 * No instances. This class is a namespace for constants only.
 	 */
 	private function __construct() {
 	}
 
 	/**
-	 * The full name of one of the plugin's tables.
-	 *
-	 * Static because repositories need it without taking the installer as a
-	 * dependency, and the answer depends only on `$wpdb`.
+	 * The full name of one of the plugin's tables, for callers that do not
+	 * already have a `$wpdb` instance to hand.
 	 *
 	 * @param string $name One of this class's constants.
 	 *
@@ -43,6 +61,21 @@ final class Tables {
 		/** @var wpdb $wpdb */
 		$wpdb = $GLOBALS['wpdb'];
 
-		return $wpdb->prefix . 'fcs_' . $name;
+		return self::prefixed( $wpdb->prefix, $name );
+	}
+
+	/**
+	 * The full name of one of the plugin's tables, given a site prefix.
+	 *
+	 * Repositories call this with their own injected `$wpdb->prefix` rather
+	 * than `get_full_name()`, so a test can supply a mocked `$wpdb`.
+	 *
+	 * @param string $site_prefix The site's table prefix, e.g. `$wpdb->prefix`.
+	 * @param string $name One of this class's constants.
+	 *
+	 * @return string The name to use in a query, prefixed for the current site.
+	 */
+	public static function prefixed( string $site_prefix, string $name ): string {
+		return $site_prefix . 'fcs_' . $name;
 	}
 }
