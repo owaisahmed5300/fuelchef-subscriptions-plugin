@@ -19,6 +19,7 @@ ignores them.
 | [03-testing.md](03-testing.md) | Writing or changing a test — and before writing the code it covers |
 | [04-code-quality.md](04-code-quality.md) | Writing plugin code |
 | [05-ci-cd.md](05-ci-cd.md) | A CI gate fails, or you are cutting a release |
+| [06-comments-and-phpdocs.md](06-comments-and-phpdocs.md) | Writing a comment or docblock |
 
 ---
 
