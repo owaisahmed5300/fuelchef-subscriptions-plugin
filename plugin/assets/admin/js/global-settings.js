@@ -19,11 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
         subscribe_applicability: document.getElementById('subscribeApplicability').value
       }).done((response) => {
         if (!response.success) {
-          FCS.toast(response.data && response.data.message ? response.data.message : 'Could not save settings');
+          FCS.toast(response.data && response.data.message ? response.data.message : window.fcsAdmin.i18n.couldNotSaveSettings);
           return;
         }
         FCS.State.markClean();
-        FCS.toast('Settings saved successfully');
+        FCS.toast(window.fcsAdmin.i18n.settingsSaved);
       });
     });
   }
@@ -37,17 +37,17 @@ document.addEventListener('DOMContentLoaded', () => {
     nextBtn: document.getElementById('calNextMonth'),
     popoverEl: document.getElementById('datePopover'),
     blackouts: window.fcsGlobalSettings.blackouts,
-    emptyMessage: 'No global closures scheduled. Orders can be delivered on all standard active days.',
+    emptyMessage: window.fcsAdmin.i18n.noGlobalClosures,
     onCreate: (date) => FCS.post('fcs_save_blackout', { date }).then((response) => {
       if (!response.success) {
-        FCS.toast(response.data && response.data.message ? response.data.message : 'Could not add that date');
+        FCS.toast(response.data && response.data.message ? response.data.message : window.fcsAdmin.i18n.couldNotAddDate);
         return null;
       }
       return { id: response.data.id, date: response.data.date, reason: response.data.reason };
     }),
     onSave: (id, reason) => FCS.post('fcs_save_blackout', { blackout_id: id, reason }).then((response) => {
       if (!response.success) {
-        FCS.toast(response.data && response.data.message ? response.data.message : 'Could not save that note');
+        FCS.toast(response.data && response.data.message ? response.data.message : window.fcsAdmin.i18n.couldNotSaveNote);
         return null;
       }
       return { id: response.data.id, date: response.data.date, reason: response.data.reason };
