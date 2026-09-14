@@ -16,6 +16,15 @@
  * field to render too narrow with its label overlapping the placeholder text. Attaching
  * directly to the block's own input, with no DOM changes around it, keeps its native
  * width and label behaviour intact.
+ *
+ * `appendTo: document.body` (below) is a second, separate fix for the calendar popup
+ * itself: by default flatpickr inserts `.flatpickr-calendar` as a plain sibling of the
+ * input, inside the exact subtree React renders and reconciles for this field. React does
+ * not know about that foreign node - any re-render of this field's surroundings (which
+ * WooCommerce Blocks triggers often, e.g. on totals or validation state changes elsewhere
+ * on the page) can discard or detach it, which is what made the calendar fail to open, or
+ * open and immediately vanish. Rendering it as a direct child of <body> instead keeps it
+ * entirely outside any subtree the Checkout block manages.
  */
 
 jQuery(function ($) {
@@ -122,6 +131,7 @@ jQuery(function ($) {
       enable: [],
       locale,
       disableMobile: true,
+      appendTo: document.body,
       onChange: updateWindowCaption
     });
 
