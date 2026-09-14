@@ -25,11 +25,20 @@ class WC_Shipping_Zone {
 	 *
 	 * @param string $zone_name The zone's name.
 	 * @param string $location The zone's formatted location summary.
+	 * @param int    $id The zone's ID.
 	 */
 	public function __construct(
 		private string $zone_name = '',
-		private string $location = ''
+		private string $location = '',
+		private int $id = 0
 	) {
+	}
+
+	/**
+	 * The zone's ID.
+	 */
+	public function get_id(): int {
+		return $this->id;
 	}
 
 	/**
@@ -72,6 +81,14 @@ class WC_Shipping_Zones {
 	public static $zone = false;
 
 	/**
+	 * The zone `get_zone_matching_package()` returns, or null to fall back to a zone ID
+	 * 0 stand-in, matching WooCommerce's own catch-all fallback.
+	 *
+	 * @var WC_Shipping_Zone|null
+	 */
+	public static ?WC_Shipping_Zone $matching_zone = null;
+
+	/**
 	 * The configured shipping zones, keyed by zone ID.
 	 *
 	 * @return array<int, mixed> The configured zones.
@@ -87,5 +104,14 @@ class WC_Shipping_Zones {
 	 */
 	public static function get_zone( int $zone_id ) {
 		return self::$zone;
+	}
+
+	/**
+	 * The zone whose locations match a shipping package's destination address.
+	 *
+	 * @param array<string, mixed> $package Shipping package.
+	 */
+	public static function get_zone_matching_package( array $package ): WC_Shipping_Zone {
+		return self::$matching_zone ?? new WC_Shipping_Zone( '', '', 0 );
 	}
 }

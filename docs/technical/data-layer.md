@@ -125,6 +125,43 @@ asset registration around it.
   screen's store-wide ones) share one registered action rather than each registering the
   same `wp_ajax_*` hook, which would run both callbacks on every request.
 
+## Frontend checkout
+
+`plugin/src/Frontend/` is the storefront counterpart to `Admin\` - the classic checkout's
+delivery date field lives here, registered by `Frontend\Provider`.
+
+- `WooCommerce\Chosen_Shipping_Destination` turns whatever shipping rate the customer has
+  currently chosen into the `(type, key)` pair `Destination_Catalog` and
+  `Availability_Service` already understand. A pickup rate (`pickup_location:2`) carries
+  its own key; any other rate belongs to whichever zone matches the package's destination
+  address, via `WC_Shipping_Zones::get_zone_matching_package()` - the real WooCommerce
+  lookup a package's own rates already come from, not a re-derivation from the rate ID.
+  `wc_get_chosen_shipping_method_for_package()` (WooCommerce's own helper, already used by
+  `wc_cart_totals_shipping_html()`) resolves the default rate the same way WooCommerce
+  itself would when nothing has been explicitly picked yet.
+- `Frontend\Checkout\Delivery_Date_Field` is the controller-shaped piece: it asks the
+  resolver what the customer picked, `Availability_Service` which dates that allows, and
+  renders, validates and persists strictly within what those two already decided. Not
+  unit-tested for the same reason `Admin\Controllers\*` are not - see "Testing" below.
+- **Why it hooks `woocommerce_review_order_after_shipping`, not a custom fragment.**
+  WooCommerce's checkout AJAX (`update_order_review`) re-renders the entire order review
+  table server-side and returns it as one of its own `fragments` entries
+  (`.woocommerce-checkout-review-order-table`), which the browser swaps in wholesale via
+  `wc_checkout_params` / `checkout.js`. Hooking an action that already runs inside that
+  table means the field refreshes automatically on every shipping/address change, with no
+  custom `woocommerce_update_order_review_fragments` filter needed.
+- **Why the posted date is captured on `woocommerce_checkout_update_order_review`, not
+  read back from the DOM.** The whole table - the field included - is a fresh server
+  render on every refresh, so a JavaScript-only selection would be wiped by an unrelated
+  change (e.g. the customer editing their address). `Delivery_Date_Field::
+  capture_posted_date()` reads the AJAX request's raw `post_data` before rendering, so a
+  still-eligible selection survives; `render()` only trusts it once `Availability_Service::
+  eligible_dates()` confirms it is still eligible.
+- The calendar widget is [flatpickr](https://flatpickr.js.org/), vendored under
+  `plugin/assets/lib/flatpickr/` rather than `assets/vendor/` - the latter is caught by
+  the root `vendor/` entry in `.gitignore`, meant for Composer's PHP vendor directories,
+  and would have silently dropped the library from every commit.
+
 ## Row values are `mixed` — narrow them explicitly
 
 `$wpdb` returns every column as `string` or `null`; `Utils\Row_Caster` has the narrowing
