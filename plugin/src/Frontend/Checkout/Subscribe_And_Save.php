@@ -21,10 +21,17 @@ defined( 'ABSPATH' ) || exit;
  * Adds the "Subscribe & Save" checkbox to classic checkout, and the cart discount it
  * unlocks.
  *
- * Reads nothing of its own beyond the checkbox's own posted value: whether it is checked
- * is read straight from the current request on every use, rather than cached on the
+ * Reads nothing of its own beyond the checkbox's current value: whether it is checked is
+ * read straight from the current request on every use, rather than cached on the
  * instance, since a fee calculation and the final order both happen in their own separate
  * requests with nothing in common but that request's own `$_POST`.
+ *
+ * Block checkout has no `$_POST` at all - its own checkbox drives this cart-level fee
+ * through {@see self::set_session_checked()} instead, called by
+ * `Block\Subscribe_And_Save`'s Store API update callback. This is the same pattern
+ * WooCommerce's own developer docs use for a `woocommerce_cart_calculate_fees` handler
+ * that depends on something set earlier in the request lifecycle (there: the chosen
+ * payment method) - not a workaround specific to this field.
  */
 final class Subscribe_And_Save {
 
@@ -39,6 +46,12 @@ final class Subscribe_And_Save {
 	 * The order meta key the customer's choice is saved under.
 	 */
 	public const META_KEY = '_fcs_subscribed';
+
+	/**
+	 * The session key block checkout's own checkbox reports its current value under, so
+	 * `woocommerce_cart_calculate_fees` can see it on requests with no `$_POST` at all.
+	 */
+	private const SESSION_KEY = 'fcs_subscribe_and_save_checked';
 
 	/**
 	 * Creates the discount handler.
@@ -133,9 +146,27 @@ final class Subscribe_And_Save {
 	}
 
 	/**
+	 * Records block checkout's own checkbox value for `maybe_apply_discount()` to read on
+	 * a later request that has no `$_POST` of its own - a Store API cart or checkout
+	 * recalculation triggered by something else, such as the customer changing their
+	 * address after already checking the box.
+	 *
+	 * `Block\Subscribe_And_Save`'s enhancement script explicitly resets this to `false`
+	 * itself once, the first time its checkbox appears on a fresh page view - before that
+	 * call, this session value could still be `true` from an earlier, abandoned attempt at
+	 * the same cart, which is exactly the stale state the checkbox must never restore.
+	 */
+	public function set_session_checked( bool $checked ): void {
+		if ( null !== WC()->session ) {
+			WC()->session->set( self::SESSION_KEY, $checked );
+		}
+	}
+
+	/**
 	 * Whether the checkbox is checked in the current request - read from `post_data` on
-	 * an `update_order_review` AJAX refresh, or the field directly on a final checkout
-	 * submission. Never checked on a plain page load, where neither is present.
+	 * an `update_order_review` AJAX refresh, the field directly on a final classic
+	 * checkout submission, or {@see self::SESSION_KEY} when neither `$_POST` source is
+	 * present at all, which is always true for block checkout's own Store API requests.
 	 *
 	 * Reads `$_POST` directly rather than through a nonce-verified action: this decides
 	 * what to display and whether a discount applies, nothing destructive, and every
@@ -151,6 +182,10 @@ final class Subscribe_And_Save {
 			return '' !== Input::string( $parsed[ self::FIELD_NAME ] ?? null );
 		}
 
-		return isset( $_POST[ self::FIELD_NAME ] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( isset( $_POST[ self::FIELD_NAME ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			return true;
+		}
+
+		return null !== WC()->session && (bool) WC()->session->get( self::SESSION_KEY, false );
 	}
 }
