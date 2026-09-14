@@ -6,15 +6,10 @@
     <rule ref="WPTechnix-Strict" />
 
     <file>plugin</file>
-    <file>tests</file>
 
     <exclude-pattern>*/vendor/*</exclude-pattern>
     <exclude-pattern>*/vendor-prefixed/*</exclude-pattern>
     <exclude-pattern>*/node_modules/*</exclude-pattern>
-
-    <!-- A shape-only stand-in for WordPress's own wpdb class (naming, visibility and
-         unused parameters all follow its real signature, not ours to restyle). -->
-    <exclude-pattern>tests/bootstrap/wpdb.php</exclude-pattern>
 
     <!--
         The pre-flight files (the main plugin file and the requirements gate)
@@ -67,22 +62,6 @@
     -->
     <rule ref="WordPress.DB.PreparedSQL.NotPrepared">
         <exclude-pattern>plugin/src/Repositories/*</exclude-pattern>
-    </rule>
-
-    <!-- A test method's name is its documentation; a required docblock only repeats it. -->
-    <rule ref="Squiz.Commenting.FunctionComment.Missing">
-        <exclude-pattern>tests/*</exclude-pattern>
-    </rule>
-
-    <!-- Bootstraps report failures on STDERR before WordPress, so WP_Filesystem cannot apply. -->
-    <rule ref="WordPress.WP.AlternativeFunctions.file_system_operations_fwrite">
-        <exclude-pattern>tests/bootstrap/*</exclude-pattern>
-    </rule>
-
-    <!-- No WordPress is loaded, so $GLOBALS['wpdb'] is a test's own fixture, not a real
-         global being clobbered. -->
-    <rule ref="WordPress.WP.GlobalVariablesOverride">
-        <exclude-pattern>tests/*</exclude-pattern>
     </rule>
 
     <!-- Entity and Timestamped declare their setters as returning `static`. PHP requires

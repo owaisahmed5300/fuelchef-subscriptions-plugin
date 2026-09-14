@@ -36,6 +36,11 @@ memory of why.
 - **No magic values.** A number or string with meaning is a named constant, and the name
   is where the meaning lives.
 - **Delete rather than comment out.** Git remembers.
+- **Avoid dynamic dispatch.** `$this->$method()`, `call_user_func( [ $this, $name ] )` and
+  variable variables all send an IDE and PHPStan looking for a call site that doesn't
+  exist as text. Prefer an explicit call, or a list of closures built from explicit calls
+  (`fn (): string => $this->schema_schedules()`) when a subclass genuinely needs to
+  declare a set of methods to run.
 
 ## Types are documentation the compiler checks
 
