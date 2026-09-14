@@ -1,5 +1,5 @@
 /**
- * FuelChef Subscriptions - Global Settings Logic
+ * FuelChef Subscriptions - Settings Logic
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveBtn.addEventListener('click', (e) => {
       e.preventDefault();
 
-      FCS.post('fcs_save_global_settings', {
+      FCS.post('fcs_save_settings', {
         cutoff_amount: document.getElementById('cutoffAmount').value,
         cutoff_unit: document.getElementById('cutoffUnit').value,
         subscribe_discount_percent: document.getElementById('subscribeDiscountPercent').value,
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     prevBtn: document.getElementById('calPrevMonth'),
     nextBtn: document.getElementById('calNextMonth'),
     popoverEl: document.getElementById('datePopover'),
-    blackouts: window.fcsGlobalSettings.blackouts,
+    blackouts: window.fcsSettings.blackouts,
     emptyMessage: window.fcsAdmin.i18n.noGlobalClosures,
     onCreate: (date) => FCS.post('fcs_save_blackout', { date }).then((response) => {
       if (!response.success) {

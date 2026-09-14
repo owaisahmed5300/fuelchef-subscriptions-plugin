@@ -40,7 +40,7 @@ final class Assets {
 		$page = Input::string( $_GET['page'] ?? null ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		$screen = match ( $page ) {
-			Menu::GLOBAL_SETTINGS_SLUG => 'global-settings',
+			Menu::SETTINGS_SLUG => 'settings',
 			Menu::SCHEDULES_SLUG => 'schedules',
 			default => null,
 		};

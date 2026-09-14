@@ -1,11 +1,11 @@
 <?php
 /**
- * Global Settings admin screen.
+ * Settings admin screen.
  *
- * Rendered by Global_Settings_Controller::render(). $data carries `settings`
- * (Settings\Global_Settings), `cutoff_units` (list<string>) and `applicabilities`
+ * Rendered by Settings_Controller::render(). $data carries `settings`
+ * (Settings\Settings), `cutoff_units` (list<string>) and `applicabilities`
  * (list<string>). The blackout calendar reads its own data from the
- * `fcsGlobalSettings` script localization instead - see the controller.
+ * `fcsSettings` script localization instead - see the controller.
  */
 
 declare(strict_types=1);
@@ -21,7 +21,7 @@ $settings = $data['settings'];
 	<div class="fcs-page-header">
 		<h1 class="fcs-page-title">
 			<?php esc_html_e( 'FuelChef Subscriptions', 'fuelchef-subscriptions' ); ?>
-			&rsaquo; <?php esc_html_e( 'Global Settings', 'fuelchef-subscriptions' ); ?>
+			&rsaquo; <?php esc_html_e( 'Settings', 'fuelchef-subscriptions' ); ?>
 		</h1>
 		<p class="fcs-page-subtitle">
 			<?php esc_html_e( 'Configure store-wide recurring rules, global blackout dates, and lock cutoff windows.', 'fuelchef-subscriptions' ); ?>
@@ -40,7 +40,7 @@ $settings = $data['settings'];
 		</button>
 	</nav>
 
-	<form id="globalSettingsForm" onsubmit="return false;">
+	<form id="settingsForm" onsubmit="return false;">
 		<section class="fcs-tab-panel fcs-tab-panel--active" id="tab-blackouts">
 			<div class="fcs-card">
 				<div class="fcs-card__header">

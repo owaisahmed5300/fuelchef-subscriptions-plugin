@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Admin;
 
-use FuelChef\Subscriptions\Admin\Controllers\Global_Settings_Controller;
 use FuelChef\Subscriptions\Admin\Controllers\Schedules_Controller;
+use FuelChef\Subscriptions\Admin\Controllers\Settings_Controller;
 use FuelChef\Subscriptions\Dependencies\WPTechnix\DI\Container as Base_Container;
 use FuelChef\Subscriptions\Dependencies\WPTechnix\DI\ServiceProvider;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
@@ -34,7 +34,7 @@ final class Provider implements ServiceProvider {
 	 */
 	public function register( Base_Container $container ): void {
 		$container
-			->singleton( Global_Settings_Controller::class )
+			->singleton( Settings_Controller::class )
 			->addParameter( Settings_Store::class, true )
 			->addParameter( Blackout_Service::class, true )
 			->addParameter( Blackout_Repository::class, true )
@@ -52,7 +52,7 @@ final class Provider implements ServiceProvider {
 
 		$container
 			->singleton( Menu::class )
-			->addParameter( Global_Settings_Controller::class, true )
+			->addParameter( Settings_Controller::class, true )
 			->addParameter( Schedules_Controller::class, true );
 
 		$container->singleton( Assets::class );
@@ -65,7 +65,7 @@ final class Provider implements ServiceProvider {
 	public function boot( Base_Container $container ): void {
 		add_action( 'admin_menu', [ $container->get( Menu::class ), 'register' ] );
 
-		$container->get( Global_Settings_Controller::class )->register();
+		$container->get( Settings_Controller::class )->register();
 		$container->get( Schedules_Controller::class )->register();
 		$container->get( Assets::class )->register();
 	}
