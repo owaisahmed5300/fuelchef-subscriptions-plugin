@@ -1,23 +1,14 @@
-.fcs-subscribe-and-save-row td {
-	padding-top: 1em;
-	padding-bottom: 1em;
-}
+/**
+ * FuelChef Subscriptions - Subscribe & Save checkout field
+ *
+ * Rendered via woocommerce_form_field() as a native `form-row` checkbox field, so this
+ * only adds the small amount of styling WooCommerce's own checkout CSS doesn't already
+ * cover - it deliberately does not re-style the row, label or checkbox themselves.
+ */
 
-.fcs-subscribe-and-save-label {
-	display: flex;
-	align-items: center;
-	gap: 0.5em;
-	cursor: pointer;
-	font-weight: 600;
-}
-
-.fcs-subscribe-and-save-label input[type="checkbox"] {
-	margin: 0;
-}
-
-.fcs-subscribe-and-save-description {
+.fcs-subscribe-and-save-row .description {
+	display: block;
 	margin: 0.4em 0 0;
 	font-size: 0.9em;
-	font-weight: normal;
 	color: #646970;
 }

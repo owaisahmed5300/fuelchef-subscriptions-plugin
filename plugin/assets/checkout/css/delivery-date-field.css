@@ -5,11 +5,11 @@
  * block-delivery-date-field.js for why it deliberately does not share these classes.
  */
 
-.fcs-delivery-date-row th,
-.fcs-delivery-date-row td {
-	vertical-align: top;
-	padding-top: 12px;
-	padding-bottom: 12px;
+.fcs-delivery-date-row .description {
+	display: block;
+	margin: 0.4em 0 0;
+	font-size: 0.9em;
+	color: #646970;
 }
 
 .fcs-delivery-date-input,
@@ -36,12 +36,6 @@
 	outline: none;
 	border-color: #3858e9;
 	box-shadow: 0 0 0 1px #3858e9;
-}
-
-.fcs-delivery-date-empty {
-	margin: 0.5em 0 0;
-	font-size: 0.9em;
-	color: #a94442;
 }
 
 .fcs-delivery-date-window {
