@@ -151,7 +151,10 @@ FCS.createCalendar = function (options) {
       return `
         <details class="fcs-summary-month" ${isOpen ? 'open' : ''}>
           <summary class="fcs-summary-month__summary">
-            <span>${FCS.escapeHtml(m)}</span>
+            <span class="fcs-summary-month__label">
+              <svg class="fcs-summary-month__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4 5.5 7 8.5l3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              ${FCS.escapeHtml(m)}
+            </span>
             <span class="fcs-summary-month__count">${list.length} date${list.length === 1 ? '' : 's'}</span>
           </summary>
           <div class="fcs-summary-month__body">
@@ -264,7 +267,11 @@ FCS.createCalendar = function (options) {
       items.push(item);
       render();
       FCS.toast(window.fcsAdmin.i18n.dateMarkedUnavailable);
-      openPopover(item, anchor);
+      // render() just rebuilt the calendar's markup, so the original anchor button is a
+      // detached node - its getBoundingClientRect() would return an all-zero rect, which
+      // is what put the popover at the top-left of the page. Re-query the same date's
+      // button from the fresh DOM instead of reusing the stale reference.
+      openPopover(item, calendarEl.querySelector(`[data-date="${iso}"]`));
     });
   }
 

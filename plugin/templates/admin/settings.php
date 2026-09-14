@@ -49,14 +49,18 @@ $settings = $data['settings'];
 					<h2 class="fcs-card__title"><?php esc_html_e( 'Global Store Closures', 'fuelchef-subscriptions' ); ?></h2>
 				</div>
 				<div class="fcs-card__body">
-					<p style="margin-top:0; color:var(--fcs-color-text-muted);">
+					<p class="fcs-card__intro">
 						<?php esc_html_e( 'Dates specified here close recurring orders for the entire store regardless of location. Use this for statutory holidays or full warehouse shutdowns.', 'fuelchef-subscriptions' ); ?>
 					</p>
 
 					<div class="fcs-calendar-toolbar">
-						<button type="button" class="fcs-btn fcs-btn--icon" id="calPrevMonth" aria-label="<?php esc_attr_e( 'Previous Month', 'fuelchef-subscriptions' ); ?>">&lsaquo;</button>
+						<button type="button" class="fcs-btn fcs-btn--icon" id="calPrevMonth" aria-label="<?php esc_attr_e( 'Previous month', 'fuelchef-subscriptions' ); ?>" title="<?php esc_attr_e( 'Previous month', 'fuelchef-subscriptions' ); ?>">
+							<svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M11 4.5 6.5 9l4.5 4.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+						</button>
 						<strong class="fcs-calendar-toolbar__title" id="globalCalendarMonth"></strong>
-						<button type="button" class="fcs-btn fcs-btn--icon" id="calNextMonth" aria-label="<?php esc_attr_e( 'Next Month', 'fuelchef-subscriptions' ); ?>">&rsaquo;</button>
+						<button type="button" class="fcs-btn fcs-btn--icon" id="calNextMonth" aria-label="<?php esc_attr_e( 'Next month', 'fuelchef-subscriptions' ); ?>" title="<?php esc_attr_e( 'Next month', 'fuelchef-subscriptions' ); ?>">
+							<svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M7 4.5 11.5 9 7 13.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+						</button>
 					</div>
 
 					<div class="fcs-calendar" id="globalCalendar"></div>
@@ -78,7 +82,7 @@ $settings = $data['settings'];
 					<h2 class="fcs-card__title"><?php esc_html_e( 'Order Cutoff Time', 'fuelchef-subscriptions' ); ?></h2>
 				</div>
 				<div class="fcs-card__body">
-					<p style="margin-top:0; color:var(--fcs-color-text-muted);">
+					<p class="fcs-card__intro">
 						<?php esc_html_e( 'Customers can no longer place, change or cancel an order for a delivery date once that date\'s cutoff has passed.', 'fuelchef-subscriptions' ); ?>
 					</p>
 
@@ -114,7 +118,7 @@ $settings = $data['settings'];
 					<h2 class="fcs-card__title"><?php esc_html_e( 'Delivery Date Field', 'fuelchef-subscriptions' ); ?></h2>
 				</div>
 				<div class="fcs-card__body">
-					<p style="margin-top:0; color:var(--fcs-color-text-muted);">
+					<p class="fcs-card__intro">
 						<?php esc_html_e( 'Customize how the delivery date field appears to customers at checkout.', 'fuelchef-subscriptions' ); ?>
 					</p>
 
@@ -142,7 +146,7 @@ $settings = $data['settings'];
 
 					<div class="fcs-field">
 						<label for="maxDeliveryWindowDays"><?php esc_html_e( 'Maximum delivery window', 'fuelchef-subscriptions' ); ?></label>
-						<div class="fcs-inline-field" style="margin-top:0;">
+						<div class="fcs-inline-field">
 							<input
 								class="fcs-input fcs-input--number"
 								id="maxDeliveryWindowDays"
@@ -164,24 +168,26 @@ $settings = $data['settings'];
 					<h2 class="fcs-card__title"><?php esc_html_e( 'Subscribe & Save', 'fuelchef-subscriptions' ); ?></h2>
 				</div>
 				<div class="fcs-card__body">
-					<p style="margin-top:0; color:var(--fcs-color-text-muted);">
+					<p class="fcs-card__intro">
 						<?php esc_html_e( 'Configure the discount a customer gets for choosing to subscribe at checkout.', 'fuelchef-subscriptions' ); ?>
 					</p>
 
-					<div class="fcs-inline-field">
+					<div class="fcs-field">
 						<label for="subscribeDiscountPercent"><?php esc_html_e( 'Discount', 'fuelchef-subscriptions' ); ?></label>
-						<input
-							class="fcs-input fcs-input--number"
-							id="subscribeDiscountPercent"
-							type="number"
-							min="0"
-							max="100"
-							value="<?php echo esc_attr( (string) $settings->subscribe_discount_percent() ); ?>"
-						>
-						<span>%</span>
+						<div class="fcs-percent-input">
+							<input
+								class="fcs-input fcs-input--number"
+								id="subscribeDiscountPercent"
+								type="number"
+								min="0"
+								max="100"
+								value="<?php echo esc_attr( (string) $settings->subscribe_discount_percent() ); ?>"
+							>
+							<span class="fcs-percent-input__suffix">%</span>
+						</div>
 					</div>
 
-					<div class="fcs-inline-field">
+					<div class="fcs-field">
 						<label for="subscribeApplicability"><?php esc_html_e( 'Applies to', 'fuelchef-subscriptions' ); ?></label>
 						<select class="fcs-select" id="subscribeApplicability">
 							<?php foreach ( $data['applicabilities'] as $value ) : ?>
@@ -199,7 +205,7 @@ $settings = $data['settings'];
 					<h2 class="fcs-card__title"><?php esc_html_e( 'Checkout Wording', 'fuelchef-subscriptions' ); ?></h2>
 				</div>
 				<div class="fcs-card__body">
-					<p style="margin-top:0; color:var(--fcs-color-text-muted);">
+					<p class="fcs-card__intro">
 						<?php esc_html_e( 'Customize the wording shown next to the Subscribe & Save checkbox at checkout.', 'fuelchef-subscriptions' ); ?>
 					</p>
 

@@ -34,7 +34,7 @@ $selected = $data['selected'];
 				<div class="fcs-card__header">
 					<h2 class="fcs-card__title"><?php esc_html_e( 'Schedules', 'fuelchef-subscriptions' ); ?></h2>
 				</div>
-				<div class="fcs-card__body" style="padding: 10px;">
+				<div class="fcs-card__body fcs-card__body--tight">
 					<ul class="fcs-schedule-nav">
 						<?php foreach ( $data['schedules'] as $schedule ) : ?>
 							<li>
@@ -43,11 +43,13 @@ $selected = $data['selected'];
 									href="<?php echo esc_url( $base_url . '&schedule_id=' . $schedule->id() ); ?>"
 								>
 									<div class="fcs-schedule-nav__title"><?php echo esc_html( $schedule->name() ); ?></div>
+									<svg class="fcs-schedule-nav__chev" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
 								</a>
 							</li>
 						<?php endforeach; ?>
 					</ul>
 					<button type="button" class="fcs-btn fcs-btn--add fcs-sidebar-action" id="addScheduleBtn">
+						<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 2.5v9M2.5 7h9" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
 						<?php esc_html_e( 'Add Schedule', 'fuelchef-subscriptions' ); ?>
 					</button>
 				</div>
@@ -88,7 +90,7 @@ $selected = $data['selected'];
 							<h2 class="fcs-card__title"><?php esc_html_e( 'Weekly Fulfillment Days', 'fuelchef-subscriptions' ); ?></h2>
 						</div>
 						<div class="fcs-card__body">
-							<p style="margin-top:0; color:var(--fcs-color-text-muted);">
+							<p class="fcs-card__intro">
 								<?php esc_html_e( 'Enable the days of the week when recurring orders can be fulfilled, and set the delivery hours for each active day.', 'fuelchef-subscriptions' ); ?>
 							</p>
 							<table class="fcs-weekday-table">
@@ -102,14 +104,18 @@ $selected = $data['selected'];
 							<h2 class="fcs-card__title"><?php esc_html_e( 'Local Unavailable Dates', 'fuelchef-subscriptions' ); ?></h2>
 						</div>
 						<div class="fcs-card__body">
-							<p style="margin-top:0; color:var(--fcs-color-text-muted);">
+							<p class="fcs-card__intro">
 								<?php esc_html_e( 'Block specific dates for this schedule only (e.g. municipal events, local facility maintenance).', 'fuelchef-subscriptions' ); ?>
 							</p>
 
 							<div class="fcs-calendar-toolbar">
-								<button type="button" class="fcs-btn fcs-btn--icon" id="calPrevMonth" aria-label="<?php esc_attr_e( 'Previous Month', 'fuelchef-subscriptions' ); ?>">&lsaquo;</button>
+								<button type="button" class="fcs-btn fcs-btn--icon" id="calPrevMonth" aria-label="<?php esc_attr_e( 'Previous month', 'fuelchef-subscriptions' ); ?>" title="<?php esc_attr_e( 'Previous month', 'fuelchef-subscriptions' ); ?>">
+									<svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M11 4.5 6.5 9l4.5 4.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+								</button>
 								<strong class="fcs-calendar-toolbar__title" id="localCalendarMonth"></strong>
-								<button type="button" class="fcs-btn fcs-btn--icon" id="calNextMonth" aria-label="<?php esc_attr_e( 'Next Month', 'fuelchef-subscriptions' ); ?>">&rsaquo;</button>
+								<button type="button" class="fcs-btn fcs-btn--icon" id="calNextMonth" aria-label="<?php esc_attr_e( 'Next month', 'fuelchef-subscriptions' ); ?>" title="<?php esc_attr_e( 'Next month', 'fuelchef-subscriptions' ); ?>">
+									<svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M7 4.5 11.5 9 7 13.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+								</button>
 							</div>
 
 							<div class="fcs-calendar" id="localCalendar"></div>
@@ -131,7 +137,7 @@ $selected = $data['selected'];
 							<h2 class="fcs-card__title"><?php esc_html_e( 'Assigned Fulfillment Zones', 'fuelchef-subscriptions' ); ?></h2>
 						</div>
 						<div class="fcs-card__body">
-							<p style="margin-top:0; color:var(--fcs-color-text-muted);">
+							<p class="fcs-card__intro">
 								<?php esc_html_e( 'Assign the shipping zones and pickup locations this schedule fulfils.', 'fuelchef-subscriptions' ); ?>
 							</p>
 
@@ -139,14 +145,17 @@ $selected = $data['selected'];
 
 							<div class="fcs-dest-add">
 								<select class="fcs-select" id="destinationCatalog"></select>
-								<button type="button" class="fcs-btn fcs-btn--add" id="addDestinationBtn"><?php esc_html_e( 'Add', 'fuelchef-subscriptions' ); ?></button>
+								<button type="button" class="fcs-btn fcs-btn--add" id="addDestinationBtn">
+								<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 2.5v9M2.5 7h9" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+								<?php esc_html_e( 'Add', 'fuelchef-subscriptions' ); ?>
+							</button>
 							</div>
 						</div>
 					</div>
 				</section>
 
 				<div class="fcs-submit-bar">
-					<div style="display:flex; gap:8px;">
+					<div class="fcs-submit-bar__actions">
 						<button type="button" class="fcs-btn fcs-btn--primary" id="saveScheduleBtn">
 							<?php esc_html_e( 'Save Schedule', 'fuelchef-subscriptions' ); ?>
 						</button>
