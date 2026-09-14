@@ -129,6 +129,7 @@ final class Assets {
 			'couldNotCopySchedule'     => esc_html__( 'Could not copy this schedule to the days below.', 'fuelchef-subscriptions' ),
 			'scheduleCopied'           => esc_html__( 'Hours copied to the days below', 'fuelchef-subscriptions' ),
 			'removeDestination'        => esc_html__( 'Remove destination', 'fuelchef-subscriptions' ),
+			'removeDate'               => esc_html__( 'Remove date', 'fuelchef-subscriptions' ),
 			'noDestinationsYet'        => esc_html__( 'No destinations assigned yet.', 'fuelchef-subscriptions' ),
 			'destinationUnavailable'   => esc_html__( 'No longer available', 'fuelchef-subscriptions' ),
 			'destinationTypeLabels'    => [
