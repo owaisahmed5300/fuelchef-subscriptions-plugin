@@ -64,6 +64,23 @@
         <exclude-pattern>plugin/src/Repositories/*</exclude-pattern>
     </rule>
 
+    <!--
+        Every ajax handler in an admin controller verifies its nonce through
+        Verifies_Ajax_Request::verify_ajax_request(), called as the method's first line -
+        see docs/technical/data-layer.md. The sniff only recognises a bare
+        check_ajax_referer()/wp_verify_nonce() call in the same function, not one reached
+        through a trait method, so it reports every $_POST read after it as unverified.
+        Schedules_Controller::render() also reads $_GET['schedule_id'] with no nonce at
+        all - it is read-only navigation (which schedule to display), not a state change,
+        so a nonce has nothing to protect there.
+    -->
+    <rule ref="WordPress.Security.NonceVerification.Missing">
+        <exclude-pattern>plugin/src/Admin/Controllers/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.Security.NonceVerification.Recommended">
+        <exclude-pattern>plugin/src/Admin/Controllers/*</exclude-pattern>
+    </rule>
+
     <!-- Entity and Timestamped declare their setters as returning `static`. PHP requires
          an implementation to match that exactly - narrowing it to `self`, even in a
          final class, is a fatal "declaration must be compatible" error, not a style

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions;
 
+use FuelChef\Subscriptions\Admin\Provider as Admin_Provider;
 use FuelChef\Subscriptions\Database\Installer as DB_Installer;
 use FuelChef\Subscriptions\Dependencies\WPTechnix\DI\Container as Base_Container;
 use FuelChef\Subscriptions\Repositories\Provider as Repositories_Provider;
@@ -61,6 +62,7 @@ final class Container {
 
 			$container->provider( new Repositories_Provider() );
 			$container->provider( new Services_Provider() );
+			$container->provider( new Admin_Provider() );
 
 			$container->boot();
 
