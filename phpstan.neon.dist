@@ -29,12 +29,6 @@ parameters:
     - FUELCHEF_SUBSCRIPTIONS_DIR
     - FUELCHEF_SUBSCRIPTIONS_URL
 
-  ignoreErrors:
-    # Schema and migration methods are resolved from their names.
-    - identifier: method.dynamicName
-      paths:
-        - plugin/src/Database/Abstract_Installer.php
-
   treatPhpDocTypesAsCertain: false
 
 includes:

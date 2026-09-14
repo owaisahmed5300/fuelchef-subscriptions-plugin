@@ -28,21 +28,17 @@ final class Installer extends Abstract_Installer {
 	/**
 	 * Site database schema definitions.
 	 *
-	 * @var list<string>
+	 * @return list<callable(): string> One closure per table, each returning its
+	 *                                  `CREATE TABLE` statement.
 	 */
-	protected array $schemas = [
-		'schema_schedules',
-		'schema_schedule_weekdays',
-		'schema_blackouts',
-		'schema_schedule_destinations',
-	];
-
-	/**
-	 * Site database migrations.
-	 *
-	 * @var array<string, list<string>>
-	 */
-	protected array $migrations = [];
+	protected function schemas(): array {
+		return [
+			fn (): string => $this->schema_schedules(),
+			fn (): string => $this->schema_schedule_weekdays(),
+			fn (): string => $this->schema_blackouts(),
+			fn (): string => $this->schema_schedule_destinations(),
+		];
+	}
 
 	/**
 	 * Returns the currently installed database version.

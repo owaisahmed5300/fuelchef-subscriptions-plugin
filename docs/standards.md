@@ -63,8 +63,8 @@ file — never `tests/`.
   `type` and does nothing.
 
 Never widen a type or add a `@phpstan-ignore` to silence an error. If an ignore is
-genuinely right it goes in `phpstan.neon.dist` with a comment saying why — see the
-existing entry.
+genuinely right it goes in `phpstan.neon.dist`'s `ignoreErrors`, with a comment saying
+why.
 
 ## The PHP floor is declared in four places
 

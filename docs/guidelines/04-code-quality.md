@@ -49,10 +49,10 @@ memory of why.
 - Classes are `final` unless designed for extension — and if extensible, say what a
   subclass may override.
 - Use precise PHPStan array shapes: `array<string, array{name: string, min_version: string}>`,
-  not `array`. PHPStan runs at level 8 with strict rules; a shape is what makes it useful.
+  not `array`. PHPStan runs at level 10 with strict rules; a shape is what makes it useful.
 - Never widen a type or add a `@phpstan-ignore` to silence an error. The error is
-  usually right. If it genuinely is not, the ignore goes in `phpstan.neon.dist` with a
-  comment saying why — see the existing entries.
+  usually right. If it genuinely is not, the ignore goes in `phpstan.neon.dist`'s
+  `ignoreErrors`, with a comment saying why.
 
 ## Dependencies
 

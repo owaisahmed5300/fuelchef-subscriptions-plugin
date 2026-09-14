@@ -18,20 +18,6 @@ abstract class Abstract_Installer {
 
 
 	/**
-	 * Site schema definition methods.
-	 *
-	 * @var list<string>|array{}
-	 */
-	protected array $schemas = [];
-
-	/**
-	 * Site database migrations.
-	 *
-	 * @var array<string, list<string>>
-	 */
-	protected array $migrations = [];
-
-	/**
 	 * Installs or upgrades the database.
 	 */
 	final public function install(): void {
@@ -51,10 +37,34 @@ abstract class Abstract_Installer {
 	abstract protected function update_version(): void;
 
 	/**
+	 * Site schema definitions to keep in sync with `dbDelta()`, one closure per
+	 * table. Empty by default; a subclass with tables overrides this.
+	 *
+	 * @return list<callable(): string> One closure per table, each returning its
+	 *                                  `CREATE TABLE` statement.
+	 */
+	protected function schemas(): array {
+		return [];
+	}
+
+	/**
+	 * Site database migrations, keyed by the target version and run in array
+	 * order. Empty by default; a subclass with migrations overrides this.
+	 *
+	 * @return array<string, list<callable(): void>> Migration steps, keyed by
+	 *                                                target version.
+	 */
+	protected function migrations(): array {
+		return [];
+	}
+
+	/**
 	 * Synchronizes database tables using dbDelta().
 	 */
 	private function sync_schema(): void {
-		if ( [] === $this->schemas ) {
+		$schemas = $this->schemas();
+
+		if ( [] === $schemas ) {
 			return;
 		}
 
@@ -63,11 +73,8 @@ abstract class Abstract_Installer {
 			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		}
 
-		foreach ( $this->schemas as $method ) {
-			/** @var array<string>|string $schema */
-			$schema = $this->$method();
-
-			dbDelta( $schema );
+		foreach ( $schemas as $schema ) {
+			dbDelta( $schema() );
 		}
 	}
 
@@ -77,15 +84,13 @@ abstract class Abstract_Installer {
 	private function run_migrations(): void {
 		$current_version = $this->get_current_version();
 
-		foreach ( $this->migrations as $target_version => $methods ) {
+		foreach ( $this->migrations() as $target_version => $steps ) {
 			if ( version_compare( $current_version, $target_version, '>=' ) ) {
 				continue;
 			}
 
-			foreach ( $methods as $method ) {
-				if ( is_callable( [ $this, $method ] ) ) {
-					$this->$method();
-				}
+			foreach ( $steps as $step ) {
+				$step();
 			}
 		}
 	}
