@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Frontend\Checkout\Block;
 
 use FuelChef\Subscriptions\Frontend\Checkout\Current_Delivery_Window;
+use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Input;
 use WP_Error;
 use WP_REST_Response;
@@ -53,7 +54,8 @@ final class Delivery_Date_Field {
 	 * Creates the field handler.
 	 */
 	public function __construct(
-		private Current_Delivery_Window $window
+		private Current_Delivery_Window $window,
+		private Settings_Store $settings
 	) {
 	}
 
@@ -78,7 +80,10 @@ final class Delivery_Date_Field {
 		woocommerce_register_additional_checkout_field(
 			[
 				'id'         => self::FIELD_ID,
-				'label'      => esc_html__( 'Delivery date', 'fuelchef-subscriptions' ),
+				// Not esc_html__(): the Checkout block renders this as a plain React text
+				// node, not raw HTML, so an HTML-escaped string shows its literal entities
+				// (e.g. "&amp;") instead of being decoded.
+				'label'      => $this->settings->get()->delivery_date_label(),
 				'location'   => 'order',
 				'type'       => 'text',
 				'required'   => false,

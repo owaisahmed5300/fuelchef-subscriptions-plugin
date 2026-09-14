@@ -3,8 +3,9 @@
  * Classic checkout subscribe-and-save checkbox.
  *
  * Rendered by Frontend\Checkout\Subscribe_And_Save::render(), directly inside the order
- * review table's `<tfoot>`, right before the order total. $data carries `checked`
- * (bool) and `discount_percent` (int).
+ * review table's `<tfoot>`, right before the order total. $data carries `checked` (bool),
+ * `label` (string) and `description` (string, empty for none - both store-configured,
+ * with the {percent} placeholder already resolved).
  */
 
 declare(strict_types=1);
@@ -15,8 +16,10 @@ defined( 'ABSPATH' ) || exit;
 
 /** @var bool $checked */
 $checked = $data['checked'];
-/** @var int $discount_percent */
-$discount_percent = $data['discount_percent'];
+/** @var string $label */
+$label = $data['label'];
+/** @var string $description */
+$description = $data['description'];
 ?>
 <tr class="fcs-subscribe-and-save-row">
 	<th></th>
@@ -29,13 +32,10 @@ $discount_percent = $data['discount_percent'];
 				value="1"
 				<?php checked( $checked ); ?>
 			/>
-			<?php
-			printf(
-				/* translators: %d: subscribe-and-save discount percentage. */
-				esc_html__( 'Subscribe & Save %d%%', 'fuelchef-subscriptions' ),
-				absint( $discount_percent )
-			);
-			?>
+			<?php echo esc_html( $label ); ?>
 		</label>
+		<?php if ( '' !== $description ) : ?>
+			<p class="fcs-subscribe-and-save-description"><?php echo esc_html( $description ); ?></p>
+		<?php endif; ?>
 	</td>
 </tr>

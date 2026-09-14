@@ -45,6 +45,12 @@ final class Subscribe_And_Save {
 	public const FIELD_ID = 'fuelchef-subscriptions/subscribe-and-save';
 
 	/**
+	 * The data attribute the description-enhancement script looks for on the rendered
+	 * checkbox.
+	 */
+	public const DATA_ATTRIBUTE = 'data-fcs-block-subscribe-and-save';
+
+	/**
 	 * Creates the discount handler.
 	 */
 	public function __construct(
@@ -72,22 +78,17 @@ final class Subscribe_And_Save {
 
 		woocommerce_register_additional_checkout_field(
 			[
-				'id'       => self::FIELD_ID,
-				'label'    => $this->label(),
-				'location' => 'order',
-				'type'     => 'checkbox',
+				'id'         => self::FIELD_ID,
+				// Not esc_html__(): the Checkout block renders this as a plain React text
+				// node, not raw HTML, so an HTML-escaped string (e.g. one containing "&")
+				// shows its literal entity instead of being decoded.
+				'label'      => $this->settings->get()->subscribe_save_label_resolved(),
+				'location'   => 'order',
+				'type'       => 'checkbox',
+				'attributes' => [
+					self::DATA_ATTRIBUTE => '1',
+				],
 			]
-		);
-	}
-
-	/**
-	 * The checkbox's label, naming the current discount percentage.
-	 */
-	private function label(): string {
-		return sprintf(
-			/* translators: %d: subscribe-and-save discount percentage. */
-			esc_html__( 'Subscribe & Save %d%%', 'fuelchef-subscriptions' ),
-			$this->settings->get()->subscribe_discount_percent()
 		);
 	}
 
