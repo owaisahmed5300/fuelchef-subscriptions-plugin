@@ -109,7 +109,7 @@ final class Requirements {
 	 * @param string $plugin_file Absolute path to the main plugin file.
 	 * @param string $plugin_name Plugin display name.
 	 *
-	 * @return self
+	 * @return self A new requirements gate for the plugin.
 	 */
 	public static function for_plugin( $plugin_file, $plugin_name ) {
 		return new self( $plugin_file, $plugin_name );
@@ -120,7 +120,7 @@ final class Requirements {
 	 *
 	 * @param string $version Minimum PHP version.
 	 *
-	 * @return self
+	 * @return self This gate, for chaining.
 	 */
 	public function require_php( $version ) {
 		$this->min_php = $version;
@@ -133,7 +133,7 @@ final class Requirements {
 	 *
 	 * @param string $version Minimum WordPress version.
 	 *
-	 * @return self
+	 * @return self This gate, for chaining.
 	 */
 	public function require_wp( $version ) {
 		$this->min_wp = $version;
@@ -148,7 +148,7 @@ final class Requirements {
 	 * @param string $name Plugin display name, e.g. `WooCommerce`.
 	 * @param string $min_version Minimum version, or an empty string for any.
 	 *
-	 * @return self
+	 * @return self This gate, for chaining.
 	 */
 	public function require_plugin( $slug, $name, $min_version = '' ) {
 		$this->required_plugins[ $slug ] = array(
@@ -166,7 +166,7 @@ final class Requirements {
 	 * exists on disk is the one that loads. Variadic by `func_get_args()` rather
 	 * than `...$paths`, which is PHP 5.6+.
 	 *
-	 * @return self
+	 * @return self This gate, for chaining.
 	 */
 	public function require_autoloader() {
 		/** @var list<string> $paths */
@@ -183,7 +183,7 @@ final class Requirements {
 	 * notice and the activation guard, so the caller only has to `return`.
 	 * The side effect is deliberate and happens at most once.
 	 *
-	 * @return bool
+	 * @return bool True when every requirement is met.
 	 */
 	public function satisfied() {
 		if ( array() === $this->failures() ) {
@@ -201,7 +201,7 @@ final class Requirements {
 	 * Each entry has a `type` key: `php`, `wp`, `plugin_missing`,
 	 * `plugin_inactive`, `plugin_version` or `autoloader`.
 	 *
-	 * @return list<array<string, string>>
+	 * @return list<array<string, string>> Every unmet requirement.
 	 */
 	public function failures() {
 		if ( null !== $this->failures ) {
@@ -221,7 +221,7 @@ final class Requirements {
 	/**
 	 * The first autoloader candidate that exists, or an empty string.
 	 *
-	 * @return string
+	 * @return string The autoloader path, or an empty string when none exists.
 	 */
 	public function autoloader() {
 		foreach ( $this->autoloader_candidates as $candidate ) {
@@ -316,7 +316,8 @@ final class Requirements {
 	/**
 	 * Check the PHP version.
 	 *
-	 * @return list<array<string, string>>
+	 * @return list<array<string, string>> A single-entry list when the PHP
+	 *                                     version is too low, empty otherwise.
 	 */
 	private function php_failures() {
 		if ( '' === $this->min_php || version_compare( PHP_VERSION, $this->min_php, '>=' ) ) {
@@ -335,7 +336,8 @@ final class Requirements {
 	/**
 	 * Check the WordPress version.
 	 *
-	 * @return list<array<string, string>>
+	 * @return list<array<string, string>> A single-entry list when the WordPress
+	 *                                     version is too low, empty otherwise.
 	 */
 	private function wordpress_failures() {
 		if ( '' === $this->min_wp ) {
@@ -360,7 +362,8 @@ final class Requirements {
 	/**
 	 * Check every required plugin is installed, active and new enough.
 	 *
-	 * @return list<array<string, string>>
+	 * @return list<array<string, string>> One entry per missing, inactive or
+	 *                                     outdated required plugin.
 	 */
 	private function plugin_failures() {
 		$failures = array();
@@ -415,7 +418,8 @@ final class Requirements {
 	/**
 	 * Check that a Composer autoloader was shipped.
 	 *
-	 * @return list<array<string, string>>
+	 * @return list<array<string, string>> A single-entry list when no candidate
+	 *                                     autoloader exists, empty otherwise.
 	 */
 	private function autoloader_failures() {
 		if ( array() === $this->autoloader_candidates || '' !== $this->autoloader() ) {
@@ -434,7 +438,7 @@ final class Requirements {
 	 *
 	 * @param array<string, string> $failure One entry from `failures()`.
 	 *
-	 * @return string
+	 * @return string The message.
 	 */
 	private function message( array $failure ) {
 		switch ( $failure['type'] ) {
@@ -526,7 +530,7 @@ final class Requirements {
 	 * @param string $url Target URL.
 	 * @param string $label Link label.
 	 *
-	 * @return string
+	 * @return string The message, with the action link appended when the user may act.
 	 */
 	private function plugin_action_message( $message, $capability, $url, $label ) {
 		if ( ! current_user_can( $capability ) ) {
@@ -541,7 +545,7 @@ final class Requirements {
 	 *
 	 * @param string $slug Plugin slug.
 	 *
-	 * @return string|null
+	 * @return string|null The plugin file, or null when it is not installed.
 	 */
 	private function plugin_file_for( $slug ) {
 		$prefix = $slug . '/';
@@ -563,7 +567,7 @@ final class Requirements {
 	 *
 	 * @param string $file Plugin file.
 	 *
-	 * @return bool
+	 * @return bool True when the plugin is active.
 	 */
 	private function is_plugin_active( $file ) {
 		$this->load_plugin_functions();
@@ -587,7 +591,7 @@ final class Requirements {
 	/**
 	 * All installed plugins, read once per instance.
 	 *
-	 * @return array<string, array<string, mixed>>
+	 * @return array<string, array<string, mixed>> Every installed plugin, keyed by file.
 	 */
 	private function installed_plugins() {
 		if ( null === $this->installed_plugins ) {
@@ -607,7 +611,7 @@ final class Requirements {
 	 *
 	 * @param string $file Plugin file.
 	 *
-	 * @return string
+	 * @return string The installed version, or an empty string when undeclared.
 	 */
 	private function installed_version( $file ) {
 		$plugins = $this->installed_plugins();
@@ -621,7 +625,7 @@ final class Requirements {
 	 *
 	 * @param string $slug Plugin slug.
 	 *
-	 * @return string
+	 * @return string The install URL.
 	 */
 	private function install_url( $slug ) {
 		return wp_nonce_url(
@@ -641,7 +645,7 @@ final class Requirements {
 	 *
 	 * @param string $file Plugin file.
 	 *
-	 * @return string
+	 * @return string The activate URL.
 	 */
 	private function activate_url( $file ) {
 		return wp_nonce_url(

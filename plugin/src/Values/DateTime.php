@@ -77,8 +77,6 @@ final class DateTime {
 	 * Database datetimes are expected to be stored in UTC.
 	 *
 	 * @param string $value Database datetime in UTC.
-	 *
-	 * @throws InvalidArgumentException When the value is invalid.
 	 */
 	public static function from_database( string $value ): self {
 		return new self(
@@ -96,8 +94,6 @@ final class DateTime {
 	 * The value is interpreted using the WordPress timezone.
 	 *
 	 * @param string $value Local WordPress datetime.
-	 *
-	 * @throws InvalidArgumentException When the value is invalid.
 	 */
 	public static function from_wp( string $value ): self {
 		return new self(
@@ -182,8 +178,6 @@ final class DateTime {
 	 * @param string       $value Value to parse.
 	 * @param string       $format Expected format.
 	 * @param DateTimeZone $timezone Timezone.
-	 *
-	 * @throws InvalidArgumentException When the value is invalid.
 	 */
 	private static function create_datetime(
 		string $value,

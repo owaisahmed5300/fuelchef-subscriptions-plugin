@@ -49,8 +49,6 @@ final class Schedule_Destination implements Entity, Timestamped {
 	 * @param int    $schedule_id Schedule ID.
 	 * @param string $destination_type One of the `Destination_Type` constants.
 	 * @param string $destination_key Identifier within that type.
-	 *
-	 * @throws InvalidArgumentException When the destination type is invalid.
 	 */
 	public function __construct( int $schedule_id, string $destination_type, string $destination_key ) {
 		if ( ! Destination_Type::is_valid( $destination_type ) ) {

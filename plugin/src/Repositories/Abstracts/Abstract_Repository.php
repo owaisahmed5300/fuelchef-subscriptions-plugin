@@ -51,7 +51,7 @@ abstract class Abstract_Repository {
 	 *
 	 * @param array<string, mixed> $row Raw database row.
 	 *
-	 * @return TEntity
+	 * @return TEntity The hydrated entity.
 	 */
 	abstract protected function hydrate( array $row ): Entity;
 
@@ -61,7 +61,7 @@ abstract class Abstract_Repository {
 	 *
 	 * @param TEntity $entity Entity to write.
 	 *
-	 * @return array<string, mixed>
+	 * @return array<string, mixed> The row data to persist.
 	 */
 	abstract protected function dehydrate( Entity $entity ): array;
 
@@ -78,7 +78,7 @@ abstract class Abstract_Repository {
 	/**
 	 * Finds a row by ID.
 	 *
-	 * @return TEntity|null
+	 * @return TEntity|null The entity, or null when no row has this ID.
 	 */
 	public function find( int $id ): ?Entity {
 		/** @var TEntity|false $cached */
@@ -112,7 +112,7 @@ abstract class Abstract_Repository {
 	/**
 	 * Finds a row by ID, or throws when it does not exist.
 	 *
-	 * @return TEntity
+	 * @return TEntity The entity.
 	 *
 	 * @throws Entity_Not_Found_Exception When no row has this ID.
 	 */
@@ -131,7 +131,7 @@ abstract class Abstract_Repository {
 	 *
 	 * @param TEntity $entity Entity to insert.
 	 *
-	 * @return TEntity
+	 * @return TEntity The inserted entity.
 	 *
 	 * @throws Repository_Exception When the insert fails.
 	 */
@@ -169,9 +169,8 @@ abstract class Abstract_Repository {
 	 *
 	 * @param TEntity $entity Entity to update. Must already have an ID.
 	 *
-	 * @return TEntity
+	 * @return TEntity The updated entity.
 	 *
-	 * @throws InvalidArgumentException When the entity has not been persisted.
 	 * @throws Repository_Exception When the update fails.
 	 */
 	public function update( Entity $entity ): Entity {

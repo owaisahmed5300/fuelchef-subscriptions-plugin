@@ -36,7 +36,7 @@ final class Blackout_Repository extends Abstract_Repository {
 	 * Every blackout for a schedule, or every store-wide one when null,
 	 * ordered by date.
 	 *
-	 * @return list<Blackout>
+	 * @return list<Blackout> The matching blackouts.
 	 */
 	public function find_by_schedule( ?int $schedule_id ): array {
 		$cache_key = $this->by_schedule_cache_key( $schedule_id );
@@ -112,6 +112,8 @@ final class Blackout_Repository extends Abstract_Repository {
 	}
 
 	/**
+	 * Builds a blackout from a database row.
+	 *
 	 * @param array<string, mixed> $row Raw database row.
 	 */
 	protected function hydrate( array $row ): Blackout {
@@ -130,7 +132,9 @@ final class Blackout_Repository extends Abstract_Repository {
 	}
 
 	/**
-	 * @return array<string, mixed>
+	 * Builds the row data to write for a blackout.
+	 *
+	 * @return array<string, mixed> The row data to persist.
 	 */
 	protected function dehydrate( Entity $entity ): array {
 		return [

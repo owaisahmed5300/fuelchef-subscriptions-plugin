@@ -35,7 +35,7 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 	/**
 	 * Every destination assigned to a schedule.
 	 *
-	 * @return list<Schedule_Destination>
+	 * @return list<Schedule_Destination> The schedule's destinations.
 	 */
 	public function find_by_schedule( int $schedule_id ): array {
 		$cache_key = $this->by_schedule_cache_key( $schedule_id );
@@ -100,6 +100,8 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 	}
 
 	/**
+	 * Builds a schedule destination from a database row.
+	 *
 	 * @param array<string, mixed> $row Raw database row.
 	 */
 	protected function hydrate( array $row ): Schedule_Destination {
@@ -118,7 +120,9 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 	}
 
 	/**
-	 * @return array<string, mixed>
+	 * Builds the row data to write for a schedule destination.
+	 *
+	 * @return array<string, mixed> The row data to persist.
 	 */
 	protected function dehydrate( Entity $entity ): array {
 		return [

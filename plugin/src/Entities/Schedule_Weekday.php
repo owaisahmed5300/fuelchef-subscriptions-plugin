@@ -54,8 +54,6 @@ final class Schedule_Weekday implements Entity, Timestamped {
 	 * @param int    $day_of_week Day of week, 0 (Sunday) through 6 (Saturday).
 	 * @param bool   $enabled Whether fulfillment happens on this day.
 	 * @param string $start_time Earliest fulfillment time, in `H:i:s` form.
-	 *
-	 * @throws InvalidArgumentException When the day of week is out of range.
 	 */
 	public function __construct(
 		int $schedule_id,
