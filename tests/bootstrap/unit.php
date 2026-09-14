@@ -30,3 +30,7 @@ require_once $autoload;
 // The real wpdb class does not exist without WordPress, but repositories and the
 // installer type-hint against it.
 require_once __DIR__ . '/wpdb.php';
+
+// WooCommerce is never loaded either, but Destination_Catalog reaches its shipping
+// zone registry statically, which nothing else can stand in for.
+require_once __DIR__ . '/woocommerce.php';
