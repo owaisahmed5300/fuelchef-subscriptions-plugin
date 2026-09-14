@@ -149,6 +149,11 @@ final class Delivery_Date_Field {
 	 * nothing chosen yet resolves to a schedule. Read-only and carries nothing specific
 	 * to the customer beyond what their own cart/session already determines.
 	 *
+	 * Shared by both checkout implementations' enhancement scripts, despite living on the
+	 * block checkout field class - registering it once here and pointing classic
+	 * checkout's own script at the same URL avoids the alternative of running the same
+	 * route (and the cart-loading workaround below) twice.
+	 *
 	 * Classic checkout's own page render and AJAX handler both load the cart earlier in
 	 * the same request, before `Current_Delivery_Window` is ever asked to resolve
 	 * anything - confirmed by reading both code paths. A bare REST request has none of
@@ -164,8 +169,9 @@ final class Delivery_Date_Field {
 		if ( null === $schedule ) {
 			return new WP_REST_Response(
 				[
-					'dates'   => [],
-					'windows' => [],
+					'hasSchedule' => false,
+					'dates'       => [],
+					'windows'     => [],
 				]
 			);
 		}
@@ -174,8 +180,9 @@ final class Delivery_Date_Field {
 
 		return new WP_REST_Response(
 			[
-				'dates'   => $dates,
-				'windows' => $this->window->windows_for_dates( $schedule, $dates ),
+				'hasSchedule' => true,
+				'dates'       => $dates,
+				'windows'     => $this->window->windows_for_dates( $schedule, $dates ),
 			]
 		);
 	}

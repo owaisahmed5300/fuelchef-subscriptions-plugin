@@ -1,10 +1,12 @@
 /**
  * FuelChef Subscriptions - Checkout delivery date field
  *
- * The order review table is fully replaced on every checkout refresh (address or
- * shipping method change), so the field's DOM node - and any flatpickr instance bound to
- * it - never survives more than one refresh. This re-scans for the field and rebuilds
- * the picker from scratch each time, destroying the previous instance first.
+ * This field lives alongside the other checkout fields, not inside the order review
+ * table, so it is not replaced by WooCommerce's own `update_order_review` AJAX refresh.
+ * The flatpickr instance is created once and kept; eligible dates are re-fetched from the
+ * same REST route the block checkout field uses whenever the checkout form changes - that
+ * refresh is also what shows or hides the field once the shipping destination resolves to
+ * a schedule (or stops resolving to one).
  */
 
 jQuery(function ($) {
@@ -29,28 +31,20 @@ jQuery(function ($) {
   };
 
   let instance = null;
+  let currentWindows = {};
 
-  function readEligibleDates($input) {
+  function readJson($el, attr, fallback) {
     try {
-      const dates = JSON.parse($input.attr('data-eligible-dates') || '[]');
-      return Array.isArray(dates) ? dates : [];
+      const parsed = JSON.parse($el.attr(attr) || '');
+      return parsed && typeof parsed === 'object' ? parsed : fallback;
     } catch (e) {
-      return [];
+      return fallback;
     }
   }
 
-  function readWindows($input) {
-    try {
-      const windows = JSON.parse($input.attr('data-windows') || '{}');
-      return windows && typeof windows === 'object' ? windows : {};
-    } catch (e) {
-      return {};
-    }
-  }
-
-  function updateWindowCaption($input, windows, selectedDate) {
+  function updateWindowCaption(selectedDate) {
     const $caption = $('#fcsDeliveryDateWindow');
-    const deliveryWindow = windows[selectedDate];
+    const deliveryWindow = currentWindows[selectedDate];
 
     if (!$caption.length || !deliveryWindow) {
       $caption.attr('hidden', true);
@@ -61,34 +55,55 @@ jQuery(function ($) {
     $caption.removeAttr('hidden');
   }
 
-  function initDatePicker() {
-    if (instance) {
-      instance.destroy();
-      instance = null;
-    }
+  function applyEligibleDates(dates, windows) {
+    currentWindows = windows && typeof windows === 'object' ? windows : {};
 
+    if (instance) {
+      instance.set('enable', Array.isArray(dates) ? dates : []);
+      updateWindowCaption(instance.input.value);
+    }
+  }
+
+  function refetchEligibleDates() {
+    fetch(window.fcsCheckout.eligibleDatesUrl, { credentials: 'same-origin' })
+      .then(function (response) {
+        return response.ok ? response.json() : { hasSchedule: false, dates: [], windows: {} };
+      })
+      .then(function (data) {
+        $('#fcsDeliveryDateFieldWrap').attr('hidden', !data.hasSchedule);
+        applyEligibleDates(data.dates, data.windows);
+      })
+      .catch(function () {
+        // Leave the field as it was; the next checkout change retries.
+      });
+  }
+
+  function initDatePicker() {
     const $input = $('.fcs-delivery-date-input');
 
-    if (!$input.length) {
+    if (!$input.length || instance) {
       return;
     }
 
-    const windows = readWindows($input);
+    const dates = readJson($input, 'data-eligible-dates', []);
+    const windows = readJson($input, 'data-windows', {});
+
+    currentWindows = windows;
 
     instance = window.flatpickr($input[0], {
       dateFormat: 'Y-m-d',
       altInput: true,
       altFormat: 'F j, Y',
       altInputClass: 'fcs-delivery-date-input__display',
-      enable: readEligibleDates($input),
+      enable: dates,
       locale,
       disableMobile: true,
-      onChange: (selectedDates, dateStr) => updateWindowCaption($input, windows, dateStr)
+      onChange: (selectedDates, dateStr) => updateWindowCaption(dateStr)
     });
 
     instance.altInput.setAttribute('placeholder', i18n.chooseDate);
-    updateWindowCaption($input, windows, $input.val());
   }
 
-  $(document.body).on('init_checkout updated_checkout', initDatePicker);
+  $(document.body).on('init_checkout', initDatePicker);
+  $(document.body).on('updated_checkout', refetchEligibleDates);
 });

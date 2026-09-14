@@ -50,12 +50,12 @@ final class Subscribe_And_Save {
 	}
 
 	/**
-	 * Hooks this discount into the classic checkout lifecycle: rendered before the order
-	 * total, applied while cart totals are calculated, and saved to the order once it is
-	 * created.
+	 * Hooks this discount into the classic checkout lifecycle: rendered alongside the
+	 * other checkout fields, applied while cart totals are calculated, and saved to the
+	 * order once it is created.
 	 */
 	public function register(): void {
-		add_action( 'woocommerce_review_order_before_order_total', [ $this, 'render' ] );
+		add_action( 'woocommerce_checkout_after_customer_details', [ $this, 'render' ] );
 		add_action( 'woocommerce_cart_calculate_fees', [ $this, 'maybe_apply_discount' ] );
 		add_action( 'woocommerce_checkout_create_order', [ $this, 'persist' ], 10, 2 );
 	}

@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend\Checkout;
 
-use FuelChef\Subscriptions\Entities\Schedule;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Input;
 use FuelChef\Subscriptions\Utils\Renderer;
@@ -17,8 +16,13 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Adds a delivery date field to classic checkout, shown only once the customer has
- * chosen a shipping zone or pickup location a schedule is assigned to.
+ * Adds a delivery date field to classic checkout, alongside the other checkout fields.
+ *
+ * Rendered once, on the initial page load - unlike the order review table, this part of
+ * checkout is not replaced by WooCommerce's own `update_order_review` AJAX refresh, so
+ * `assets/checkout/js/delivery-date-field.js` re-fetches eligible dates itself (the same
+ * REST route the block checkout field already uses) whenever the customer's shipping
+ * destination might have changed, and shows or hides the field accordingly.
  *
  * Reads and writes nothing of its own: it asks `Current_Delivery_Window` what schedule
  * and dates apply to whatever the customer picked, and renders, validates and persists
@@ -39,13 +43,6 @@ final class Delivery_Date_Field {
 	public const META_KEY = '_fcs_delivery_date';
 
 	/**
-	 * The date posted in the current request, captured from `post_data` during an
-	 * `update_order_review` AJAX refresh so a re-rendered field keeps its selection.
-	 * Null on a normal page load, where nothing has been posted yet.
-	 */
-	private ?string $posted_date = null;
-
-	/**
 	 * Creates the field handler.
 	 */
 	public function __construct(
@@ -56,50 +53,32 @@ final class Delivery_Date_Field {
 	}
 
 	/**
-	 * Hooks this field into the classic checkout lifecycle: captured on every AJAX
-	 * refresh, rendered after the shipping method list, validated before an order is
-	 * created, and saved to the order once it is.
+	 * Hooks this field into the classic checkout lifecycle: rendered alongside the other
+	 * checkout fields, validated before an order is created, and saved to the order once
+	 * it is.
 	 */
 	public function register(): void {
-		add_action( 'woocommerce_checkout_update_order_review', [ $this, 'capture_posted_date' ] );
-		add_action( 'woocommerce_review_order_after_shipping', [ $this, 'render' ] );
+		add_action( 'woocommerce_checkout_after_customer_details', [ $this, 'render' ] );
 		add_action( 'woocommerce_after_checkout_validation', [ $this, 'validate' ], 10, 2 );
 		add_action( 'woocommerce_checkout_create_order', [ $this, 'persist' ], 10, 2 );
 	}
 
 	/**
-	 * Reads this field's value out of an `update_order_review` AJAX request's raw
-	 * `post_data`, so the field can re-render with the customer's choice still selected.
-	 *
-	 * @param string $post_data The checkout form, serialized.
-	 */
-	public function capture_posted_date( string $post_data ): void {
-		parse_str( $post_data, $parsed );
-
-		$this->posted_date = Input::string( $parsed[ self::FIELD_NAME ] ?? null );
-	}
-
-	/**
-	 * Renders the field after the shipping method list, once a schedule applies to what
-	 * the customer chose. Renders nothing otherwise, so the field never appears without
-	 * something behind it to fulfil the order.
+	 * Renders the field, initially visible only when a schedule already applies to
+	 * whatever destination the customer has chosen - the enhancement script takes over
+	 * showing and hiding it as that changes, since this only runs once per page load.
 	 */
 	public function render(): void {
-		$schedule = $this->window->schedule();
-
-		if ( null === $schedule ) {
-			return;
-		}
-
-		$eligible_dates = $this->window->eligible_dates( $schedule );
+		$schedule       = $this->window->schedule();
+		$eligible_dates = null !== $schedule ? $this->window->eligible_dates( $schedule ) : [];
 		$settings       = $this->settings->get();
 
 		$html = $this->renderer->render(
 			'frontend/checkout/delivery-date-field',
 			[
+				'has_schedule'   => null !== $schedule,
 				'eligible_dates' => $eligible_dates,
-				'selected_date'  => $this->selected_date( $schedule ),
-				'windows'        => $this->window->windows_for_dates( $schedule, $eligible_dates ),
+				'windows'        => null !== $schedule ? $this->window->windows_for_dates( $schedule, $eligible_dates ) : [],
 				'label'          => $settings->delivery_date_label(),
 				'description'    => $settings->delivery_date_description(),
 			]
@@ -147,19 +126,5 @@ final class Delivery_Date_Field {
 		}
 
 		$order->update_meta_data( self::META_KEY, Input::string( $data[ self::FIELD_NAME ] ?? null ) );
-	}
-
-	/**
-	 * The posted date, when it names a date the schedule can still fulfil on. Null
-	 * otherwise, including when nothing has been posted yet.
-	 */
-	private function selected_date( Schedule $schedule ): ?string {
-		if ( null === $this->posted_date ) {
-			return null;
-		}
-
-		return in_array( $this->posted_date, $this->window->eligible_dates( $schedule ), true )
-			? $this->posted_date
-			: null;
 	}
 }
