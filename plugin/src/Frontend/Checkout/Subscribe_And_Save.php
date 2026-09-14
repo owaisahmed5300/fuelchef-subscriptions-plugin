@@ -66,11 +66,14 @@ final class Subscribe_And_Save {
 	 * on a plain page load, since nothing was posted for it to read.
 	 */
 	public function render(): void {
+		$settings = $this->settings->get();
+
 		$html = $this->renderer->render(
 			'frontend/checkout/subscribe-and-save',
 			[
-				'checked'          => $this->is_checked_in_request(),
-				'discount_percent' => $this->settings->get()->subscribe_discount_percent(),
+				'checked'     => $this->is_checked_in_request(),
+				'label'       => $settings->subscribe_save_label_resolved(),
+				'description' => $settings->subscribe_save_description_resolved(),
 			]
 		);
 

@@ -55,6 +55,16 @@ jQuery(function ($) {
     return $caption;
   }
 
+  function addDescription($input) {
+    const description = window.fcsCheckout.deliveryDateDescription;
+
+    if (!description || $input.siblings('.fcs-delivery-date-description').length) {
+      return;
+    }
+
+    $input.after($('<p class="fcs-delivery-date-description"></p>').text(description));
+  }
+
   function updateWindowCaption() {
     if (!instance) {
       return;
@@ -114,6 +124,12 @@ jQuery(function ($) {
       disableMobile: true,
       onChange: updateWindowCaption
     });
+
+    // Order matters: windowCaption() creates its element first so addDescription()'s
+    // insertion (also right after the input) pushes it below, keeping the static
+    // description above the per-date availability caption - matching classic checkout.
+    windowCaption($input);
+    addDescription($input);
 
     refetchEligibleDates();
   }

@@ -50,6 +50,7 @@ final class Provider implements ServiceProvider {
 		$container
 			->singleton( Delivery_Date_Field::class )
 			->addParameter( Current_Delivery_Window::class, true )
+			->addParameter( Settings_Store::class, true )
 			->addParameter( Renderer::class, true );
 
 		$container
@@ -59,14 +60,17 @@ final class Provider implements ServiceProvider {
 
 		$container
 			->singleton( Block_Delivery_Date_Field::class )
-			->addParameter( Current_Delivery_Window::class, true );
+			->addParameter( Current_Delivery_Window::class, true )
+			->addParameter( Settings_Store::class, true );
 
 		$container
 			->singleton( Block_Subscribe_And_Save::class )
 			->addParameter( Settings_Store::class, true )
 			->addParameter( Subscribe_And_Save::class, true );
 
-		$container->singleton( Assets::class );
+		$container
+			->singleton( Assets::class )
+			->addParameter( Settings_Store::class, true );
 	}
 
 	/**

@@ -187,4 +187,20 @@ final class Settings {
 	public function subscribe_save_description(): string {
 		return $this->subscribe_save_description;
 	}
+
+	/**
+	 * The subscribe-and-save checkbox label, with `{percent}` replaced by the current
+	 * discount percentage.
+	 */
+	public function subscribe_save_label_resolved(): string {
+		return str_replace( '{percent}', (string) $this->subscribe_discount_percent, $this->subscribe_save_label );
+	}
+
+	/**
+	 * The subscribe-and-save help text, with `{percent}` replaced by the current discount
+	 * percentage. Empty when the store shows none.
+	 */
+	public function subscribe_save_description_resolved(): string {
+		return str_replace( '{percent}', (string) $this->subscribe_discount_percent, $this->subscribe_save_description );
+	}
 }

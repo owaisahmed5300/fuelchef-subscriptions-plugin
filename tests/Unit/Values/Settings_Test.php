@@ -49,6 +49,32 @@ final class Settings_Test extends TestCase {
 		$this->assertSame( '', $settings->subscribe_save_description() );
 	}
 
+	public function test_subscribe_save_label_resolved_replaces_the_percent_placeholder(): void {
+		$args    = $this->valid_args();
+		$args[2] = 12;
+		$args[7] = 'Subscribe & Save {percent}% today';
+
+		$settings = new Settings( ...$args );
+
+		$this->assertSame( 'Subscribe & Save 12% today', $settings->subscribe_save_label_resolved() );
+	}
+
+	public function test_subscribe_save_description_resolved_replaces_the_percent_placeholder(): void {
+		$args    = $this->valid_args();
+		$args[2] = 12;
+		$args[8] = 'Save {percent}% on this order and every renewal.';
+
+		$settings = new Settings( ...$args );
+
+		$this->assertSame( 'Save 12% on this order and every renewal.', $settings->subscribe_save_description_resolved() );
+	}
+
+	public function test_subscribe_save_description_resolved_stays_empty_when_unset(): void {
+		$settings = new Settings( ...$this->valid_args() );
+
+		$this->assertSame( '', $settings->subscribe_save_description_resolved() );
+	}
+
 	public function test_rejects_a_negative_cutoff_days(): void {
 		$args    = $this->valid_args();
 		$args[0] = -1;

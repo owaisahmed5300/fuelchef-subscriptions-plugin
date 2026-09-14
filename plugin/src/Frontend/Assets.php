@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Frontend;
 
 use FuelChef\Subscriptions\Frontend\Checkout\Block\Delivery_Date_Field as Block_Delivery_Date_Field;
+use FuelChef\Subscriptions\Services\Settings_Store;
 use WP_Locale;
 
 defined( 'ABSPATH' ) || exit;
@@ -23,6 +24,14 @@ final class Assets {
 	 * since it does not change with plugin releases.
 	 */
 	private const FLATPICKR_VERSION = '4.6.13';
+
+	/**
+	 * Creates the asset handler.
+	 */
+	public function __construct(
+		private Settings_Store $settings
+	) {
+	}
 
 	/**
 	 * Registers the enqueue hook.
@@ -99,13 +108,25 @@ final class Assets {
 			true
 		);
 
+		wp_enqueue_script(
+			'fcs-block-checkout-subscribe',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/block-subscribe-and-save.js',
+			[ 'jquery', 'fcs-checkout' ],
+			FUELCHEF_SUBSCRIPTIONS_VERSION,
+			true
+		);
+
+		$settings = $this->settings->get();
+
 		wp_localize_script(
 			'fcs-checkout',
 			'fcsCheckout',
 			[
-				'startOfWeek'      => $this->start_of_week(),
-				'eligibleDatesUrl' => rest_url( Block_Delivery_Date_Field::REST_NAMESPACE . Block_Delivery_Date_Field::REST_ROUTE ),
-				'i18n'             => $this->strings(),
+				'startOfWeek'              => $this->start_of_week(),
+				'eligibleDatesUrl'         => rest_url( Block_Delivery_Date_Field::REST_NAMESPACE . Block_Delivery_Date_Field::REST_ROUTE ),
+				'deliveryDateDescription'  => $settings->delivery_date_description(),
+				'subscribeSaveDescription' => $settings->subscribe_save_description_resolved(),
+				'i18n'                     => $this->strings(),
 			]
 		);
 	}

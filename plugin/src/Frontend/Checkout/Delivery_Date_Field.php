@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Frontend\Checkout;
 
 use FuelChef\Subscriptions\Entities\Schedule;
+use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Input;
 use FuelChef\Subscriptions\Utils\Renderer;
 use WC_Order;
@@ -49,6 +50,7 @@ final class Delivery_Date_Field {
 	 */
 	public function __construct(
 		private Current_Delivery_Window $window,
+		private Settings_Store $settings,
 		private Renderer $renderer
 	) {
 	}
@@ -90,6 +92,7 @@ final class Delivery_Date_Field {
 		}
 
 		$eligible_dates = $this->window->eligible_dates( $schedule );
+		$settings       = $this->settings->get();
 
 		$html = $this->renderer->render(
 			'frontend/checkout/delivery-date-field',
@@ -97,6 +100,8 @@ final class Delivery_Date_Field {
 				'eligible_dates' => $eligible_dates,
 				'selected_date'  => $this->selected_date( $schedule ),
 				'windows'        => $this->window->windows_for_dates( $schedule, $eligible_dates ),
+				'label'          => $settings->delivery_date_label(),
+				'description'    => $settings->delivery_date_description(),
 			]
 		);
 

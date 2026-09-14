@@ -14,3 +14,10 @@
 .fcs-subscribe-and-save-label input[type="checkbox"] {
 	margin: 0;
 }
+
+.fcs-subscribe-and-save-description {
+	margin: 0.4em 0 0;
+	font-size: 0.9em;
+	font-weight: normal;
+	color: #646970;
+}
