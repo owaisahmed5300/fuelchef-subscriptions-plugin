@@ -3,7 +3,8 @@
 	vertical-align: top;
 }
 
-.fcs-delivery-date-input {
+.fcs-delivery-date-input,
+.fcs-delivery-date-input__display {
 	width: 100%;
 	max-width: 220px;
 	box-sizing: border-box;
