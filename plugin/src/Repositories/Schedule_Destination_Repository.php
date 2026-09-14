@@ -71,6 +71,51 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 	}
 
 	/**
+	 * Every schedule assigned to a destination.
+	 *
+	 * The checkout uses this to resolve which schedule, if any, serves the
+	 * customer's chosen shipping zone or pickup location.
+	 *
+	 * @param string $destination_type One of the `Destination_Type` constants.
+	 * @param string $destination_key Identifier within that type.
+	 *
+	 * @return list<Schedule_Destination> The matching assignments.
+	 */
+	public function find_by_destination( string $destination_type, string $destination_key ): array {
+		$cache_key = $this->by_destination_cache_key( $destination_type, $destination_key );
+
+		/** @var list<Schedule_Destination>|false $cached */
+		$cached = wp_cache_get( $cache_key, self::$cache_group );
+
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
+
+		/** @var list<array<string, mixed>>|null $rows */
+		$rows = $this->wpdb->get_results(
+			$this->wpdb->prepare(
+				'SELECT * FROM %i WHERE destination_type = %s AND destination_key = %s ORDER BY schedule_id ASC',
+				$this->table_name(),
+				$destination_type,
+				$destination_key
+			),
+			ARRAY_A
+		);
+
+		$destinations = [];
+
+		if ( is_array( $rows ) ) {
+			foreach ( $rows as $row ) {
+				$destinations[] = $this->hydrate( $row );
+			}
+		}
+
+		wp_cache_set( $cache_key, $destinations, self::$cache_group );
+
+		return $destinations;
+	}
+
+	/**
 	 * Deletes every destination assigned to a schedule.
 	 */
 	public function delete_by_schedule( int $schedule_id ): void {
@@ -133,10 +178,15 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 	}
 
 	/**
-	 * Invalidates the cached destination list for this entity's schedule.
+	 * Invalidates the cached destination list for this entity's schedule, and
+	 * for the destination it is assigned to.
 	 */
 	protected function invalidate_related( Entity $entity ): void {
 		wp_cache_delete( $this->by_schedule_cache_key( $entity->schedule_id() ), self::$cache_group );
+		wp_cache_delete(
+			$this->by_destination_cache_key( $entity->destination_type(), $entity->destination_key() ),
+			self::$cache_group
+		);
 	}
 
 	/**
@@ -144,5 +194,12 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 	 */
 	private function by_schedule_cache_key( int $schedule_id ): string {
 		return 'by_schedule_' . $schedule_id;
+	}
+
+	/**
+	 * Cache key for a destination's assigned-schedule list.
+	 */
+	private function by_destination_cache_key( string $destination_type, string $destination_key ): string {
+		return 'by_destination_' . $destination_type . '_' . $destination_key;
 	}
 }

@@ -83,6 +83,74 @@ final class Blackout_Repository extends Abstract_Repository {
 	}
 
 	/**
+	 * Every blackout for a schedule, or every store-wide one when null,
+	 * falling within a date range.
+	 *
+	 * Not cached: the range differs on nearly every call, so a cache entry
+	 * would rarely be reused. The result passes through a filter so other
+	 * code can add closures the database does not know about.
+	 *
+	 * @param int|null $schedule_id Schedule ID, or null for store-wide.
+	 * @param string   $from_date First date of the range, inclusive, in `Y-m-d` form.
+	 * @param string   $to_date Last date of the range, inclusive, in `Y-m-d` form.
+	 *
+	 * @return list<Blackout> The matching blackouts.
+	 */
+	public function find_by_schedule_between( ?int $schedule_id, string $from_date, string $to_date ): array {
+		if ( null === $schedule_id ) {
+			/** @var list<array<string, mixed>>|null $rows */
+			$rows = $this->wpdb->get_results(
+				$this->wpdb->prepare(
+					'SELECT * FROM %i WHERE schedule_id IS NULL AND blackout_date BETWEEN %s AND %s ORDER BY blackout_date ASC',
+					$this->table_name(),
+					$from_date,
+					$to_date
+				),
+				ARRAY_A
+			);
+		} else {
+			/** @var list<array<string, mixed>>|null $rows */
+			$rows = $this->wpdb->get_results(
+				$this->wpdb->prepare(
+					'SELECT * FROM %i WHERE schedule_id = %d AND blackout_date BETWEEN %s AND %s ORDER BY blackout_date ASC',
+					$this->table_name(),
+					$schedule_id,
+					$from_date,
+					$to_date
+				),
+				ARRAY_A
+			);
+		}
+
+		$blackouts = [];
+
+		if ( is_array( $rows ) ) {
+			foreach ( $rows as $row ) {
+				$blackouts[] = $this->hydrate( $row );
+			}
+		}
+
+		/**
+		 * Filters the blackouts found for a schedule within a date range.
+		 *
+		 * @param list<Blackout> $blackouts The blackouts found in the database.
+		 * @param int|null       $schedule_id Schedule ID, or null for store-wide.
+		 * @param string         $from_date First date of the range, inclusive.
+		 * @param string         $to_date Last date of the range, inclusive.
+		 */
+		$filtered = apply_filters( 'fuelchef_subscriptions/blackouts/between', $blackouts, $schedule_id, $from_date, $to_date );
+
+		if ( ! is_array( $filtered ) ) {
+			return $blackouts;
+		}
+
+		/** @var list<Blackout> $filtered */
+		$filtered = array_values( array_filter( $filtered, static fn ( mixed $item ): bool => $item instanceof Blackout ) );
+
+		return $filtered;
+	}
+
+	/**
 	 * Whether a blackout already exists on a date, for a schedule or globally.
 	 */
 	public function exists_on_date( ?int $schedule_id, string $date ): bool {
