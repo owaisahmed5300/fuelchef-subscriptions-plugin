@@ -5,14 +5,14 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\Templating;
+namespace FuelChef\Subscriptions\Tests\Unit\Utils;
 
-use FuelChef\Subscriptions\Templating\Renderer;
 use FuelChef\Subscriptions\Tests\TestCase;
+use FuelChef\Subscriptions\Utils\Renderer;
 use RuntimeException;
 
 /**
- * @covers \FuelChef\Subscriptions\Templating\Renderer
+ * @covers \FuelChef\Subscriptions\Utils\Renderer
  */
 final class Renderer_Test extends TestCase {
 

@@ -14,7 +14,6 @@ use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
-use FuelChef\Subscriptions\Settings\Settings_Store;
 use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Values\Cutoff_Unit;
 use FuelChef\Subscriptions\Values\DateTime;

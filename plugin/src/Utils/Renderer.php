@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Templating;
+namespace FuelChef\Subscriptions\Utils;
 
 use RuntimeException;
 

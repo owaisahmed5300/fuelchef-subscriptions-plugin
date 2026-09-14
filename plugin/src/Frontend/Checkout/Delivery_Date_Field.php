@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Frontend\Checkout;
 
 use FuelChef\Subscriptions\Entities\Schedule;
-use FuelChef\Subscriptions\Templating\Renderer;
 use FuelChef\Subscriptions\Utils\Input;
+use FuelChef\Subscriptions\Utils\Renderer;
 use WC_Order;
 use WP_Error;
 

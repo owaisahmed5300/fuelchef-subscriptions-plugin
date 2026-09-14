@@ -5,9 +5,10 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Settings;
+namespace FuelChef\Subscriptions\Services;
 
 use FuelChef\Subscriptions\Values\Cutoff_Unit;
+use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
 defined( 'ABSPATH' ) || exit;

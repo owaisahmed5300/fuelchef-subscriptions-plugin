@@ -15,8 +15,8 @@ use FuelChef\Subscriptions\Dependencies\WPTechnix\DI\Container as Base_Container
 use FuelChef\Subscriptions\Frontend\Provider as Frontend_Provider;
 use FuelChef\Subscriptions\Repositories\Provider as Repositories_Provider;
 use FuelChef\Subscriptions\Services\Provider as Services_Provider;
-use FuelChef\Subscriptions\Templating\Renderer;
 use FuelChef\Subscriptions\Utils\Clock;
+use FuelChef\Subscriptions\Utils\Renderer;
 use FuelChef\Subscriptions\WooCommerce\Destination_Catalog;
 use wpdb;
 

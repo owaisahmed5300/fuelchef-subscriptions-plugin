@@ -15,7 +15,7 @@ use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
 use FuelChef\Subscriptions\Services\Availability_Service;
-use FuelChef\Subscriptions\Settings\Settings_Store;
+use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Tests\Unit\Repositories\Repository_TestCase;
 use FuelChef\Subscriptions\Values\Cutoff_Unit;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
