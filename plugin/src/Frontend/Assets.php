@@ -61,6 +61,13 @@ final class Assets {
 			FUELCHEF_SUBSCRIPTIONS_VERSION
 		);
 
+		wp_enqueue_style(
+			'fcs-checkout-subscribe',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/css/subscribe-and-save.css',
+			[],
+			FUELCHEF_SUBSCRIPTIONS_VERSION
+		);
+
 		wp_enqueue_script(
 			'fcs-checkout',
 			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/delivery-date-field.js',

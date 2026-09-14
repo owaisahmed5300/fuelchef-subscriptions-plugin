@@ -1,0 +1,16 @@
+.fcs-subscribe-and-save-row td {
+	padding-top: 1em;
+	padding-bottom: 1em;
+}
+
+.fcs-subscribe-and-save-label {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.fcs-subscribe-and-save-label input[type="checkbox"] {
+	margin: 0;
+}
