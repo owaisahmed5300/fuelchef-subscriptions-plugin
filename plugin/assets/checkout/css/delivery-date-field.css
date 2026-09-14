@@ -1,0 +1,23 @@
+.fcs-delivery-date-row th,
+.fcs-delivery-date-row td {
+	vertical-align: top;
+}
+
+.fcs-delivery-date-input {
+	width: 100%;
+	max-width: 220px;
+	box-sizing: border-box;
+	padding: 0.6em 0.8em;
+	cursor: pointer;
+	background-color: #fff;
+}
+
+.fcs-delivery-date-empty {
+	margin: 0.5em 0 0;
+	font-size: 0.9em;
+	color: #a94442;
+}
+
+.flatpickr-day.fcs-unavailable-date {
+	cursor: not-allowed;
+}

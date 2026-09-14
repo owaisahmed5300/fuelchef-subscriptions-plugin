@@ -30,22 +30,15 @@ final class Provider implements ServiceProvider {
 
 
 	/**
-	 * Registers the renderer, the two controllers, the menu and the assets handler as
-	 * singletons.
+	 * Registers the two controllers, the menu and the assets handler as singletons.
 	 */
 	public function register( Base_Container $container ): void {
-		$container
-			->singleton( Renderer::class )
-			->addParameter( FUELCHEF_SUBSCRIPTIONS_DIR . 'templates' );
-
 		$container
 			->singleton( Global_Settings_Controller::class )
 			->addParameter( Settings_Store::class, true )
 			->addParameter( Blackout_Service::class, true )
 			->addParameter( Blackout_Repository::class, true )
 			->addParameter( Renderer::class, true );
-
-		$container->singleton( Destination_Catalog::class );
 
 		$container
 			->singleton( Schedules_Controller::class )

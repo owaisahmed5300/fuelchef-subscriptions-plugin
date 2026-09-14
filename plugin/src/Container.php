@@ -12,9 +12,12 @@ namespace FuelChef\Subscriptions;
 use FuelChef\Subscriptions\Admin\Provider as Admin_Provider;
 use FuelChef\Subscriptions\Database\Installer as DB_Installer;
 use FuelChef\Subscriptions\Dependencies\WPTechnix\DI\Container as Base_Container;
+use FuelChef\Subscriptions\Frontend\Provider as Frontend_Provider;
 use FuelChef\Subscriptions\Repositories\Provider as Repositories_Provider;
 use FuelChef\Subscriptions\Services\Provider as Services_Provider;
+use FuelChef\Subscriptions\Templating\Renderer;
 use FuelChef\Subscriptions\Utils\Clock;
+use FuelChef\Subscriptions\WooCommerce\Destination_Catalog;
 use wpdb;
 
 defined( 'ABSPATH' ) || exit;
@@ -59,10 +62,15 @@ final class Container {
 				}
 			);
 			$container->singleton( Clock::class );
+			$container->singleton( Destination_Catalog::class );
+			$container
+				->singleton( Renderer::class )
+				->addParameter( FUELCHEF_SUBSCRIPTIONS_DIR . 'templates' );
 
 			$container->provider( new Repositories_Provider() );
 			$container->provider( new Services_Provider() );
 			$container->provider( new Admin_Provider() );
+			$container->provider( new Frontend_Provider() );
 
 			$container->boot();
 
