@@ -24,7 +24,7 @@ $selected = $data['selected'];
 			<span class="fcs-badge-plugin"><?php esc_html_e( 'Schedules', 'fuelchef-subscriptions' ); ?></span>
 		</h1>
 		<p class="fcs-page-subtitle">
-			<?php esc_html_e( 'Configure operating fulfillment days, start hours, localized closures, and destination zones.', 'fuelchef-subscriptions' ); ?>
+			<?php esc_html_e( 'Configure operating fulfillment days, delivery hours, localized closures, and destination zones.', 'fuelchef-subscriptions' ); ?>
 		</p>
 	</header>
 
@@ -89,7 +89,7 @@ $selected = $data['selected'];
 						</div>
 						<div class="fcs-card__body">
 							<p style="margin-top:0; color:var(--fcs-color-text-muted);">
-								<?php esc_html_e( 'Enable the days of the week when recurring orders can be fulfilled. For active days, set the earliest daily start time.', 'fuelchef-subscriptions' ); ?>
+								<?php esc_html_e( 'Enable the days of the week when recurring orders can be fulfilled, and set the delivery hours for each active day.', 'fuelchef-subscriptions' ); ?>
 							</p>
 							<table class="fcs-weekday-table">
 								<tbody id="weekdayRows"></tbody>

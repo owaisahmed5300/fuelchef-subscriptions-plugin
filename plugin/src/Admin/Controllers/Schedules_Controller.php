@@ -21,6 +21,7 @@ use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
 use FuelChef\Subscriptions\Services\Schedule_Service;
 use FuelChef\Subscriptions\Utils\Input;
 use FuelChef\Subscriptions\Utils\Renderer;
+use FuelChef\Subscriptions\Values\Day_Of_Week;
 use FuelChef\Subscriptions\Values\Destination_Option;
 use FuelChef\Subscriptions\WooCommerce\Destination_Catalog;
 
@@ -59,6 +60,7 @@ final class Schedules_Controller {
 		add_action( 'wp_ajax_fcs_save_schedule', [ $this, 'ajax_save_schedule' ] );
 		add_action( 'wp_ajax_fcs_delete_schedule', [ $this, 'ajax_delete_schedule' ] );
 		add_action( 'wp_ajax_fcs_save_schedule_weekday', [ $this, 'ajax_save_schedule_weekday' ] );
+		add_action( 'wp_ajax_fcs_copy_schedule_weekday', [ $this, 'ajax_copy_schedule_weekday' ] );
 		add_action( 'wp_ajax_fcs_save_schedule_destinations', [ $this, 'ajax_save_schedule_destinations' ] );
 	}
 
@@ -105,21 +107,51 @@ final class Schedules_Controller {
 	}
 
 	/**
-	 * Shapes a list of weekdays for the weekly-hours script.
+	 * Shapes a list of weekdays for the weekly-hours script, ordered to match the site's
+	 * configured week start so "days below" in the UI matches the copy-down feature.
 	 *
 	 * @param list<Schedule_Weekday> $weekdays Weekdays to shape.
 	 *
-	 * @return list<array{day_of_week: int, enabled: bool, start_time: string}> The shaped weekdays.
+	 * @return list<array{day_of_week: int, enabled: bool, start_time: string, end_time: string}> The shaped weekdays.
 	 */
 	private function weekdays_for_js( array $weekdays ): array {
-		return array_map(
-			static fn ( Schedule_Weekday $weekday ): array => [
+		$by_day = [];
+
+		foreach ( $weekdays as $weekday ) {
+			$by_day[ $weekday->day_of_week() ] = $weekday;
+		}
+
+		$ordered = [];
+
+		foreach ( Day_Of_Week::in_site_order() as $day_of_week ) {
+			if ( ! isset( $by_day[ $day_of_week ] ) ) {
+				continue;
+			}
+
+			$weekday   = $by_day[ $day_of_week ];
+			$ordered[] = [
 				'day_of_week' => $weekday->day_of_week(),
 				'enabled'     => $weekday->enabled(),
 				'start_time'  => $weekday->start_time(),
-			],
-			$weekdays
-		);
+				'end_time'    => $weekday->end_time(),
+			];
+		}
+
+		return $ordered;
+	}
+
+	/**
+	 * Shapes a single weekday for a JSON response.
+	 *
+	 * @return array{day_of_week: int, enabled: bool, start_time: string, end_time: string}
+	 */
+	private function weekday_for_js( Schedule_Weekday $weekday ): array {
+		return [
+			'day_of_week' => $weekday->day_of_week(),
+			'enabled'     => $weekday->enabled(),
+			'start_time'  => $weekday->start_time(),
+			'end_time'    => $weekday->end_time(),
+		];
 	}
 
 	/**
@@ -232,7 +264,7 @@ final class Schedules_Controller {
 	}
 
 	/**
-	 * Updates one weekday's availability and start time.
+	 * Updates one weekday's availability, start time and end time.
 	 */
 	public function ajax_save_schedule_weekday(): void {
 		$this->verify_ajax_request();
@@ -242,19 +274,32 @@ final class Schedules_Controller {
 				absint( Input::string( $_POST['schedule_id'] ?? null ) ),
 				absint( Input::string( $_POST['day_of_week'] ?? null ) ),
 				isset( $_POST['enabled'] ),
-				sanitize_text_field( wp_unslash( Input::string( $_POST['start_time'] ?? null ) ) )
+				sanitize_text_field( wp_unslash( Input::string( $_POST['start_time'] ?? null ) ) ),
+				sanitize_text_field( wp_unslash( Input::string( $_POST['end_time'] ?? null ) ) )
 			);
 		} catch ( Validation_Exception $exception ) {
 			wp_send_json_error( [ 'message' => $exception->getMessage() ] );
 		}
 
-		wp_send_json_success(
-			[
-				'day_of_week' => $weekday->day_of_week(),
-				'enabled'     => $weekday->enabled(),
-				'start_time'  => $weekday->start_time(),
-			]
-		);
+		wp_send_json_success( $this->weekday_for_js( $weekday ) );
+	}
+
+	/**
+	 * Copies a weekday's enabled state, start time and end time onto every day below it.
+	 */
+	public function ajax_copy_schedule_weekday(): void {
+		$this->verify_ajax_request();
+
+		try {
+			$updated = $this->schedule_service->copy_weekday_to_days_below(
+				absint( Input::string( $_POST['schedule_id'] ?? null ) ),
+				absint( Input::string( $_POST['day_of_week'] ?? null ) )
+			);
+		} catch ( Validation_Exception $exception ) {
+			wp_send_json_error( [ 'message' => $exception->getMessage() ] );
+		}
+
+		wp_send_json_success( [ 'weekdays' => array_map( [ $this, 'weekday_for_js' ], $updated ) ] );
 	}
 
 	/**

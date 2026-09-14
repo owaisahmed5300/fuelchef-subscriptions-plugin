@@ -39,6 +39,28 @@ jQuery(function ($) {
     }
   }
 
+  function readWindows($input) {
+    try {
+      const windows = JSON.parse($input.attr('data-windows') || '{}');
+      return windows && typeof windows === 'object' ? windows : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function updateWindowCaption($input, windows, selectedDate) {
+    const $caption = $('#fcsDeliveryDateWindow');
+    const deliveryWindow = windows[selectedDate];
+
+    if (!$caption.length || !deliveryWindow) {
+      $caption.attr('hidden', true);
+      return;
+    }
+
+    $caption.text(i18n.deliveryWindow.replace('%1$s', deliveryWindow.start).replace('%2$s', deliveryWindow.end));
+    $caption.removeAttr('hidden');
+  }
+
   function initDatePicker() {
     if (instance) {
       instance.destroy();
@@ -51,6 +73,8 @@ jQuery(function ($) {
       return;
     }
 
+    const windows = readWindows($input);
+
     instance = window.flatpickr($input[0], {
       dateFormat: 'Y-m-d',
       altInput: true,
@@ -58,10 +82,12 @@ jQuery(function ($) {
       altInputClass: 'fcs-delivery-date-input__display',
       enable: readEligibleDates($input),
       locale,
-      disableMobile: true
+      disableMobile: true,
+      onChange: (selectedDates, dateStr) => updateWindowCaption($input, windows, dateStr)
     });
 
     instance.altInput.setAttribute('placeholder', i18n.chooseDate);
+    updateWindowCaption($input, windows, $input.val());
   }
 
   $(document.body).on('init_checkout updated_checkout', initDatePicker);

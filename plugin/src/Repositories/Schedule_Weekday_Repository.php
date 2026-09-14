@@ -95,7 +95,8 @@ final class Schedule_Weekday_Repository extends Abstract_Repository {
 			Row_Caster::int( $row['schedule_id'] ?? null ),
 			Row_Caster::int( $row['day_of_week'] ?? null ),
 			Row_Caster::bool( $row['enabled'] ?? null ),
-			Row_Caster::string( $row['start_time'] ?? null )
+			Row_Caster::string( $row['start_time'] ?? null ),
+			Row_Caster::string( $row['end_time'] ?? null )
 		);
 
 		$weekday
@@ -117,6 +118,7 @@ final class Schedule_Weekday_Repository extends Abstract_Repository {
 			'day_of_week' => $entity->day_of_week(),
 			'enabled'     => $entity->enabled() ? 1 : 0,
 			'start_time'  => $entity->start_time(),
+			'end_time'    => $entity->end_time(),
 		];
 	}
 

@@ -15,7 +15,6 @@ use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
 use FuelChef\Subscriptions\Utils\Clock;
-use FuelChef\Subscriptions\Values\Cutoff_Unit;
 use FuelChef\Subscriptions\Values\DateTime;
 
 defined( 'ABSPATH' ) || exit;
@@ -222,28 +221,27 @@ final class Availability_Service {
 	}
 
 	/**
-	 * The instant after which a date can no longer be ordered or changed, counted back
-	 * from the start of the day's fulfilment window.
+	 * The instant after which a date can no longer be ordered or changed: the store's
+	 * configured cutoff time, on the configured number of days before the delivery date.
 	 *
-	 * Null when the schedule is unknown or the date's weekday is not open, since there
-	 * is then no window to count back from.
+	 * Null when the schedule is unknown or the date's weekday is not open, since there is
+	 * then nothing to order in the first place.
 	 */
 	public function cutoff_deadline( ?Schedule $schedule, string $date ): ?DateTime {
 		if ( null === $schedule ) {
 			return null;
 		}
 
-		$weekday = $this->weekday_for( (int) $schedule->id(), $date );
-
-		if ( null === $weekday ) {
+		if ( null === $this->weekday_for( (int) $schedule->id(), $date ) ) {
 			return null;
 		}
 
-		$window_start = DateTime::from_wp( $date . ' ' . $weekday->start_time() );
+		$settings      = $this->settings->get();
+		$deadline_date = ( new DateTimeImmutable( $date ) )
+			->modify( sprintf( '-%d days', $settings->cutoff_days() ) )
+			->format( DateTime::DATABASE_DATE_FORMAT );
 
-		return DateTime::from(
-			$window_start->native()->modify( sprintf( '-%d seconds', $this->cutoff_seconds() ) )
-		);
+		return DateTime::from_wp( $deadline_date . ' ' . $settings->cutoff_time() );
 	}
 
 	/**
@@ -277,15 +275,5 @@ final class Availability_Service {
 		}
 
 		return $closed;
-	}
-
-	/**
-	 * The store's current cutoff window, in seconds.
-	 */
-	private function cutoff_seconds(): int {
-		$settings         = $this->settings->get();
-		$seconds_per_unit = Cutoff_Unit::DAYS === $settings->cutoff_unit() ? DAY_IN_SECONDS : HOUR_IN_SECONDS;
-
-		return $settings->cutoff_amount() * $seconds_per_unit;
 	}
 }

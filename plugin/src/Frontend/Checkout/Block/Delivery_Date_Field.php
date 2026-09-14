@@ -156,9 +156,21 @@ final class Delivery_Date_Field {
 
 		$schedule = $this->window->schedule();
 
+		if ( null === $schedule ) {
+			return new WP_REST_Response(
+				[
+					'dates'   => [],
+					'windows' => [],
+				]
+			);
+		}
+
+		$dates = $this->window->eligible_dates( $schedule );
+
 		return new WP_REST_Response(
 			[
-				'dates' => null === $schedule ? [] : $this->window->eligible_dates( $schedule ),
+				'dates'   => $dates,
+				'windows' => $this->window->windows_for_dates( $schedule, $dates ),
 			]
 		);
 	}

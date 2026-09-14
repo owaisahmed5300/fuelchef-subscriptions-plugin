@@ -183,14 +183,55 @@
 
 .fcs-weekday-time-ctrl {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 10px;
 }
 
-.fcs-weekday-time-ctrl label {
+.fcs-weekday-time-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fcs-weekday-time-field label {
   color: var(--fcs-color-text-muted);
   font-size: 12px;
   font-weight: 500;
+}
+
+.fcs-weekday-time-sep {
+  color: var(--fcs-color-text-subtle);
+  padding-bottom: 8px;
+}
+
+.fcs-copy-down-btn {
+  margin-left: 4px;
+  margin-bottom: 1px;
+  color: var(--fcs-color-text-muted);
+}
+
+.fcs-copy-down-btn:hover {
+  color: var(--fcs-wp-theme);
+  background: var(--fcs-wp-theme-tint);
+  border-color: rgba(34, 113, 177, 0.25);
+}
+
+.fcs-input--error {
+  border-color: var(--fcs-color-danger) !important;
+}
+
+.fcs-input--error:focus {
+  box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px var(--fcs-color-danger) !important;
+}
+
+.fcs-weekday-time-error {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--fcs-color-danger);
+}
+
+.fcs-weekday-row--copied {
+  background: var(--fcs-wp-theme-tint);
 }
 
 /* Destinations list, grouped by type (shipping zones, pickup locations) */

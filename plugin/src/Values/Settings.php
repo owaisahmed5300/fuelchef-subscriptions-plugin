@@ -23,25 +23,25 @@ final class Settings {
 	/**
 	 * Creates the settings value object.
 	 *
-	 * @param int    $cutoff_amount How far ahead of fulfilment an order locks.
-	 * @param string $cutoff_unit One of the `Cutoff_Unit` constants.
+	 * @param int    $cutoff_days How many days before the delivery date an order locks.
+	 * @param string $cutoff_time The time of day an order locks, in `H:i:s` form.
 	 * @param int    $subscribe_discount_percent Discount applied when a customer
 	 *                                            subscribes, 0-100.
 	 * @param string $subscribe_applicability One of the `Subscribe_Applicability`
 	 *                                        constants.
 	 */
 	public function __construct(
-		private int $cutoff_amount,
-		private string $cutoff_unit,
+		private int $cutoff_days,
+		private string $cutoff_time,
 		private int $subscribe_discount_percent,
 		private string $subscribe_applicability
 	) {
-		if ( $cutoff_amount < 0 ) {
-			throw new InvalidArgumentException( esc_html__( 'Cutoff amount cannot be negative.', 'fuelchef-subscriptions' ) );
+		if ( $cutoff_days < 0 ) {
+			throw new InvalidArgumentException( esc_html__( 'Cutoff days cannot be negative.', 'fuelchef-subscriptions' ) );
 		}
 
-		if ( ! Cutoff_Unit::is_valid( $cutoff_unit ) ) {
-			throw new InvalidArgumentException( esc_html__( 'Invalid cutoff unit.', 'fuelchef-subscriptions' ) );
+		if ( ! DateTime::is_valid_time( $cutoff_time ) ) {
+			throw new InvalidArgumentException( esc_html__( 'Invalid cutoff time.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( $subscribe_discount_percent < 0 || $subscribe_discount_percent > 100 ) {
@@ -56,17 +56,17 @@ final class Settings {
 	}
 
 	/**
-	 * How far ahead of fulfilment an order locks, in `cutoff_unit()` units.
+	 * How many days before the delivery date an order locks.
 	 */
-	public function cutoff_amount(): int {
-		return $this->cutoff_amount;
+	public function cutoff_days(): int {
+		return $this->cutoff_days;
 	}
 
 	/**
-	 * The unit `cutoff_amount()` is measured in. One of the `Cutoff_Unit` constants.
+	 * The time of day an order locks, in `H:i:s` form.
 	 */
-	public function cutoff_unit(): string {
-		return $this->cutoff_unit;
+	public function cutoff_time(): string {
+		return $this->cutoff_time;
 	}
 
 	/**
