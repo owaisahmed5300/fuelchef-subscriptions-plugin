@@ -40,7 +40,7 @@ final class Day_Of_Week {
 	/**
 	 * Returns every valid day-of-week value, Sunday through Saturday.
 	 *
-	 * @return list<int>
+	 * @return list<int> Every day-of-week value.
 	 */
 	public static function all(): array {
 		return [
@@ -58,7 +58,7 @@ final class Day_Of_Week {
 	 * Returns every day of week, starting on the day the site starts its
 	 * week on.
 	 *
-	 * @return list<int>
+	 * @return list<int> Every day-of-week value, in site week order.
 	 */
 	public static function in_site_order(): array {
 		$raw_start = get_option( 'start_of_week', 0 );
@@ -85,8 +85,6 @@ final class Day_Of_Week {
 	 * Returns the translated, human-readable label for a day of week.
 	 *
 	 * @param int $day_of_week Day of week value.
-	 *
-	 * @throws InvalidArgumentException When the value is not a day of week.
 	 */
 	public static function label( int $day_of_week ): string {
 		$labels = self::labels();
@@ -104,8 +102,6 @@ final class Day_Of_Week {
 	 * Returns the translated, abbreviated label for a day of week.
 	 *
 	 * @param int $day_of_week Day of week value.
-	 *
-	 * @throws InvalidArgumentException When the value is not a day of week.
 	 */
 	public static function short_label( int $day_of_week ): string {
 		$labels = self::short_labels();
@@ -122,7 +118,7 @@ final class Day_Of_Week {
 	/**
 	 * Returns every day-of-week label, keyed by value.
 	 *
-	 * @return array<int, string>
+	 * @return array<int, string> The labels, keyed by day-of-week value.
 	 */
 	private static function labels(): array {
 		return [
@@ -139,7 +135,7 @@ final class Day_Of_Week {
 	/**
 	 * Returns every abbreviated day-of-week label, keyed by value.
 	 *
-	 * @return array<int, string>
+	 * @return array<int, string> The abbreviated labels, keyed by day-of-week value.
 	 */
 	private static function short_labels(): array {
 		return [

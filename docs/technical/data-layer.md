@@ -18,17 +18,21 @@ business logic.
 ## Adding a table
 
 1. Add the bare table name to `Database\Tables`, and a `CREATE TABLE` method on
-   `Database\Installer` (registered in its `$schemas` list — see the existing four for
-   the `PRIMARY KEY  (id)` double-space dbDelta quirk).
+   `Database\Installer` (added as a closure in its `schemas()` method — see the existing
+   four for the `PRIMARY KEY  (id)` double-space dbDelta quirk).
 2. Add an entity under `Entities\` implementing `Contracts\Entity`; add
    `Contracts\Timestamped` (`use Concerns\Has_Timestamps`) if it has `date_created`/
    `date_updated` columns, which every table here does so far.
 3. Add a repository under `Repositories\` extending
    `Repositories\Abstracts\Abstract_Repository<TheEntity>`. It supplies `$table`,
    `$cache_group`, `hydrate()` and `dehydrate()`; `find()`/`insert()`/`update()`/
-   `delete()` come from the base. Register it in `Repositories\Provider`.
+   `delete()` come from the base, and fire the actions described in "Hooks" below with no
+   extra work. Register it in `Repositories\Provider`.
 4. Any query beyond `find()` (e.g. `find_by_schedule()`) is the concrete repository's own
-   method, caching its own key and clearing it in an `invalidate_related()` override.
+   method, caching its own key and clearing it in an `invalidate_related()` override. A
+   query whose parameters vary too widely to cache usefully (e.g. a date range) skips
+   `wp_cache_*` entirely — see `Blackout_Repository::find_by_schedule_between()` — and runs
+   its result through an `apply_filters()` call instead, so other code can extend it.
 
 ## Caching
 
@@ -39,6 +43,19 @@ list-level cache (e.g. "every weekday for schedule 4") clears that key too, via
 clearing its weekdays and blackouts) is the *service's* job, calling each repository's own
 `delete()` in turn — never a DB-level `ON DELETE CASCADE`, which would delete rows without
 going through the repository that owns their cache.
+
+## Hooks
+
+Every repository gets three actions for free from `Abstract_Repository`: a successful
+`insert()`, `update()` or `delete()` fires `fuelchef_subscriptions/{table}/created`,
+`.../updated` or `.../deleted`, named after the table (`schedules`, `blackouts`, and so
+on) — `deleted` only fires when a row actually existed to remove. Nothing to add when
+writing a new repository; it comes from extending the base class.
+
+A repository method with its own extension point (see `find_by_schedule_between()` above)
+runs its result through `apply_filters( 'fuelchef_subscriptions/{area}/{query}', ... )`
+before returning it, and narrows the filtered value back to the declared return type
+rather than trusting it — a filter can hand back anything.
 
 ## Row values are `mixed` — narrow them explicitly
 

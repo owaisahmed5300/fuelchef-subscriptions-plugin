@@ -202,6 +202,9 @@ Effort spent here is effort not spent on the branchy code that actually breaks.
 - **Controllers.** They pull request data, call a service, and render a template or send
   a response — view/glue code with no branchy logic of its own to break. The service
   underneath it gets the test.
+- **A class with no logic of its own beyond fulfilling an interface.** A `ServiceProvider`
+  that only registers classes, a value object that only holds and returns constructor
+  arguments — there is no branch to break, so there is nothing a test would catch.
 - **Private methods directly.** Test them through the public API. If a private method is
   unreachable that way, the class needs a better seam, not a reflection hack.
 - **Escaping, via identity-stubbed `esc_*` functions.** You would be asserting on the

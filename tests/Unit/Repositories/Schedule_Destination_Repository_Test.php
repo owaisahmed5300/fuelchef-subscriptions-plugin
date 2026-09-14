@@ -39,6 +39,53 @@ final class Schedule_Destination_Repository_Test extends Repository_TestCase {
 		$this->assertSame( '2', $destinations[0]->destination_key() );
 	}
 
+	public function test_find_by_destination_returns_every_schedule_assigned_to_it(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'get_results' )->once()->andReturn(
+			[
+				[
+					'id'               => '1',
+					'schedule_id'      => '4',
+					'destination_type' => 'pickup_location',
+					'destination_key'  => 'central-depot',
+					'date_created'     => '2026-01-01 00:00:00',
+					'date_updated'     => '2026-01-01 00:00:00',
+				],
+			]
+		);
+
+		$repository = new Schedule_Destination_Repository( $wpdb, $this->clock() );
+		$assigned   = $repository->find_by_destination( 'pickup_location', 'central-depot' );
+
+		$this->assertCount( 1, $assigned );
+		$this->assertSame( 4, $assigned[0]->schedule_id() );
+	}
+
+	public function test_find_by_destination_caches_the_list_per_destination_key(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'get_results' )->twice()->andReturn( [] );
+
+		$repository = new Schedule_Destination_Repository( $wpdb, $this->clock() );
+
+		$repository->find_by_destination( 'pickup_location', 'central-depot' );
+		$repository->find_by_destination( 'pickup_location', 'central-depot' );
+		$repository->find_by_destination( 'shipping_zone', '2' );
+	}
+
+	public function test_inserting_a_destination_invalidates_its_destination_cache(): void {
+		$wpdb = $this->wpdb();
+		// Once for the cache-priming call, once more after insert() invalidates it.
+		$wpdb->shouldReceive( 'get_results' )->twice()->andReturn( [] );
+		$wpdb->insert_id = 5;
+		$wpdb->shouldReceive( 'insert' )->once()->andReturn( 1 );
+
+		$repository = new Schedule_Destination_Repository( $wpdb, $this->clock() );
+
+		$repository->find_by_destination( 'pickup_location', 'central-depot' );
+		$repository->insert( new Schedule_Destination( 4, 'pickup_location', 'central-depot' ) );
+		$repository->find_by_destination( 'pickup_location', 'central-depot' );
+	}
+
 	public function test_replace_for_schedule_deletes_the_old_set_before_inserting_the_new_one(): void {
 		$wpdb = $this->wpdb();
 		$wpdb->shouldReceive( 'get_results' )->once()->andReturn(

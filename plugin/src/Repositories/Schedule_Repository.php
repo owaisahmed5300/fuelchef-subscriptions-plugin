@@ -40,7 +40,7 @@ final class Schedule_Repository extends Abstract_Repository {
 	/**
 	 * Every schedule, ordered by name.
 	 *
-	 * @return list<Schedule>
+	 * @return list<Schedule> Every schedule.
 	 */
 	public function all(): array {
 		/** @var list<Schedule>|false $cached */
@@ -70,6 +70,8 @@ final class Schedule_Repository extends Abstract_Repository {
 	}
 
 	/**
+	 * Builds a schedule from a database row.
+	 *
 	 * @param array<string, mixed> $row Raw database row.
 	 */
 	protected function hydrate( array $row ): Schedule {
@@ -84,7 +86,9 @@ final class Schedule_Repository extends Abstract_Repository {
 	}
 
 	/**
-	 * @return array<string, mixed>
+	 * Builds the row data to write for a schedule.
+	 *
+	 * @return array<string, mixed> The row data to persist.
 	 */
 	protected function dehydrate( Entity $entity ): array {
 		return [

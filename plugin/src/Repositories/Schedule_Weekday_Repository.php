@@ -35,7 +35,7 @@ final class Schedule_Weekday_Repository extends Abstract_Repository {
 	/**
 	 * Every weekday row for a schedule, ordered by day of week.
 	 *
-	 * @return list<Schedule_Weekday>
+	 * @return list<Schedule_Weekday> The schedule's weekday rows.
 	 */
 	public function find_by_schedule( int $schedule_id ): array {
 		$cache_key = $this->by_schedule_cache_key( $schedule_id );
@@ -86,6 +86,8 @@ final class Schedule_Weekday_Repository extends Abstract_Repository {
 	}
 
 	/**
+	 * Builds a schedule weekday from a database row.
+	 *
 	 * @param array<string, mixed> $row Raw database row.
 	 */
 	protected function hydrate( array $row ): Schedule_Weekday {
@@ -105,7 +107,9 @@ final class Schedule_Weekday_Repository extends Abstract_Repository {
 	}
 
 	/**
-	 * @return array<string, mixed>
+	 * Builds the row data to write for a schedule weekday.
+	 *
+	 * @return array<string, mixed> The row data to persist.
 	 */
 	protected function dehydrate( Entity $entity ): array {
 		return [

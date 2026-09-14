@@ -33,7 +33,7 @@ final class Destination_Type {
 	/**
 	 * Returns every valid destination type.
 	 *
-	 * @return list<string>
+	 * @return list<string> Every valid destination type.
 	 */
 	public static function all(): array {
 		return [

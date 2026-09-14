@@ -18,17 +18,17 @@ break. For what to write when a linter cannot help, see
   syntax (`[]`).
 - **`WPTechnix-Strict`** — modern-PHP quality sniffs on top.
 
-It scans `plugin/` and `tests/`. The text domain is `fuelchef-subscriptions` and must
-match the `Text Domain:` header in the main plugin file, or the i18n sniffs report every
-translated string.
+It scans `plugin/` only. `tests/` is excluded entirely: a test method's name is its own
+documentation and test style is covered by [`03-testing.md`](guidelines/03-testing.md),
+not by the linters that hold `plugin/` to PHPCS/PHPStan-level-10 strictness. The text
+domain is `fuelchef-subscriptions` and must match the `Text Domain:` header in the main
+plugin file, or the i18n sniffs report every translated string.
 
 ### The exclusions, and why each exists
 
 | Excluded                                                                                                                       | Where                    | Why                                                                                                                          |
 |------------------------------------------------------------------------------------------------------------------------------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------|
 | `SlevomatCodingStandard.TypeHints.*`, `Generic.PHP.RequireStrictTypes`, `SlevomatCodingStandard.Functions.StaticClosure`, `Generic.Arrays.DisallowLongArraySyntax` | The two pre-flight files | Each forces a feature newer than PHP 5.3 (type hints, `strict_types`, static closures, `[]`) — see [below](#the-pre-flight-files-target-php-53-verified-under-php-56) |
-| `Squiz.Commenting.FunctionComment.Missing`                                                                                        | `tests/*`                | A test method's name is its documentation; a required docblock only repeats it                                                  |
-| `WordPress.WP.AlternativeFunctions...fwrite`                                                                                      | `tests/bootstrap/*`      | The bootstrap reports failures on STDERR before WordPress exists, so `WP_Filesystem` cannot apply                              |
 
 Add an exclusion only when the sniff is wrong for that file, never to silence a finding
 you could fix. Each one above names the file it applies to rather than switching the
@@ -43,9 +43,9 @@ Read the comment there before touching either override.
 
 ## PHPStan
 
-`phpstan.neon.dist` runs at **level 8** plus `phpstan-strict-rules`, with WordPress and
+`phpstan.neon.dist` runs at **level 10** plus `phpstan-strict-rules`, with WordPress and
 WooCommerce stubs. It analyses `plugin/src`, `plugin/uninstall.php` and the main plugin
-file.
+file — never `tests/`.
 
 - **It scans `plugin/vendor-prefixed/`**, which is gitignored. Run
   `./scripts/dev plugin install` before analysing a fresh checkout, or every scoped class
@@ -63,8 +63,8 @@ file.
   `type` and does nothing.
 
 Never widen a type or add a `@phpstan-ignore` to silence an error. If an ignore is
-genuinely right it goes in `phpstan.neon.dist` with a comment saying why — see the
-existing entry.
+genuinely right it goes in `phpstan.neon.dist`'s `ignoreErrors`, with a comment saying
+why.
 
 ## The PHP floor is declared in four places
 
