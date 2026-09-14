@@ -21,8 +21,8 @@ use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
 use FuelChef\Subscriptions\Services\Schedule_Service;
 use FuelChef\Subscriptions\Templating\Renderer;
 use FuelChef\Subscriptions\Utils\Input;
-use FuelChef\Subscriptions\Values\Destination_Type;
-use InvalidArgumentException;
+use FuelChef\Subscriptions\Values\Destination_Option;
+use FuelChef\Subscriptions\WooCommerce\Destination_Catalog;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -47,6 +47,7 @@ final class Schedules_Controller {
 		private Schedule_Weekday_Repository $weekdays,
 		private Blackout_Repository $blackouts,
 		private Schedule_Destination_Repository $destinations,
+		private Destination_Catalog $destination_catalog,
 		private Renderer $renderer
 	) {
 	}
@@ -86,6 +87,7 @@ final class Schedules_Controller {
 					'weekdays'     => $this->weekdays_for_js( $this->weekdays->find_by_schedule( $schedule_id ) ),
 					'blackouts'    => $this->blackouts_for_js( $this->blackouts->find_by_schedule( $schedule_id ) ),
 					'destinations' => $this->destinations_for_js( $this->destinations->find_by_schedule( $schedule_id ) ),
+					'catalog'      => $this->catalog_for_js(),
 				]
 			);
 		}
@@ -93,9 +95,8 @@ final class Schedules_Controller {
 		$html = $this->renderer->render(
 			'admin/schedules',
 			[
-				'schedules'         => $all,
-				'selected'          => $selected,
-				'destination_types' => Destination_Type::all(),
+				'schedules' => $all,
+				'selected'  => $selected,
 			]
 		);
 
@@ -141,19 +142,56 @@ final class Schedules_Controller {
 	}
 
 	/**
-	 * Shapes a list of destinations for the destinations script.
+	 * Shapes a list of assigned destinations for the destinations script.
 	 *
-	 * @param list<Schedule_Destination> $destinations Destinations to shape.
+	 * Each is resolved against the catalog so the screen can show its real WooCommerce
+	 * label, or flag one WooCommerce no longer offers (a deleted zone, a removed pickup
+	 * location) rather than silently dropping it.
 	 *
-	 * @return list<array{type: string, key: string}> The shaped destinations.
+	 * @param list<Schedule_Destination> $destinations Assigned destinations to shape.
+	 *
+	 * @return list<array{type: string, key: string, label: string, available: bool}> The shaped destinations.
 	 */
 	private function destinations_for_js( array $destinations ): array {
 		return array_map(
-			static fn ( Schedule_Destination $destination ): array => [
-				'type' => $destination->destination_type(),
-				'key'  => $destination->destination_key(),
-			],
+			function ( Schedule_Destination $destination ): array {
+				$option = $this->destination_catalog->find(
+					$destination->destination_type(),
+					$destination->destination_key()
+				);
+
+				return [
+					'type'      => $destination->destination_type(),
+					'key'       => $destination->destination_key(),
+					'label'     => $option?->label() ?? $destination->destination_key(),
+					'available' => null !== $option,
+				];
+			},
 			$destinations
+		);
+	}
+
+	/**
+	 * Shapes the destination catalog for the "add a destination" script.
+	 *
+	 * @return list<array{
+	 *     type: string,
+	 *     key: string,
+	 *     label: string,
+	 *     description: string|null,
+	 *     enabled: bool
+	 * }> The shaped catalog.
+	 */
+	private function catalog_for_js(): array {
+		return array_map(
+			static fn ( Destination_Option $option ): array => [
+				'type'        => $option->type(),
+				'key'         => $option->key(),
+				'label'       => $option->label(),
+				'description' => $option->description(),
+				'enabled'     => $option->enabled(),
+			],
+			$this->destination_catalog->all()
 		);
 	}
 
@@ -222,10 +260,11 @@ final class Schedules_Controller {
 	/**
 	 * Replaces every destination assigned to a schedule.
 	 *
-	 * No validation service: WooCommerce zone/location resolution is out of scope for
-	 * this pass, so there is no business rule for a service to hold - see
-	 * docs/technical/data-layer.md. An entry naming an unknown destination type is
-	 * silently dropped rather than failing the whole save.
+	 * No validation service: the one rule here (the destination must currently exist in
+	 * WooCommerce) is answered entirely by `Destination_Catalog::find()`, so there is no
+	 * business rule left for a service to hold - see docs/technical/data-layer.md. An
+	 * entry the catalog no longer recognises is silently dropped rather than failing the
+	 * whole save.
 	 */
 	public function ajax_save_schedule_destinations(): void {
 		$this->verify_ajax_request();
@@ -244,15 +283,14 @@ final class Schedules_Controller {
 				continue;
 			}
 
-			try {
-				$destinations[] = new Schedule_Destination(
-					$schedule_id,
-					sanitize_text_field( $entry['type'] ),
-					sanitize_text_field( $entry['key'] )
-				);
-			} catch ( InvalidArgumentException ) {
+			$type = sanitize_text_field( $entry['type'] );
+			$key  = sanitize_text_field( $entry['key'] );
+
+			if ( null === $this->destination_catalog->find( $type, $key ) ) {
 				continue;
 			}
+
+			$destinations[] = new Schedule_Destination( $schedule_id, $type, $key );
 		}
 
 		$this->destinations->replace_for_schedule( $schedule_id, $destinations );

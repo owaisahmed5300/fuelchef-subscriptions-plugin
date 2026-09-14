@@ -19,6 +19,7 @@ use FuelChef\Subscriptions\Services\Blackout_Service;
 use FuelChef\Subscriptions\Services\Schedule_Service;
 use FuelChef\Subscriptions\Settings\Settings_Store;
 use FuelChef\Subscriptions\Templating\Renderer;
+use FuelChef\Subscriptions\WooCommerce\Destination_Catalog;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -44,6 +45,8 @@ final class Provider implements ServiceProvider {
 			->addParameter( Blackout_Repository::class, true )
 			->addParameter( Renderer::class, true );
 
+		$container->singleton( Destination_Catalog::class );
+
 		$container
 			->singleton( Schedules_Controller::class )
 			->addParameter( Schedule_Service::class, true )
@@ -51,6 +54,7 @@ final class Provider implements ServiceProvider {
 			->addParameter( Schedule_Weekday_Repository::class, true )
 			->addParameter( Blackout_Repository::class, true )
 			->addParameter( Schedule_Destination_Repository::class, true )
+			->addParameter( Destination_Catalog::class, true )
 			->addParameter( Renderer::class, true );
 
 		$container
