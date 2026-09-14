@@ -162,7 +162,7 @@ FCS.createCalendar = function (options) {
               ${list.map(item => `
                 <div class="fcs-pill" data-id="${item.id}">
                   <span>${FCS.escapeHtml(item.label)}</span>
-                  <button type="button" class="fcs-pill__remove" data-remove-id="${item.id}" aria-label="Remove date">×</button>
+                  <button type="button" class="fcs-pill__remove" data-remove-id="${item.id}" aria-label="${FCS.escapeHtml(window.fcsAdmin.i18n.removeDate)}">×</button>
                 </div>
               `).join('')}
             </div>
