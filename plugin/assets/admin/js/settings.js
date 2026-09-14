@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
 
       FCS.post('fcs_save_settings', {
-        cutoff_amount: document.getElementById('cutoffAmount').value,
-        cutoff_unit: document.getElementById('cutoffUnit').value,
+        cutoff_days: document.getElementById('cutoffDays').value,
+        cutoff_time: `${document.getElementById('cutoffTime').value}:00`,
         subscribe_discount_percent: document.getElementById('subscribeDiscountPercent').value,
         subscribe_applicability: document.getElementById('subscribeApplicability').value
       }).done((response) => {

@@ -131,6 +131,8 @@ final class Assets {
 		return [
 			'chooseDate'       => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
 			'noDatesAvailable' => esc_html__( 'No delivery dates are currently available.', 'fuelchef-subscriptions' ),
+			/* translators: %1$s: opening time, %2$s: closing time. Resolved client-side. */
+			'deliveryWindow'   => esc_html__( 'Delivery available between %1$s and %2$s.', 'fuelchef-subscriptions' ),
 			'monthNames'       => array_values( $this->wp_locale()->month ),
 			'monthNamesShort'  => array_values( $this->wp_locale()->month_abbrev ),
 			'dayNames'         => array_values( $this->wp_locale()->weekday ),

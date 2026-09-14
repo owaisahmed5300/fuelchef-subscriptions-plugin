@@ -71,4 +71,35 @@ final class Current_Delivery_Window {
 
 		return $this->availability->eligible_dates( $schedule, $from, $to );
 	}
+
+	/**
+	 * The delivery hours for each of a schedule's eligible dates, formatted in the site's
+	 * configured time format.
+	 *
+	 * @param Schedule     $schedule The schedule to read hours from.
+	 * @param list<string> $dates Dates to look up, in `Y-m-d` form.
+	 *
+	 * @return array<string, array{start: string, end: string}> Formatted hours, keyed by date.
+	 */
+	public function windows_for_dates( Schedule $schedule, array $dates ): array {
+		$time_format = get_option( 'time_format' );
+		$time_format = is_string( $time_format ) && '' !== $time_format ? $time_format : 'g:i a';
+
+		$windows = [];
+
+		foreach ( $dates as $date ) {
+			$weekday = $this->availability->weekday_for( (int) $schedule->id(), $date );
+
+			if ( null === $weekday ) {
+				continue;
+			}
+
+			$windows[ $date ] = [
+				'start' => DateTime::from_wp( $date . ' ' . $weekday->start_time() )->format( $time_format ),
+				'end'   => DateTime::from_wp( $date . ' ' . $weekday->end_time() )->format( $time_format ),
+			];
+		}
+
+		return $windows;
+	}
 }

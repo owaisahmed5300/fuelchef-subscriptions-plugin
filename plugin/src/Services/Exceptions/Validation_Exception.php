@@ -72,6 +72,23 @@ final class Validation_Exception extends RuntimeException {
 	}
 
 	/**
+	 * Creates the exception for an end time that is not after its start time.
+	 *
+	 * @param string $start_time The rejected start time.
+	 * @param string $end_time The rejected end time.
+	 */
+	public static function for_end_before_start( string $start_time, string $end_time ): self {
+		return new self(
+			sprintf(
+				/* translators: 1: start time, 2: end time. */
+				esc_html__( 'End time (%2$s) must be after start time (%1$s).', 'fuelchef-subscriptions' ),
+				esc_html( $start_time ),
+				esc_html( $end_time )
+			)
+		);
+	}
+
+	/**
 	 * Creates the exception for a day of week outside 0-6, or one a schedule has no row
 	 * for.
 	 *

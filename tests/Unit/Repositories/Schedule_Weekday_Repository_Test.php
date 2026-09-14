@@ -27,6 +27,7 @@ final class Schedule_Weekday_Repository_Test extends Repository_TestCase {
 					'day_of_week'  => '1',
 					'enabled'      => '1',
 					'start_time'   => '09:00:00',
+					'end_time'     => '17:00:00',
 					'date_created' => '2026-01-01 00:00:00',
 					'date_updated' => '2026-01-01 00:00:00',
 				],
@@ -41,6 +42,7 @@ final class Schedule_Weekday_Repository_Test extends Repository_TestCase {
 		$this->assertSame( 1, $weekdays[0]->day_of_week() );
 		$this->assertTrue( $weekdays[0]->enabled() );
 		$this->assertSame( '09:00:00', $weekdays[0]->start_time() );
+		$this->assertSame( '17:00:00', $weekdays[0]->end_time() );
 	}
 
 	public function test_find_by_schedule_caches_the_list_per_schedule(): void {
@@ -73,6 +75,7 @@ final class Schedule_Weekday_Repository_Test extends Repository_TestCase {
 					'day_of_week'  => '0',
 					'enabled'      => '0',
 					'start_time'   => '12:00:00',
+					'end_time'     => '17:00:00',
 					'date_created' => '2026-01-01 00:00:00',
 					'date_updated' => '2026-01-01 00:00:00',
 				],
@@ -82,6 +85,7 @@ final class Schedule_Weekday_Repository_Test extends Repository_TestCase {
 					'day_of_week'  => '1',
 					'enabled'      => '0',
 					'start_time'   => '12:00:00',
+					'end_time'     => '17:00:00',
 					'date_created' => '2026-01-01 00:00:00',
 					'date_updated' => '2026-01-01 00:00:00',
 				],
@@ -107,6 +111,21 @@ final class Schedule_Weekday_Repository_Test extends Repository_TestCase {
 
 		$repository = new Schedule_Weekday_Repository( $wpdb, $this->clock() );
 
-		$repository->insert( new Schedule_Weekday( 4, 1, true, '09:00:00' ) );
+		$repository->insert( new Schedule_Weekday( 4, 1, true, '09:00:00', '17:00:00' ) );
+	}
+
+	public function test_dehydrate_writes_the_end_time(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'insert' )->once()->with(
+			'wp_fcs_schedule_weekdays',
+			Mockery::on(
+				static fn ( array $data ): bool => '17:00:00' === $data['end_time']
+			)
+		)->andReturn( 1 );
+		$wpdb->insert_id = 1;
+
+		$repository = new Schedule_Weekday_Repository( $wpdb, $this->clock() );
+
+		$repository->insert( new Schedule_Weekday( 4, 1, true, '09:00:00', '17:00:00' ) );
 	}
 }

@@ -12,7 +12,6 @@ use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Tests\TestCase;
 use FuelChef\Subscriptions\Utils\Renderer;
-use FuelChef\Subscriptions\Values\Cutoff_Unit;
 use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
@@ -29,7 +28,7 @@ final class Subscribe_And_Save_Test extends TestCase {
 	}
 
 	private function settings( int $percent, string $applicability ): Settings {
-		return new Settings( 24, Cutoff_Unit::HOURS, $percent, $applicability );
+		return new Settings( 1, '17:00:00', $percent, $applicability );
 	}
 
 	private function subject(): Subscribe_And_Save {

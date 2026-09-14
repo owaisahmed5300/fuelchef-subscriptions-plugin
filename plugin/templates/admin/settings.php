@@ -3,14 +3,13 @@
  * Settings admin screen.
  *
  * Rendered by Settings_Controller::render(). $data carries `settings`
- * (Values\Settings), `cutoff_units` (list<string>) and `applicabilities`
- * (list<string>). The blackout calendar reads its own data from the
+ * (Values\Settings) and `applicabilities` (list<string>). The blackout
+ * calendar reads its own data from the
  * `fcsSettings` script localization instead - see the controller.
  */
 
 declare(strict_types=1);
 
-use FuelChef\Subscriptions\Values\Cutoff_Unit;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
 defined( 'ABSPATH' ) || exit;
@@ -73,35 +72,34 @@ $settings = $data['settings'];
 		<section class="fcs-tab-panel" id="tab-cutoff">
 			<div class="fcs-card">
 				<div class="fcs-card__header">
-					<h2 class="fcs-card__title"><?php esc_html_e( 'Upcoming Order Lock Window', 'fuelchef-subscriptions' ); ?></h2>
+					<h2 class="fcs-card__title"><?php esc_html_e( 'Order Cutoff Time', 'fuelchef-subscriptions' ); ?></h2>
 				</div>
 				<div class="fcs-card__body">
 					<p style="margin-top:0; color:var(--fcs-color-text-muted);">
-						<?php esc_html_e( 'Define how much advance notice is required before recurring orders are locked and sent for fulfillment preparation.', 'fuelchef-subscriptions' ); ?>
+						<?php esc_html_e( 'Customers can no longer place, change or cancel an order for a delivery date once that date\'s cutoff has passed.', 'fuelchef-subscriptions' ); ?>
 					</p>
 
 					<div class="fcs-inline-field">
-						<label for="cutoffAmount"><?php esc_html_e( 'Lock the order', 'fuelchef-subscriptions' ); ?></label>
+						<label for="cutoffDays"><?php esc_html_e( 'Lock orders', 'fuelchef-subscriptions' ); ?></label>
 						<input
 							class="fcs-input fcs-input--number"
-							id="cutoffAmount"
+							id="cutoffDays"
 							type="number"
 							min="0"
-							value="<?php echo esc_attr( (string) $settings->cutoff_amount() ); ?>"
+							value="<?php echo esc_attr( (string) $settings->cutoff_days() ); ?>"
 						>
-						<select class="fcs-select" id="cutoffUnit">
-							<?php foreach ( $data['cutoff_units'] as $unit ) : ?>
-								<option value="<?php echo esc_attr( $unit ); ?>" <?php selected( $settings->cutoff_unit(), $unit ); ?>>
-									<?php echo esc_html( Cutoff_Unit::label( $unit ) ); ?>
-								</option>
-							<?php endforeach; ?>
-						</select>
-						<span><?php esc_html_e( 'before fulfillment', 'fuelchef-subscriptions' ); ?></span>
+						<span><?php esc_html_e( 'day(s) before delivery, at', 'fuelchef-subscriptions' ); ?></span>
+						<input
+							class="fcs-input"
+							id="cutoffTime"
+							type="time"
+							value="<?php echo esc_attr( substr( $settings->cutoff_time(), 0, 5 ) ); ?>"
+						>
 					</div>
 
 					<div class="fcs-notice">
-						<strong><?php esc_html_e( 'At cutoff time:', 'fuelchef-subscriptions' ); ?></strong>
-						<?php esc_html_e( 'Upcoming subscription renewals process payment, and order contents can no longer be edited by customers.', 'fuelchef-subscriptions' ); ?>
+						<strong><?php esc_html_e( 'Example:', 'fuelchef-subscriptions' ); ?></strong>
+						<?php esc_html_e( 'With a 1-day cutoff at 11:30 PM, a Friday delivery must be ordered before 11:30 PM on Thursday. After that, Saturday becomes the earliest available date.', 'fuelchef-subscriptions' ); ?>
 					</div>
 				</div>
 			</div>

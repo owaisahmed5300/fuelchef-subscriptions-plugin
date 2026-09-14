@@ -42,6 +42,35 @@ jQuery(function ($) {
 
   let instance = null;
   let refetchTimer = null;
+  let currentWindows = {};
+
+  function windowCaption($input) {
+    let $caption = $input.next('.fcs-delivery-date-window');
+
+    if (!$caption.length) {
+      $caption = $('<p class="fcs-delivery-date-window" aria-live="polite" hidden></p>');
+      $input.after($caption);
+    }
+
+    return $caption;
+  }
+
+  function updateWindowCaption() {
+    if (!instance) {
+      return;
+    }
+
+    const $caption = windowCaption($(instance.input));
+    const deliveryWindow = currentWindows[instance.input.value];
+
+    if (!deliveryWindow) {
+      $caption.attr('hidden', true);
+      return;
+    }
+
+    $caption.text(i18n.deliveryWindow.replace('%1$s', deliveryWindow.start).replace('%2$s', deliveryWindow.end));
+    $caption.removeAttr('hidden');
+  }
 
   function refetchEligibleDates() {
     if (!instance) {
@@ -50,11 +79,13 @@ jQuery(function ($) {
 
     fetch(window.fcsCheckout.eligibleDatesUrl, { credentials: 'same-origin' })
       .then(function (response) {
-        return response.ok ? response.json() : { dates: [] };
+        return response.ok ? response.json() : { dates: [], windows: {} };
       })
       .then(function (data) {
         if (instance) {
           instance.set('enable', Array.isArray(data.dates) ? data.dates : []);
+          currentWindows = data.windows && typeof data.windows === 'object' ? data.windows : {};
+          updateWindowCaption();
         }
       })
       .catch(function () {
@@ -80,7 +111,8 @@ jQuery(function ($) {
       dateFormat: 'Y-m-d',
       enable: [],
       locale,
-      disableMobile: true
+      disableMobile: true,
+      onChange: updateWindowCaption
     });
 
     refetchEligibleDates();

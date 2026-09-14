@@ -16,7 +16,6 @@ use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Input;
 use FuelChef\Subscriptions\Utils\Renderer;
-use FuelChef\Subscriptions\Values\Cutoff_Unit;
 use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 use InvalidArgumentException;
@@ -79,7 +78,6 @@ final class Settings_Controller {
 			'admin/settings',
 			[
 				'settings'        => $this->settings_store->get(),
-				'cutoff_units'    => Cutoff_Unit::all(),
 				'applicabilities' => Subscribe_Applicability::all(),
 			]
 		);
@@ -115,8 +113,8 @@ final class Settings_Controller {
 
 		try {
 			$settings = new Settings(
-				absint( Input::string( $_POST['cutoff_amount'] ?? null ) ),
-				sanitize_text_field( wp_unslash( Input::string( $_POST['cutoff_unit'] ?? null ) ) ),
+				absint( Input::string( $_POST['cutoff_days'] ?? null ) ),
+				sanitize_text_field( wp_unslash( Input::string( $_POST['cutoff_time'] ?? null ) ) ),
 				absint( Input::string( $_POST['subscribe_discount_percent'] ?? null ) ),
 				sanitize_text_field( wp_unslash( Input::string( $_POST['subscribe_applicability'] ?? null ) ) )
 			);

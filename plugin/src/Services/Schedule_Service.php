@@ -33,6 +33,11 @@ final class Schedule_Service {
 	private const DEFAULT_START_TIME = '12:00:00';
 
 	/**
+	 * Every new weekday row's ending fulfillment time, before an admin sets one.
+	 */
+	private const DEFAULT_END_TIME = '17:00:00';
+
+	/**
 	 * Creates the service.
 	 */
 	public function __construct(
@@ -61,7 +66,9 @@ final class Schedule_Service {
 		}
 
 		foreach ( Day_Of_Week::all() as $day ) {
-			$this->weekdays->insert( new Schedule_Weekday( $schedule_id, $day, false, self::DEFAULT_START_TIME ) );
+			$this->weekdays->insert(
+				new Schedule_Weekday( $schedule_id, $day, false, self::DEFAULT_START_TIME, self::DEFAULT_END_TIME )
+			);
 		}
 
 		return $schedule;
@@ -84,21 +91,77 @@ final class Schedule_Service {
 	}
 
 	/**
-	 * Updates one weekday's availability and start time.
+	 * Updates one weekday's availability, start time and end time.
 	 *
-	 * @throws Validation_Exception When the time is invalid, or the schedule has no row
-	 *                               for that day of week.
+	 * @throws Validation_Exception When either time is invalid, the end time is not after
+	 *                               the start time, or the schedule has no row for that
+	 *                               day of week.
 	 */
-	public function update_weekday( int $schedule_id, int $day_of_week, bool $enabled, string $start_time ): Schedule_Weekday {
+	public function update_weekday(
+		int $schedule_id,
+		int $day_of_week,
+		bool $enabled,
+		string $start_time,
+		string $end_time
+	): Schedule_Weekday {
+		$this->validate_hours( $start_time, $end_time );
+
+		$weekday = $this->find_weekday( $schedule_id, $day_of_week );
+
+		$weekday->set_enabled( $enabled )->set_start_time( $start_time )->set_end_time( $end_time );
+
+		return $this->weekdays->update( $weekday );
+	}
+
+	/**
+	 * Copies one weekday's enabled state, start time and end time onto every day below it
+	 * in the site's configured week order.
+	 *
+	 * @throws Validation_Exception When the schedule has no row for the source day.
+	 *
+	 * @return list<Schedule_Weekday> The updated weekdays, in the order they were saved.
+	 */
+	public function copy_weekday_to_days_below( int $schedule_id, int $source_day_of_week ): array {
+		$source = $this->find_weekday( $schedule_id, $source_day_of_week );
+		$order  = Day_Of_Week::in_site_order();
+		$index  = array_search( $source_day_of_week, $order, true );
+
+		if ( false === $index ) {
+			throw Validation_Exception::for_unknown_day_of_week( $source_day_of_week );
+		}
+
+		$updated = [];
+
+		foreach ( array_slice( $order, (int) $index + 1 ) as $day_of_week ) {
+			$weekday = $this->find_weekday( $schedule_id, $day_of_week )
+				->set_enabled( $source->enabled() )
+				->set_start_time( $source->start_time() )
+				->set_end_time( $source->end_time() );
+
+			$updated[] = $this->weekdays->update( $weekday );
+		}
+
+		return $updated;
+	}
+
+	/**
+	 * Rejects times that are not valid, or where the end time does not come after the
+	 * start time.
+	 *
+	 * @throws Validation_Exception When either time is invalid or out of order.
+	 */
+	private function validate_hours( string $start_time, string $end_time ): void {
 		if ( ! DateTime::is_valid_time( $start_time ) ) {
 			throw Validation_Exception::for_invalid_time( $start_time );
 		}
 
-		$weekday = $this->find_weekday( $schedule_id, $day_of_week );
+		if ( ! DateTime::is_valid_time( $end_time ) ) {
+			throw Validation_Exception::for_invalid_time( $end_time );
+		}
 
-		$weekday->set_enabled( $enabled )->set_start_time( $start_time );
-
-		return $this->weekdays->update( $weekday );
+		if ( $end_time <= $start_time ) {
+			throw Validation_Exception::for_end_before_start( $start_time, $end_time );
+		}
 	}
 
 	/**

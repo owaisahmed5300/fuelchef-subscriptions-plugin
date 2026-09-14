@@ -48,18 +48,25 @@ final class Schedule_Weekday implements Entity, Timestamped {
 	private string $start_time;
 
 	/**
+	 * Latest fulfillment time on this day, in `H:i:s` form.
+	 */
+	private string $end_time;
+
+	/**
 	 * Creates a schedule weekday.
 	 *
 	 * @param int    $schedule_id Schedule ID.
 	 * @param int    $day_of_week Day of week, 0 (Sunday) through 6 (Saturday).
 	 * @param bool   $enabled Whether fulfillment happens on this day.
 	 * @param string $start_time Earliest fulfillment time, in `H:i:s` form.
+	 * @param string $end_time Latest fulfillment time, in `H:i:s` form.
 	 */
 	public function __construct(
 		int $schedule_id,
 		int $day_of_week,
 		bool $enabled,
-		string $start_time
+		string $start_time,
+		string $end_time
 	) {
 		if ( ! Day_Of_Week::is_valid( $day_of_week ) ) {
 			throw new InvalidArgumentException(
@@ -71,6 +78,7 @@ final class Schedule_Weekday implements Entity, Timestamped {
 		$this->day_of_week = $day_of_week;
 		$this->enabled     = $enabled;
 		$this->start_time  = $start_time;
+		$this->end_time    = $end_time;
 	}
 
 	/**
@@ -137,6 +145,24 @@ final class Schedule_Weekday implements Entity, Timestamped {
 	 */
 	public function set_start_time( string $start_time ): static {
 		$this->start_time = $start_time;
+
+		return $this;
+	}
+
+	/**
+	 * Latest fulfillment time on this day, in `H:i:s` form.
+	 */
+	public function end_time(): string {
+		return $this->end_time;
+	}
+
+	/**
+	 * Sets the latest fulfillment time on this day.
+	 *
+	 * @param string $end_time Time of day, in `H:i:s` form.
+	 */
+	public function set_end_time( string $end_time ): static {
+		$this->end_time = $end_time;
 
 		return $this;
 	}

@@ -11,7 +11,6 @@ use Brain\Monkey\Actions;
 use Brain\Monkey\Functions;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Tests\TestCase;
-use FuelChef\Subscriptions\Values\Cutoff_Unit;
 use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 use Mockery;
@@ -27,8 +26,8 @@ final class Settings_Store_Test extends TestCase {
 
 		$settings = ( new Settings_Store() )->get();
 
-		$this->assertSame( 24, $settings->cutoff_amount() );
-		$this->assertSame( Cutoff_Unit::HOURS, $settings->cutoff_unit() );
+		$this->assertSame( 1, $settings->cutoff_days() );
+		$this->assertSame( '17:00:00', $settings->cutoff_time() );
 		$this->assertSame( 5, $settings->subscribe_discount_percent() );
 		$this->assertSame( Subscribe_Applicability::INITIAL_AND_RENEWALS, $settings->subscribe_applicability() );
 	}
@@ -36,8 +35,8 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_returns_the_stored_values_when_they_are_valid(): void {
 		Functions\when( 'get_option' )->justReturn(
 			[
-				'cutoff_amount'              => 48,
-				'cutoff_unit'                => Cutoff_Unit::DAYS,
+				'cutoff_days'                => 2,
+				'cutoff_time'                => '23:30:00',
 				'subscribe_discount_percent' => 10,
 				'subscribe_applicability'    => Subscribe_Applicability::RENEWAL_ONLY,
 			]
@@ -45,18 +44,19 @@ final class Settings_Store_Test extends TestCase {
 
 		$settings = ( new Settings_Store() )->get();
 
-		$this->assertSame( 48, $settings->cutoff_amount() );
-		$this->assertSame( Cutoff_Unit::DAYS, $settings->cutoff_unit() );
+		$this->assertSame( 2, $settings->cutoff_days() );
+		$this->assertSame( '23:30:00', $settings->cutoff_time() );
 		$this->assertSame( 10, $settings->subscribe_discount_percent() );
 		$this->assertSame( Subscribe_Applicability::RENEWAL_ONLY, $settings->subscribe_applicability() );
 	}
 
-	public function test_get_falls_back_to_the_default_cutoff_unit_when_the_stored_one_is_unknown(): void {
-		Functions\when( 'get_option' )->justReturn( [ 'cutoff_unit' => 'fortnights' ] );
+	public function test_get_falls_back_to_the_default_cutoff_time_when_the_stored_one_is_not_a_valid_time(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'cutoff_time' => 'not-a-time' ] );
+		Functions\when( 'esc_html__' )->returnArg( 1 );
 
 		$settings = ( new Settings_Store() )->get();
 
-		$this->assertSame( Cutoff_Unit::HOURS, $settings->cutoff_unit() );
+		$this->assertSame( '17:00:00', $settings->cutoff_time() );
 	}
 
 	public function test_get_falls_back_to_the_default_applicability_when_the_stored_one_is_unknown(): void {
@@ -75,12 +75,12 @@ final class Settings_Store_Test extends TestCase {
 		$this->assertSame( 5, $settings->subscribe_discount_percent() );
 	}
 
-	public function test_get_falls_back_to_the_default_cutoff_amount_when_the_stored_one_is_negative(): void {
-		Functions\when( 'get_option' )->justReturn( [ 'cutoff_amount' => -1 ] );
+	public function test_get_falls_back_to_the_default_cutoff_days_when_the_stored_one_is_negative(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'cutoff_days' => -1 ] );
 
 		$settings = ( new Settings_Store() )->get();
 
-		$this->assertSame( 24, $settings->cutoff_amount() );
+		$this->assertSame( 1, $settings->cutoff_days() );
 	}
 
 	public function test_save_persists_every_field_under_one_option(): void {
@@ -89,15 +89,15 @@ final class Settings_Store_Test extends TestCase {
 			->with(
 				'fuelchef_subscriptions_settings',
 				[
-					'cutoff_amount'              => 48,
-					'cutoff_unit'                => Cutoff_Unit::DAYS,
+					'cutoff_days'                => 2,
+					'cutoff_time'                => '23:30:00',
 					'subscribe_discount_percent' => 10,
 					'subscribe_applicability'    => Subscribe_Applicability::RENEWAL_ONLY,
 				]
 			);
 
 		( new Settings_Store() )->save(
-			new Settings( 48, Cutoff_Unit::DAYS, 10, Subscribe_Applicability::RENEWAL_ONLY )
+			new Settings( 2, '23:30:00', 10, Subscribe_Applicability::RENEWAL_ONLY )
 		);
 	}
 
@@ -109,7 +109,7 @@ final class Settings_Store_Test extends TestCase {
 			->with( Mockery::type( Settings::class ) );
 
 		( new Settings_Store() )->save(
-			new Settings( 24, Cutoff_Unit::HOURS, 5, Subscribe_Applicability::INITIAL_AND_RENEWALS )
+			new Settings( 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS )
 		);
 	}
 }

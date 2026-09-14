@@ -17,7 +17,6 @@ use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
 use FuelChef\Subscriptions\Services\Availability_Service;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Tests\Unit\Repositories\Repository_TestCase;
-use FuelChef\Subscriptions\Values\Cutoff_Unit;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
 /**
@@ -29,13 +28,20 @@ final class Availability_Service_Test extends Repository_TestCase {
 	/**
 	 * @return array<string, mixed>
 	 */
-	private function weekday_row( int $schedule_id, int $day_of_week, bool $enabled, string $start_time = '12:00:00' ): array {
+	private function weekday_row(
+		int $schedule_id,
+		int $day_of_week,
+		bool $enabled,
+		string $start_time = '12:00:00',
+		string $end_time = '17:00:00'
+	): array {
 		return [
 			'id'           => (string) ( $day_of_week + 1 ),
 			'schedule_id'  => (string) $schedule_id,
 			'day_of_week'  => (string) $day_of_week,
 			'enabled'      => $enabled ? '1' : '0',
 			'start_time'   => $start_time,
+			'end_time'     => $end_time,
 			'date_created' => '2026-01-01 00:00:00',
 			'date_updated' => '2026-01-01 00:00:00',
 		];
@@ -59,11 +65,11 @@ final class Availability_Service_Test extends Repository_TestCase {
 	 * Stubs get_option() so a real Settings_Store reports the given cutoff, and
 	 * wp_timezone() so DateTime::from_wp() has a real timezone to resolve against.
 	 */
-	private function stub_cutoff( int $amount, string $unit ): void {
+	private function stub_cutoff( int $days, string $time ): void {
 		Functions\when( 'get_option' )->justReturn(
 			[
-				'cutoff_amount'              => $amount,
-				'cutoff_unit'                => $unit,
+				'cutoff_days'                => $days,
+				'cutoff_time'                => $time,
 				'subscribe_discount_percent' => 5,
 				'subscribe_applicability'    => Subscribe_Applicability::INITIAL_AND_RENEWALS,
 			]
@@ -80,8 +86,8 @@ final class Availability_Service_Test extends Repository_TestCase {
 	private function service(
 		array $weekday_rows = [],
 		array $blackout_rows = [],
-		int $cutoff_amount = 0,
-		string $cutoff_unit = Cutoff_Unit::HOURS
+		int $cutoff_days = 0,
+		string $cutoff_time = '00:00:00'
 	): Availability_Service {
 		$weekday_wpdb = $this->wpdb();
 		$weekday_wpdb->shouldReceive( 'get_results' )->andReturn( $weekday_rows );
@@ -89,7 +95,7 @@ final class Availability_Service_Test extends Repository_TestCase {
 		$blackout_wpdb = $this->wpdb();
 		$blackout_wpdb->shouldReceive( 'get_results' )->andReturn( $blackout_rows );
 
-		$this->stub_cutoff( $cutoff_amount, $cutoff_unit );
+		$this->stub_cutoff( $cutoff_days, $cutoff_time );
 
 		return new Availability_Service(
 			new Schedule_Weekday_Repository( $weekday_wpdb, $this->clock() ),
@@ -181,28 +187,62 @@ final class Availability_Service_Test extends Repository_TestCase {
 		$this->assertNull( $service->cutoff_deadline( $schedule, '2026-09-14' ) );
 	}
 
-	public function test_cutoff_deadline_subtracts_hours_from_the_windows_start(): void {
-		$service  = $this->service( [ $this->weekday_row( 4, 1, true, '09:00:00' ) ], [], 2, Cutoff_Unit::HOURS );
+	public function test_cutoff_deadline_is_the_configured_time_on_the_day_before_delivery(): void {
+		// 2026-09-18 is a Friday (day_of_week 5); its 1-day cutoff deadline is Thursday.
+		$service  = $this->service( [ $this->weekday_row( 4, 5, true ) ], [], 1, '23:30:00' );
 		$schedule = ( new Schedule( 'Test' ) )->set_id( 4 );
 
-		$deadline = $service->cutoff_deadline( $schedule, '2026-09-14' );
+		$deadline = $service->cutoff_deadline( $schedule, '2026-09-18' );
 
 		$this->assertNotNull( $deadline );
-		$this->assertSame( '2026-09-14 07:00:00', $deadline->in_wp_timezone()->to_database() );
+		$this->assertSame( '2026-09-17 23:30:00', $deadline->in_wp_timezone()->to_database() );
 	}
 
-	public function test_cutoff_deadline_subtracts_days_from_the_windows_start(): void {
-		$service  = $this->service( [ $this->weekday_row( 4, 1, true, '09:00:00' ) ], [], 1, Cutoff_Unit::DAYS );
+	public function test_cutoff_deadline_subtracts_more_than_one_day_when_configured(): void {
+		// 2026-09-14 is a Monday (day_of_week 1); 2 cutoff days lands on the Saturday before.
+		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 2, '09:00:00' );
 		$schedule = ( new Schedule( 'Test' ) )->set_id( 4 );
 
 		$deadline = $service->cutoff_deadline( $schedule, '2026-09-14' );
 
 		$this->assertNotNull( $deadline );
-		$this->assertSame( '2026-09-13 09:00:00', $deadline->in_wp_timezone()->to_database() );
+		$this->assertSame( '2026-09-12 09:00:00', $deadline->in_wp_timezone()->to_database() );
+	}
+
+	public function test_cutoff_deadline_with_zero_cutoff_days_falls_on_the_delivery_date_itself(): void {
+		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 0, '09:00:00' );
+		$schedule = ( new Schedule( 'Test' ) )->set_id( 4 );
+
+		$deadline = $service->cutoff_deadline( $schedule, '2026-09-14' );
+
+		$this->assertNotNull( $deadline );
+		$this->assertSame( '2026-09-14 09:00:00', $deadline->in_wp_timezone()->to_database() );
+	}
+
+	public function test_cutoff_deadline_crosses_a_month_boundary(): void {
+		// 2026-10-01 is a Thursday (day_of_week 4); its 1-day cutoff deadline falls in September.
+		$service  = $this->service( [ $this->weekday_row( 4, 4, true ) ], [], 1, '23:30:00' );
+		$schedule = ( new Schedule( 'Test' ) )->set_id( 4 );
+
+		$deadline = $service->cutoff_deadline( $schedule, '2026-10-01' );
+
+		$this->assertNotNull( $deadline );
+		$this->assertSame( '2026-09-30 23:30:00', $deadline->in_wp_timezone()->to_database() );
+	}
+
+	public function test_cutoff_deadline_crosses_a_year_boundary(): void {
+		// 2027-01-01 is a Friday (day_of_week 5); its 1-day cutoff deadline falls in the prior year.
+		$service  = $this->service( [ $this->weekday_row( 4, 5, true ) ], [], 1, '08:00:00' );
+		$schedule = ( new Schedule( 'Test' ) )->set_id( 4 );
+
+		$deadline = $service->cutoff_deadline( $schedule, '2027-01-01' );
+
+		$this->assertNotNull( $deadline );
+		$this->assertSame( '2026-12-31 08:00:00', $deadline->in_wp_timezone()->to_database() );
 	}
 
 	public function test_cutoff_has_not_passed_for_a_date_far_in_the_future(): void {
-		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 1, Cutoff_Unit::HOURS );
+		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 1, '00:00:00' );
 		$schedule = ( new Schedule( 'Test' ) )->set_id( 4 );
 
 		// A Monday far enough out that "now" can never catch up to it in a test run.
@@ -210,7 +250,7 @@ final class Availability_Service_Test extends Repository_TestCase {
 	}
 
 	public function test_cutoff_has_passed_for_a_date_far_in_the_past(): void {
-		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 1, Cutoff_Unit::HOURS );
+		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 1, '00:00:00' );
 		$schedule = ( new Schedule( 'Test' ) )->set_id( 4 );
 
 		$this->assertTrue( $service->cutoff_has_passed( $schedule, '2020-01-06' ) );
@@ -221,14 +261,14 @@ final class Availability_Service_Test extends Repository_TestCase {
 	}
 
 	public function test_is_available_is_true_for_an_open_unblocked_future_date(): void {
-		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 1, Cutoff_Unit::HOURS );
+		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 1, '00:00:00' );
 		$schedule = ( new Schedule( 'Test' ) )->set_id( 4 );
 
 		$this->assertTrue( $service->is_available( $schedule, '2099-01-05' ) );
 	}
 
 	public function test_is_available_is_false_once_the_cutoff_has_passed(): void {
-		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 1, Cutoff_Unit::HOURS );
+		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 1, '00:00:00' );
 		$schedule = ( new Schedule( 'Test' ) )->set_id( 4 );
 
 		$this->assertFalse( $service->is_available( $schedule, '2020-01-06' ) );
@@ -239,7 +279,7 @@ final class Availability_Service_Test extends Repository_TestCase {
 	}
 
 	public function test_eligible_dates_excludes_dates_whose_cutoff_has_passed(): void {
-		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 1, Cutoff_Unit::HOURS );
+		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 1, '00:00:00' );
 		$schedule = ( new Schedule( 'Past' ) )->set_id( 4 );
 
 		// 2020-01-06 is a Monday the schedule is open on, so open_dates() would include
@@ -252,7 +292,7 @@ final class Availability_Service_Test extends Repository_TestCase {
 		$destinations_wpdb = $this->wpdb();
 		$destinations_wpdb->shouldReceive( 'get_results' )->once()->andReturn( [] );
 
-		$this->stub_cutoff( 0, Cutoff_Unit::HOURS );
+		$this->stub_cutoff( 0, '00:00:00' );
 
 		$service = new Availability_Service(
 			new Schedule_Weekday_Repository( $this->wpdb(), $this->clock() ),
@@ -291,7 +331,7 @@ final class Availability_Service_Test extends Repository_TestCase {
 			]
 		);
 
-		$this->stub_cutoff( 0, Cutoff_Unit::HOURS );
+		$this->stub_cutoff( 0, '00:00:00' );
 
 		$service = new Availability_Service(
 			new Schedule_Weekday_Repository( $this->wpdb(), $this->clock() ),

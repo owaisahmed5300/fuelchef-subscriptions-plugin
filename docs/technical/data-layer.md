@@ -92,7 +92,8 @@ that exists to hold exactly two files and nothing else could ever join - see "Di
 layout" below.
 
 - `Values\Settings` - an immutable value object; its constructor validates every field
-  (a valid `Cutoff_Unit`, a 0-100 discount, a valid `Subscribe_Applicability`) and throws
+  (a non-negative cutoff day count, a valid cutoff time, a 0-100 discount, a valid
+  `Subscribe_Applicability`) and throws
   `InvalidArgumentException` on the same "caller's own bug" basis as an entity constructor
   does.
 - `Services\Settings_Store` wraps `get_option()`/`update_option()` under one option key.
@@ -104,7 +105,7 @@ layout" below.
   practice before the move - every consumer already reached it through that provider.
 - A new setting gets a field on `Values\Settings` (with its own validation branch), a
   default in `Services\Settings_Store`, and - if its valid values are a fixed set - a
-  `Values\*` enum-shaped class alongside `Cutoff_Unit`/`Subscribe_Applicability`.
+  `Values\*` enum-shaped class alongside `Subscribe_Applicability`/`Day_Of_Week`.
 
 ## Directory layout
 
@@ -115,7 +116,7 @@ respectively - single-class directories that existed only because "settings" and
 "templating" sound like they should be namespaces, not because a second file was ever
 going to join either. Folded into the directories that already fit what each class *is*:
 `Renderer` is a small stateless utility, alongside `Clock`/`Input`/`Row_Caster`/`Str`;
-`Settings` is a value object, alongside `Cutoff_Unit`/`Destination_Option`/`DateTime`;
+`Settings` is a value object, alongside `Destination_Option`/`DateTime`;
 `Settings_Store` is a service, alongside `Availability_Service`/`Schedule_Service` - and
 was already registered in `Services\Provider`, so the move just made the namespace match
 where it already lived operationally.

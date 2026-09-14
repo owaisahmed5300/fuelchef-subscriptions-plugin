@@ -17,13 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Weekly fulfillment days
+  const DOWN_ARROW_ICON = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v9M4 8.5 8 12.5 12 8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
   function renderDays() {
     if (!tableBody) return;
     tableBody.innerHTML = '';
 
-    data.weekdays.forEach(day => {
+    data.weekdays.forEach((day, index) => {
+      const isLast = index === data.weekdays.length - 1;
+
       const tr = document.createElement('tr');
       tr.className = 'fcs-weekday-row';
+      tr.dataset.dayOfWeek = day.day_of_week;
       tr.innerHTML = `
         <td class="fcs-weekday-toggle">
           <label class="fcs-switch-wrap">
@@ -41,28 +46,66 @@ document.addEventListener('DOMContentLoaded', () => {
         </td>
         <td>
           <div class="fcs-weekday-time-ctrl" style="${day.enabled ? '' : 'display:none;'}">
-            <label>${FCS.escapeHtml(window.fcsAdmin.i18n.fulfillmentStart)}</label>
-            <input type="time" class="fcs-input fcs-day-time-input" value="${FCS.escapeHtml(day.start_time.slice(0, 5))}">
+            <div class="fcs-weekday-time-field">
+              <label>${FCS.escapeHtml(window.fcsAdmin.i18n.scheduleStart)}</label>
+              <input type="time" class="fcs-input fcs-day-time-input" data-role="start" value="${FCS.escapeHtml(day.start_time.slice(0, 5))}">
+            </div>
+            <span class="fcs-weekday-time-sep" aria-hidden="true">&ndash;</span>
+            <div class="fcs-weekday-time-field">
+              <label>${FCS.escapeHtml(window.fcsAdmin.i18n.scheduleEnd)}</label>
+              <input type="time" class="fcs-input fcs-day-time-input" data-role="end" value="${FCS.escapeHtml(day.end_time.slice(0, 5))}">
+            </div>
+            ${isLast ? '' : `
+              <button type="button" class="fcs-btn fcs-btn--icon fcs-copy-down-btn" title="${FCS.escapeHtml(window.fcsAdmin.i18n.copyToDaysBelow)}" aria-label="${FCS.escapeHtml(window.fcsAdmin.i18n.copyToDaysBelow)}">
+                ${DOWN_ARROW_ICON}
+              </button>
+            `}
           </div>
+          <p class="fcs-weekday-time-error" hidden></p>
         </td>
       `;
 
       const checkbox = tr.querySelector('.day-enable-check');
-      const timeInput = tr.querySelector('.fcs-day-time-input');
+      const startInput = tr.querySelector('[data-role="start"]');
+      const endInput = tr.querySelector('[data-role="end"]');
+      const errorEl = tr.querySelector('.fcs-weekday-time-error');
+      const copyBtn = tr.querySelector('.fcs-copy-down-btn');
+
+      const showError = (message) => {
+        errorEl.textContent = message;
+        errorEl.hidden = false;
+        startInput.classList.add('fcs-input--error');
+        endInput.classList.add('fcs-input--error');
+      };
+
+      const clearError = () => {
+        errorEl.hidden = true;
+        startInput.classList.remove('fcs-input--error');
+        endInput.classList.remove('fcs-input--error');
+      };
 
       const saveDay = () => {
+        if (checkbox.checked && startInput.value && endInput.value && endInput.value <= startInput.value) {
+          showError(window.fcsAdmin.i18n.endBeforeStart);
+          return;
+        }
+
+        clearError();
+
         FCS.post('fcs_save_schedule_weekday', {
           schedule_id: data.selectedId,
           day_of_week: day.day_of_week,
           enabled: checkbox.checked ? 1 : '',
-          start_time: `${timeInput.value}:00`
+          start_time: `${startInput.value}:00`,
+          end_time: `${endInput.value}:00`
         }).done((response) => {
           if (!response.success) {
-            FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveDay));
+            showError(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveDay));
             return;
           }
           day.enabled = response.data.enabled;
           day.start_time = response.data.start_time;
+          day.end_time = response.data.end_time;
           renderDays();
           FCS.toast(window.fcsAdmin.i18n.scheduleUpdated);
         });
@@ -74,7 +117,41 @@ document.addEventListener('DOMContentLoaded', () => {
         saveDay();
       });
 
-      timeInput.addEventListener('change', saveDay);
+      startInput.addEventListener('change', saveDay);
+      endInput.addEventListener('change', saveDay);
+
+      copyBtn?.addEventListener('click', () => {
+        FCS.post('fcs_copy_schedule_weekday', {
+          schedule_id: data.selectedId,
+          day_of_week: day.day_of_week
+        }).done((response) => {
+          if (!response.success) {
+            FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotCopySchedule));
+            return;
+          }
+
+          const updatedDays = response.data.weekdays.map((updated) => updated.day_of_week);
+
+          response.data.weekdays.forEach((updated) => {
+            const target = data.weekdays.find((d) => d.day_of_week === updated.day_of_week);
+            if (target) {
+              target.enabled = updated.enabled;
+              target.start_time = updated.start_time;
+              target.end_time = updated.end_time;
+            }
+          });
+
+          renderDays();
+
+          updatedDays.forEach((dayOfWeek) => {
+            const row = tableBody.querySelector(`tr[data-day-of-week="${dayOfWeek}"]`);
+            row?.classList.add('fcs-weekday-row--copied');
+            window.setTimeout(() => row?.classList.remove('fcs-weekday-row--copied'), 1200);
+          });
+
+          FCS.toast(window.fcsAdmin.i18n.scheduleCopied);
+        });
+      });
 
       tableBody.appendChild(tr);
     });

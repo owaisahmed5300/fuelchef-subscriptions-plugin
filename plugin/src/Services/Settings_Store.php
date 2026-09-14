@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Services;
 
-use FuelChef\Subscriptions\Values\Cutoff_Unit;
+use FuelChef\Subscriptions\Values\DateTime;
 use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
@@ -29,8 +29,8 @@ final class Settings_Store {
 	 */
 	private const OPTION_KEY = 'fuelchef_subscriptions_settings';
 
-	private const DEFAULT_CUTOFF_AMOUNT              = 24;
-	private const DEFAULT_CUTOFF_UNIT                = Cutoff_Unit::HOURS;
+	private const DEFAULT_CUTOFF_DAYS                = 1;
+	private const DEFAULT_CUTOFF_TIME                = '17:00:00';
 	private const DEFAULT_SUBSCRIBE_DISCOUNT_PERCENT = 5;
 	private const DEFAULT_SUBSCRIBE_APPLICABILITY    = Subscribe_Applicability::INITIAL_AND_RENEWALS;
 
@@ -45,8 +45,8 @@ final class Settings_Store {
 		}
 
 		return new Settings(
-			$this->cutoff_amount( $stored['cutoff_amount'] ?? null ),
-			$this->cutoff_unit( $stored['cutoff_unit'] ?? null ),
+			$this->cutoff_days( $stored['cutoff_days'] ?? null ),
+			$this->cutoff_time( $stored['cutoff_time'] ?? null ),
 			$this->discount_percent( $stored['subscribe_discount_percent'] ?? null ),
 			$this->applicability( $stored['subscribe_applicability'] ?? null )
 		);
@@ -59,8 +59,8 @@ final class Settings_Store {
 		update_option(
 			self::OPTION_KEY,
 			[
-				'cutoff_amount'              => $settings->cutoff_amount(),
-				'cutoff_unit'                => $settings->cutoff_unit(),
+				'cutoff_days'                => $settings->cutoff_days(),
+				'cutoff_time'                => $settings->cutoff_time(),
 				'subscribe_discount_percent' => $settings->subscribe_discount_percent(),
 				'subscribe_applicability'    => $settings->subscribe_applicability(),
 			]
@@ -75,29 +75,29 @@ final class Settings_Store {
 	}
 
 	/**
-	 * Narrows a stored cutoff amount, falling back to the default when it is missing or
+	 * Narrows a stored cutoff day count, falling back to the default when it is missing or
 	 * negative.
 	 *
 	 * @param mixed $value Raw stored value.
 	 */
-	private function cutoff_amount( mixed $value ): int {
+	private function cutoff_days( mixed $value ): int {
 		if ( ! is_numeric( $value ) ) {
-			return self::DEFAULT_CUTOFF_AMOUNT;
+			return self::DEFAULT_CUTOFF_DAYS;
 		}
 
-		$amount = (int) $value;
+		$days = (int) $value;
 
-		return $amount >= 0 ? $amount : self::DEFAULT_CUTOFF_AMOUNT;
+		return $days >= 0 ? $days : self::DEFAULT_CUTOFF_DAYS;
 	}
 
 	/**
-	 * Narrows a stored cutoff unit, falling back to the default when it is missing or
-	 * unknown.
+	 * Narrows a stored cutoff time, falling back to the default when it is missing or not
+	 * a valid time of day.
 	 *
 	 * @param mixed $value Raw stored value.
 	 */
-	private function cutoff_unit( mixed $value ): string {
-		return is_string( $value ) && Cutoff_Unit::is_valid( $value ) ? $value : self::DEFAULT_CUTOFF_UNIT;
+	private function cutoff_time( mixed $value ): string {
+		return is_string( $value ) && DateTime::is_valid_time( $value ) ? $value : self::DEFAULT_CUTOFF_TIME;
 	}
 
 	/**

@@ -85,6 +85,7 @@ final class Installer extends Abstract_Installer {
 			day_of_week TINYINT UNSIGNED NOT NULL,
 			enabled TINYINT(1) NOT NULL DEFAULT 0,
 			start_time TIME NOT NULL DEFAULT '12:00:00',
+			end_time TIME NOT NULL DEFAULT '17:00:00',
 			date_created DATETIME NOT NULL,
 			date_updated DATETIME NOT NULL,
 			PRIMARY KEY  (id),

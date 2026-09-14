@@ -89,11 +89,14 @@ final class Delivery_Date_Field {
 			return;
 		}
 
+		$eligible_dates = $this->window->eligible_dates( $schedule );
+
 		$html = $this->renderer->render(
 			'frontend/checkout/delivery-date-field',
 			[
-				'eligible_dates' => $this->window->eligible_dates( $schedule ),
+				'eligible_dates' => $eligible_dates,
 				'selected_date'  => $this->selected_date( $schedule ),
+				'windows'        => $this->window->windows_for_dates( $schedule, $eligible_dates ),
 			]
 		);
 

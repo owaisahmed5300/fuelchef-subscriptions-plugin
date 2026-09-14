@@ -3,9 +3,11 @@
  * Classic checkout delivery date field.
  *
  * Rendered by Frontend\Checkout\Delivery_Date_Field::render(), directly inside the order
- * review table's `<tfoot>`. $data carries `eligible_dates` (list<string>, `Y-m-d`) and
- * `selected_date` (?string). The date picker itself is initialized by checkout.js, which
- * reads the eligible dates back off this field's `data-eligible-dates` attribute.
+ * review table's `<tfoot>`. $data carries `eligible_dates` (list<string>, `Y-m-d`),
+ * `selected_date` (?string) and `windows` (array<string, array{start: string, end: string}>,
+ * keyed by date). The date picker itself is initialized by checkout.js, which reads the
+ * eligible dates and windows back off this field's `data-eligible-dates`/`data-windows`
+ * attributes.
  */
 
 declare(strict_types=1);
@@ -18,6 +20,8 @@ defined( 'ABSPATH' ) || exit;
 $eligible_dates = $data['eligible_dates'];
 /** @var string|null $selected_date */
 $selected_date = $data['selected_date'];
+/** @var array<string, array{start: string, end: string}> $windows */
+$windows = $data['windows'];
 ?>
 <tr class="fcs-delivery-date-row">
 	<th>
@@ -34,7 +38,9 @@ $selected_date = $data['selected_date'];
 			value="<?php echo esc_attr( $selected_date ?? '' ); ?>"
 			placeholder="<?php esc_attr_e( 'Choose a date', 'fuelchef-subscriptions' ); ?>"
 			data-eligible-dates="<?php echo esc_attr( (string) wp_json_encode( $eligible_dates ) ); ?>"
+			data-windows="<?php echo esc_attr( (string) wp_json_encode( $windows ) ); ?>"
 		/>
+		<p class="fcs-delivery-date-window" id="fcsDeliveryDateWindow" aria-live="polite" hidden></p>
 		<?php if ( [] === $eligible_dates ) : ?>
 			<p class="fcs-delivery-date-empty">
 				<?php esc_html_e( 'No delivery dates are currently available for this destination.', 'fuelchef-subscriptions' ); ?>
