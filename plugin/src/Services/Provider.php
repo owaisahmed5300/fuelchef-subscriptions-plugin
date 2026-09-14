@@ -14,6 +14,7 @@ use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
 use FuelChef\Subscriptions\Settings\Settings_Store;
+use FuelChef\Subscriptions\Utils\Clock;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -24,8 +25,8 @@ final class Provider implements ServiceProvider {
 
 
 	/**
-	 * Registers the schedule and blackout services, and the settings store, as
-	 * singletons wired to their repository dependencies.
+	 * Registers the schedule, blackout and availability services, and the settings
+	 * store, as singletons wired to their repository dependencies.
 	 */
 	public function register( Base_Container $container ): void {
 		$container
@@ -40,6 +41,15 @@ final class Provider implements ServiceProvider {
 			->addParameter( Blackout_Repository::class, true );
 
 		$container->singleton( Settings_Store::class );
+
+		$container
+			->singleton( Availability_Service::class )
+			->addParameter( Schedule_Weekday_Repository::class, true )
+			->addParameter( Blackout_Repository::class, true )
+			->addParameter( Settings_Store::class, true )
+			->addParameter( Clock::class, true )
+			->addParameter( Schedule_Destination_Repository::class, true )
+			->addParameter( Schedule_Repository::class, true );
 	}
 
 	/**

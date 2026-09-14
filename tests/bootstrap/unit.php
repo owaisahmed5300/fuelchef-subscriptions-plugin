@@ -18,6 +18,10 @@ define( 'ABSPATH', dirname( __DIR__, 2 ) . '/wordpress/' );
 define( 'FUELCHEF_SUBSCRIPTIONS_FILE', dirname( __DIR__, 2 ) . '/plugin/fuelchef-subscriptions.php' );
 define( 'FUELCHEF_SUBSCRIPTIONS_DIR', dirname( __DIR__, 2 ) . '/plugin/' );
 
+// WordPress core time constants, used for cutoff-window arithmetic.
+define( 'HOUR_IN_SECONDS', 3600 );
+define( 'DAY_IN_SECONDS', 86400 );
+
 $autoload = dirname( __DIR__, 2 ) . '/vendor/autoload.php';
 
 if ( ! is_file( $autoload ) ) {
