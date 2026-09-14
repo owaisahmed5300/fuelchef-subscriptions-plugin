@@ -3,16 +3,14 @@
  * Schedules admin screen.
  *
  * Rendered by Schedules_Controller::render(). $data carries `schedules`
- * (list<Entities\Schedule>), `selected` (Entities\Schedule|null) and `destination_types`
- * (list<string>). The weekday table, blackout calendar and destination list all read
- * their own data from the `fcsSchedulesData` script localization instead - see the
- * controller.
+ * (list<Entities\Schedule>) and `selected` (Entities\Schedule|null). The weekday table,
+ * blackout calendar and destination list all read their own data from the
+ * `fcsSchedulesData` script localization instead - see the controller.
  */
 
 declare(strict_types=1);
 
 use FuelChef\Subscriptions\Admin\Menu;
-use FuelChef\Subscriptions\Values\Destination_Type;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -134,18 +132,13 @@ $selected = $data['selected'];
 						</div>
 						<div class="fcs-card__body">
 							<p style="margin-top:0; color:var(--fcs-color-text-muted);">
-								<?php esc_html_e( 'Assign the shipping zones and pickup locations this schedule fulfils. Resolving these against WooCommerce\'s own zone and location list is a later pass; for now, enter the identifier directly.', 'fuelchef-subscriptions' ); ?>
+								<?php esc_html_e( 'Assign the shipping zones and pickup locations this schedule fulfils.', 'fuelchef-subscriptions' ); ?>
 							</p>
 
 							<div class="fcs-dest-list" id="destinationList"></div>
 
 							<div class="fcs-inline-field" style="margin-top: 12px;">
-								<select class="fcs-select" id="destinationType">
-									<?php foreach ( $data['destination_types'] as $destination_type ) : ?>
-										<option value="<?php echo esc_attr( $destination_type ); ?>"><?php echo esc_html( Destination_Type::label( $destination_type ) ); ?></option>
-									<?php endforeach; ?>
-								</select>
-								<input type="text" class="fcs-input" id="destinationKey" placeholder="<?php esc_attr_e( 'Identifier, e.g. a shipping zone ID', 'fuelchef-subscriptions' ); ?>">
+								<select class="fcs-select" id="destinationCatalog"></select>
 								<button type="button" class="fcs-btn" id="addDestinationBtn"><?php esc_html_e( 'Add', 'fuelchef-subscriptions' ); ?></button>
 							</div>
 						</div>

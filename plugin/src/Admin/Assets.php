@@ -9,6 +9,7 @@ namespace FuelChef\Subscriptions\Admin;
 
 use FuelChef\Subscriptions\Utils\Input;
 use FuelChef\Subscriptions\Values\Day_Of_Week;
+use FuelChef\Subscriptions\Values\Destination_Type;
 use WP_Locale;
 
 defined( 'ABSPATH' ) || exit;
@@ -93,7 +94,7 @@ final class Assets {
 	 * Every string the admin scripts display, translated once here rather than hardcoded
 	 * in JavaScript.
 	 *
-	 * @return array<string, string|list<string>> The strings, keyed by name.
+	 * @return array<string, string|list<string>|array<string, string>> The strings, keyed by name.
 	 */
 	private function strings(): array {
 		return [
@@ -124,6 +125,11 @@ final class Assets {
 			'fulfillmentStart'         => esc_html__( 'Fulfillment start:', 'fuelchef-subscriptions' ),
 			'removeDestination'        => esc_html__( 'Remove destination', 'fuelchef-subscriptions' ),
 			'noDestinationsYet'        => esc_html__( 'No destinations assigned yet.', 'fuelchef-subscriptions' ),
+			'destinationUnavailable'   => esc_html__( 'No longer available', 'fuelchef-subscriptions' ),
+			'destinationTypeLabels'    => [
+				Destination_Type::SHIPPING_ZONE   => esc_html__( 'Shipping Zones', 'fuelchef-subscriptions' ),
+				Destination_Type::PICKUP_LOCATION => esc_html__( 'Pickup Locations', 'fuelchef-subscriptions' ),
+			],
 			'dayNames'                 => array_map(
 				static fn ( int $day ): string => Day_Of_Week::label( $day ),
 				Day_Of_Week::all()

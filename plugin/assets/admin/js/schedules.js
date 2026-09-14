@@ -161,6 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Destinations
   const destList = document.getElementById('destinationList');
+  const catalogSelect = document.getElementById('destinationCatalog');
+  const catalog = data.catalog || [];
   let destinations = data.destinations.slice();
 
   function saveDestinations() {
@@ -173,6 +175,29 @@ document.addEventListener('DOMContentLoaded', () => {
     return FCS.post('fcs_save_schedule_destinations', Object.assign({ schedule_id: data.selectedId }, payload));
   }
 
+  function isAssigned(type, key) {
+    return destinations.some(dest => dest.type === type && dest.key === key);
+  }
+
+  function renderCatalogOptions() {
+    if (!catalogSelect) return;
+
+    const groups = window.fcsAdmin.i18n.destinationTypeLabels || {};
+
+    catalogSelect.innerHTML = Object.keys(groups).map(type => {
+      const items = catalog.filter(option => option.type === type && option.enabled && !isAssigned(option.type, option.key));
+      if (!items.length) return '';
+
+      const optionsHtml = items.map(option => `
+        <option value="${FCS.escapeHtml(option.type)}|${FCS.escapeHtml(option.key)}" data-type="${FCS.escapeHtml(option.type)}" data-key="${FCS.escapeHtml(option.key)}">
+          ${FCS.escapeHtml(option.label)}${option.description ? ` (${FCS.escapeHtml(option.description)})` : ''}
+        </option>
+      `).join('');
+
+      return `<optgroup label="${FCS.escapeHtml(groups[type])}">${optionsHtml}</optgroup>`;
+    }).join('');
+  }
+
   function renderDestinations() {
     if (!destList) return;
 
@@ -183,8 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     destList.innerHTML = destinations.map((dest, i) => `
       <div class="fcs-dest-item">
-        <span class="fcs-dest-item__name">${FCS.escapeHtml(dest.type)}</span>
-        <span class="fcs-dest-item__desc">${FCS.escapeHtml(dest.key)}</span>
+        <span class="fcs-dest-item__name">${FCS.escapeHtml(dest.label)}</span>
+        ${dest.available === false ? `<span class="fcs-pill-badge fcs-pill-badge--muted">${FCS.escapeHtml(window.fcsAdmin.i18n.destinationUnavailable)}</span>` : ''}
         <button type="button" class="fcs-pill__remove" data-index="${i}" aria-label="${FCS.escapeHtml(window.fcsAdmin.i18n.removeDestination)}">×</button>
       </div>
     `).join('');
@@ -193,19 +218,22 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.onclick = () => {
         destinations.splice(Number(btn.dataset.index), 1);
         renderDestinations();
+        renderCatalogOptions();
         saveDestinations().done(() => FCS.toast(window.fcsAdmin.i18n.destinationRemoved));
       };
     });
   }
 
   document.getElementById('addDestinationBtn')?.addEventListener('click', () => {
-    const type = document.getElementById('destinationType').value;
-    const key = document.getElementById('destinationKey').value.trim();
-    if (!key) return;
+    const selected = catalogSelect.selectedOptions[0];
+    if (!selected) return;
 
-    destinations.push({ type, key });
+    const option = catalog.find(o => o.type === selected.dataset.type && o.key === selected.dataset.key);
+    if (!option) return;
+
+    destinations.push({ type: option.type, key: option.key, label: option.label, available: true });
     renderDestinations();
-    document.getElementById('destinationKey').value = '';
+    renderCatalogOptions();
     saveDestinations().done((response) => {
       if (!response.success) {
         FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveDestination));
@@ -216,5 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   renderDays();
+  renderCatalogOptions();
   renderDestinations();
 });
