@@ -21,6 +21,16 @@ final class Settings {
 
 
 	/**
+	 * The longest a customer-facing label may be.
+	 */
+	public const MAX_LABEL_LENGTH = 190;
+
+	/**
+	 * The longest a customer-facing description may be.
+	 */
+	public const MAX_DESCRIPTION_LENGTH = 300;
+
+	/**
 	 * Creates the settings value object.
 	 *
 	 * @param int    $cutoff_days How many days before the delivery date an order locks.
@@ -29,12 +39,28 @@ final class Settings {
 	 *                                            subscribes, 0-100.
 	 * @param string $subscribe_applicability One of the `Subscribe_Applicability`
 	 *                                        constants.
+	 * @param int    $max_delivery_window_days How many days into the future a customer
+	 *                                         can choose a delivery date.
+	 * @param string $delivery_date_label Checkout field label for the delivery date.
+	 * @param string $delivery_date_description Checkout help text for the delivery date,
+	 *                                          or an empty string to show none.
+	 * @param string $subscribe_save_label Checkout checkbox label for the subscribe
+	 *                                     discount. May contain the placeholder
+	 *                                     `{percent}`, replaced with the current discount.
+	 * @param string $subscribe_save_description Checkout help text for the subscribe
+	 *                                           discount, or an empty string to show none.
+	 *                                           May contain the placeholder `{percent}`.
 	 */
 	public function __construct(
 		private int $cutoff_days,
 		private string $cutoff_time,
 		private int $subscribe_discount_percent,
-		private string $subscribe_applicability
+		private string $subscribe_applicability,
+		private int $max_delivery_window_days,
+		private string $delivery_date_label,
+		private string $delivery_date_description,
+		private string $subscribe_save_label,
+		private string $subscribe_save_description
 	) {
 		if ( $cutoff_days < 0 ) {
 			throw new InvalidArgumentException( esc_html__( 'Cutoff days cannot be negative.', 'fuelchef-subscriptions' ) );
@@ -52,6 +78,47 @@ final class Settings {
 
 		if ( ! Subscribe_Applicability::is_valid( $subscribe_applicability ) ) {
 			throw new InvalidArgumentException( esc_html__( 'Invalid subscribe applicability.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( $max_delivery_window_days < 1 ) {
+			throw new InvalidArgumentException(
+				esc_html__( 'Maximum delivery window must be at least 1 day.', 'fuelchef-subscriptions' )
+			);
+		}
+
+		// Reads the promoted properties above, already assigned by this point - not their
+		// local parameter names, since this validates the finished object, not the call.
+		$this->validate_checkout_copy();
+	}
+
+	/**
+	 * Rejects a blank or over-length delivery date or subscribe-and-save label, or an
+	 * over-length description. A description may be blank - that means the store shows
+	 * none.
+	 */
+	private function validate_checkout_copy(): void {
+		if ( '' === trim( $this->delivery_date_label ) ) {
+			throw new InvalidArgumentException( esc_html__( 'Delivery date label cannot be blank.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( strlen( $this->delivery_date_label ) > self::MAX_LABEL_LENGTH ) {
+			throw new InvalidArgumentException( esc_html__( 'Delivery date label is too long.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( strlen( $this->delivery_date_description ) > self::MAX_DESCRIPTION_LENGTH ) {
+			throw new InvalidArgumentException( esc_html__( 'Delivery date description is too long.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( '' === trim( $this->subscribe_save_label ) ) {
+			throw new InvalidArgumentException( esc_html__( 'Subscribe & Save label cannot be blank.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( strlen( $this->subscribe_save_label ) > self::MAX_LABEL_LENGTH ) {
+			throw new InvalidArgumentException( esc_html__( 'Subscribe & Save label is too long.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( strlen( $this->subscribe_save_description ) > self::MAX_DESCRIPTION_LENGTH ) {
+			throw new InvalidArgumentException( esc_html__( 'Subscribe & Save description is too long.', 'fuelchef-subscriptions' ) );
 		}
 	}
 
@@ -82,5 +149,42 @@ final class Settings {
 	 */
 	public function subscribe_applicability(): string {
 		return $this->subscribe_applicability;
+	}
+
+	/**
+	 * How many days into the future a customer can choose a delivery date.
+	 */
+	public function max_delivery_window_days(): int {
+		return $this->max_delivery_window_days;
+	}
+
+	/**
+	 * Checkout field label for the delivery date.
+	 */
+	public function delivery_date_label(): string {
+		return $this->delivery_date_label;
+	}
+
+	/**
+	 * Checkout help text for the delivery date, empty when the store shows none.
+	 */
+	public function delivery_date_description(): string {
+		return $this->delivery_date_description;
+	}
+
+	/**
+	 * Checkout checkbox label for the subscribe discount. May contain the placeholder
+	 * `{percent}`.
+	 */
+	public function subscribe_save_label(): string {
+		return $this->subscribe_save_label;
+	}
+
+	/**
+	 * Checkout help text for the subscribe discount, empty when the store shows none. May
+	 * contain the placeholder `{percent}`.
+	 */
+	public function subscribe_save_description(): string {
+		return $this->subscribe_save_description;
 	}
 }

@@ -9,6 +9,7 @@ namespace FuelChef\Subscriptions\Frontend\Checkout;
 
 use FuelChef\Subscriptions\Entities\Schedule;
 use FuelChef\Subscriptions\Services\Availability_Service;
+use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Values\DateTime;
 use FuelChef\Subscriptions\WooCommerce\Chosen_Shipping_Destination;
@@ -27,18 +28,12 @@ final class Current_Delivery_Window {
 
 
 	/**
-	 * How many days ahead eligible dates are offered for. Wide enough for a customer to
-	 * plan a few weeks out, narrow enough that computing it on every checkout refresh
-	 * stays cheap.
-	 */
-	private const LOOKAHEAD_DAYS = 60;
-
-	/**
 	 * Creates the resolver.
 	 */
 	public function __construct(
 		private Chosen_Shipping_Destination $destination,
 		private Availability_Service $availability,
+		private Settings_Store $settings,
 		private Clock $clock
 	) {
 	}
@@ -66,7 +61,7 @@ final class Current_Delivery_Window {
 		$today = $this->clock->now_wp();
 		$from  = $today->format( DateTime::DATABASE_DATE_FORMAT );
 		$to    = $today->native()
-			->modify( sprintf( '+%d days', self::LOOKAHEAD_DAYS ) )
+			->modify( sprintf( '+%d days', $this->settings->get()->max_delivery_window_days() ) )
 			->format( DateTime::DATABASE_DATE_FORMAT );
 
 		return $this->availability->eligible_dates( $schedule, $from, $to );

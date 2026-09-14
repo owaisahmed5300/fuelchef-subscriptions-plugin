@@ -1,0 +1,150 @@
+<?php
+/**
+ * Unit tests for the settings value object.
+ */
+
+declare(strict_types=1);
+
+namespace FuelChef\Subscriptions\Tests\Unit\Values;
+
+use Brain\Monkey\Functions;
+use FuelChef\Subscriptions\Tests\TestCase;
+use FuelChef\Subscriptions\Values\Settings;
+use FuelChef\Subscriptions\Values\Subscribe_Applicability;
+use InvalidArgumentException;
+
+/**
+ * @covers \FuelChef\Subscriptions\Values\Settings
+ */
+final class Settings_Test extends TestCase {
+
+
+	protected function setUp(): void {
+		parent::setUp();
+
+		Functions\when( 'esc_html__' )->returnArg( 1 );
+	}
+
+	/**
+	 * Every constructor argument, in order, for a value known to be valid - so each test
+	 * only has to override the one argument it is checking.
+	 *
+	 * @return array{0: int, 1: string, 2: int, 3: string, 4: int, 5: string, 6: string, 7: string, 8: string}
+	 */
+	private function valid_args(): array {
+		return [ 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS, 60, 'Delivery date', '', 'Subscribe & Save {percent}%', '' ];
+	}
+
+	public function test_accepts_valid_values(): void {
+		$settings = new Settings( ...$this->valid_args() );
+
+		$this->assertSame( 1, $settings->cutoff_days() );
+		$this->assertSame( '17:00:00', $settings->cutoff_time() );
+		$this->assertSame( 5, $settings->subscribe_discount_percent() );
+		$this->assertSame( Subscribe_Applicability::INITIAL_AND_RENEWALS, $settings->subscribe_applicability() );
+		$this->assertSame( 60, $settings->max_delivery_window_days() );
+		$this->assertSame( 'Delivery date', $settings->delivery_date_label() );
+		$this->assertSame( '', $settings->delivery_date_description() );
+		$this->assertSame( 'Subscribe & Save {percent}%', $settings->subscribe_save_label() );
+		$this->assertSame( '', $settings->subscribe_save_description() );
+	}
+
+	public function test_rejects_a_negative_cutoff_days(): void {
+		$args    = $this->valid_args();
+		$args[0] = -1;
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
+	public function test_rejects_an_invalid_cutoff_time(): void {
+		$args    = $this->valid_args();
+		$args[1] = 'not-a-time';
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
+	public function test_rejects_a_discount_percent_above_100(): void {
+		$args    = $this->valid_args();
+		$args[2] = 101;
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
+	public function test_rejects_an_unknown_applicability(): void {
+		$args    = $this->valid_args();
+		$args[3] = 'every_third_order';
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
+	public function test_rejects_a_max_delivery_window_of_zero_days(): void {
+		$args    = $this->valid_args();
+		$args[4] = 0;
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
+	public function test_rejects_a_blank_delivery_date_label(): void {
+		$args    = $this->valid_args();
+		$args[5] = '   ';
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
+	public function test_rejects_a_delivery_date_label_over_the_length_limit(): void {
+		$args    = $this->valid_args();
+		$args[5] = str_repeat( 'a', Settings::MAX_LABEL_LENGTH + 1 );
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
+	public function test_rejects_a_delivery_date_description_over_the_length_limit(): void {
+		$args    = $this->valid_args();
+		$args[6] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
+	public function test_rejects_a_blank_subscribe_save_label(): void {
+		$args    = $this->valid_args();
+		$args[7] = '';
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
+	public function test_rejects_a_subscribe_save_description_over_the_length_limit(): void {
+		$args    = $this->valid_args();
+		$args[8] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
+	public function test_accepts_an_empty_description_at_exactly_the_length_limit(): void {
+		$args    = $this->valid_args();
+		$args[6] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH );
+
+		$settings = new Settings( ...$args );
+
+		$this->assertSame( $args[6], $settings->delivery_date_description() );
+	}
+}

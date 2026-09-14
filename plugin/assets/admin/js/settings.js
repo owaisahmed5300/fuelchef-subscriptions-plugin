@@ -16,7 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
         cutoff_days: document.getElementById('cutoffDays').value,
         cutoff_time: `${document.getElementById('cutoffTime').value}:00`,
         subscribe_discount_percent: document.getElementById('subscribeDiscountPercent').value,
-        subscribe_applicability: document.getElementById('subscribeApplicability').value
+        subscribe_applicability: document.getElementById('subscribeApplicability').value,
+        max_delivery_window_days: document.getElementById('maxDeliveryWindowDays').value,
+        delivery_date_label: document.getElementById('deliveryDateLabel').value,
+        delivery_date_description: document.getElementById('deliveryDateDescription').value,
+        subscribe_save_label: document.getElementById('subscribeSaveLabel').value,
+        subscribe_save_description: document.getElementById('subscribeSaveDescription').value
       }).done((response) => {
         if (!response.success) {
           FCS.toast(response.data && response.data.message ? response.data.message : window.fcsAdmin.i18n.couldNotSaveSettings);
