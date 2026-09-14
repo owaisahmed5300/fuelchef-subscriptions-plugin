@@ -128,7 +128,8 @@ asset registration around it.
 ## Frontend checkout
 
 `plugin/src/Frontend/` is the storefront counterpart to `Admin\` - the classic checkout's
-delivery date field lives here, registered by `Frontend\Provider`.
+delivery date field and subscribe-and-save discount both live here, registered by
+`Frontend\Provider`.
 
 - `WooCommerce\Chosen_Shipping_Destination` turns whatever shipping rate the customer has
   currently chosen into the `(type, key)` pair `Destination_Catalog` and
@@ -161,6 +162,27 @@ delivery date field lives here, registered by `Frontend\Provider`.
   `plugin/assets/lib/flatpickr/` rather than `assets/vendor/` - the latter is caught by
   the root `vendor/` entry in `.gitignore`, meant for Composer's PHP vendor directories,
   and would have silently dropped the library from every commit.
+- `Frontend\Checkout\Subscribe_And_Save` reads nothing across requests - whether the
+  checkbox is checked is read straight from `$_POST` (`post_data` on an AJAX refresh, the
+  field directly on the final submission) every time it is needed, rather than cached in
+  `WC()->session`. A session flag would have to be reset somewhere on every full page
+  load, and by the time a page-load hook could run, `WC_Cart::calculate_totals()` has
+  already run too - a session-based design either shows a stale discount on first paint,
+  or leaks a stale one onto the cart page after an abandoned checkout. Reading `$_POST`
+  fresh on every use makes a plain page load (no relevant `$_POST` at all) unchecked by
+  construction, with nothing to reset.
+- Its `discount_amount()` is the one piece of this feature with a real business rule (the
+  `Subscribe_Applicability::RENEWAL_ONLY` gate) and is unit-tested; `maybe_apply_discount()`
+  around it is the thin, untested glue that reads the request and calls `WC_Cart::add_fee()`.
+- **`WC_Cart::get_subtotal()` returns a numeric string, not the `float` its own PHPStan
+  stub and docblock claim.** Caught at runtime, not by static analysis - `declare(strict_types=1)`
+  on a method with a `float` parameter throws a `TypeError` rather than silently
+  coercing, which is exactly what surfaced this. Cast at the one call site rather than
+  loosening `discount_amount()`'s signature.
+- The discount is a negative `WC_Cart::add_fee()`, the standard WooCommerce mechanism for
+  a cart-level discount not tied to a coupon; its own docblock says "do not enter negative
+  amounts" but the real `WC_Cart_Fees::add_fee()` implementation never enforces that -
+  verified against source rather than trusted at face value.
 
 ## Row values are `mixed` — narrow them explicitly
 
