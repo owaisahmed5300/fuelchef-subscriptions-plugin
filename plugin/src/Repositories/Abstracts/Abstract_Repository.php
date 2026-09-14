@@ -21,6 +21,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Common database access, hydration and caching for one table.
  *
+ * A successful `insert()`, `update()` or `delete()` fires a
+ * `fuelchef_subscriptions/{table}/created` (or `updated`, `deleted`) action.
+ *
  * @template TEntity of Entity
  */
 abstract class Abstract_Repository {
@@ -161,6 +164,13 @@ abstract class Abstract_Repository {
 
 		$this->invalidate_related( $entity );
 
+		/**
+		 * Fires after a row is inserted.
+		 *
+		 * @param TEntity $entity The inserted entity.
+		 */
+		do_action( 'fuelchef_subscriptions/' . static::$table . '/created', $entity );
+
 		return $entity;
 	}
 
@@ -199,6 +209,13 @@ abstract class Abstract_Repository {
 
 		$this->invalidate_related( $entity );
 
+		/**
+		 * Fires after a row is updated.
+		 *
+		 * @param TEntity $entity The updated entity.
+		 */
+		do_action( 'fuelchef_subscriptions/' . static::$table . '/updated', $entity );
+
 		return $entity;
 	}
 
@@ -223,6 +240,14 @@ abstract class Abstract_Repository {
 		}
 
 		$this->invalidate_related( $entity );
+
+		/**
+		 * Fires after a row is deleted.
+		 *
+		 * @param int     $id The deleted row's ID.
+		 * @param TEntity $entity The entity that was deleted.
+		 */
+		do_action( 'fuelchef_subscriptions/' . static::$table . '/deleted', $id, $entity );
 	}
 
 	/**

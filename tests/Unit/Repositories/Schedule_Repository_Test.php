@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Tests\Unit\Repositories;
 
+use Brain\Monkey\Actions;
 use FuelChef\Subscriptions\Entities\Schedule;
 use FuelChef\Subscriptions\Repositories\Exceptions\Entity_Not_Found_Exception;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
@@ -165,6 +166,62 @@ final class Schedule_Repository_Test extends Repository_TestCase {
 		$second = $repository->all();
 
 		$this->assertSame( $first, $second );
+	}
+
+	public function test_insert_fires_a_created_action_with_the_entity(): void {
+		$wpdb            = $this->wpdb();
+		$wpdb->insert_id = 7;
+		$wpdb->shouldReceive( 'insert' )->once()->andReturn( 1 );
+
+		Actions\expectDone( 'fuelchef_subscriptions/schedules/created' )
+			->once()
+			->with( Mockery::type( Schedule::class ) );
+
+		$repository = new Schedule_Repository( $wpdb, $this->clock() );
+		$repository->insert( new Schedule( 'Main Store Pickup' ) );
+	}
+
+	public function test_update_fires_an_updated_action_with_the_entity(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'update' )->once()->andReturn( 1 );
+
+		Actions\expectDone( 'fuelchef_subscriptions/schedules/updated' )
+			->once()
+			->with( Mockery::type( Schedule::class ) );
+
+		$repository = new Schedule_Repository( $wpdb, $this->clock() );
+		$repository->update( ( new Schedule( 'Renamed' ) )->set_id( 4 ) );
+	}
+
+	public function test_delete_fires_a_deleted_action_with_the_id_and_entity(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'get_row' )->once()->andReturn(
+			[
+				'id'           => '6',
+				'name'         => 'To Delete',
+				'date_created' => '2026-01-01 00:00:00',
+				'date_updated' => '2026-01-01 00:00:00',
+			]
+		);
+		$wpdb->shouldReceive( 'delete' )->once()->andReturn( 1 );
+
+		Actions\expectDone( 'fuelchef_subscriptions/schedules/deleted' )
+			->once()
+			->with( 6, Mockery::type( Schedule::class ) );
+
+		$repository = new Schedule_Repository( $wpdb, $this->clock() );
+		$repository->delete( 6 );
+	}
+
+	public function test_delete_does_not_fire_a_deleted_action_when_the_row_did_not_exist(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'get_row' )->once()->andReturn( null );
+		$wpdb->shouldReceive( 'delete' )->once()->andReturn( 0 );
+
+		Actions\expectDone( 'fuelchef_subscriptions/schedules/deleted' )->never();
+
+		$repository = new Schedule_Repository( $wpdb, $this->clock() );
+		$repository->delete( 999 );
 	}
 
 	public function test_inserting_a_schedule_invalidates_the_cached_list(): void {
