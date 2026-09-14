@@ -106,17 +106,22 @@ final class Settings_Controller {
 	}
 
 	/**
-	 * Saves the cutoff, discount and applicability settings.
+	 * Saves the cutoff, discount, applicability and checkout copy settings.
 	 */
 	public function ajax_save_settings(): void {
 		$this->verify_ajax_request();
 
 		try {
 			$settings = new Settings(
-				absint( Input::string( $_POST['cutoff_days'] ?? null ) ),
-				sanitize_text_field( wp_unslash( Input::string( $_POST['cutoff_time'] ?? null ) ) ),
-				absint( Input::string( $_POST['subscribe_discount_percent'] ?? null ) ),
-				sanitize_text_field( wp_unslash( Input::string( $_POST['subscribe_applicability'] ?? null ) ) )
+				$this->posted_int( 'cutoff_days' ),
+				$this->posted_text( 'cutoff_time' ),
+				$this->posted_int( 'subscribe_discount_percent' ),
+				$this->posted_text( 'subscribe_applicability' ),
+				$this->posted_int( 'max_delivery_window_days' ),
+				$this->posted_text( 'delivery_date_label' ),
+				$this->posted_text( 'delivery_date_description' ),
+				$this->posted_text( 'subscribe_save_label' ),
+				$this->posted_text( 'subscribe_save_description' )
 			);
 		} catch ( InvalidArgumentException $exception ) {
 			wp_send_json_error( [ 'message' => $exception->getMessage() ] );
@@ -125,6 +130,20 @@ final class Settings_Controller {
 		$this->settings_store->save( $settings );
 
 		wp_send_json_success();
+	}
+
+	/**
+	 * A posted field, sanitized as plain text.
+	 */
+	private function posted_text( string $key ): string {
+		return sanitize_text_field( wp_unslash( Input::string( $_POST[ $key ] ?? null ) ) );
+	}
+
+	/**
+	 * A posted field, as a non-negative integer.
+	 */
+	private function posted_int( string $key ): int {
+		return absint( Input::string( $_POST[ $key ] ?? null ) );
 	}
 
 	/**

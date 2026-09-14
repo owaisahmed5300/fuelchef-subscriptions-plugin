@@ -33,23 +33,37 @@ final class Settings_Store {
 	private const DEFAULT_CUTOFF_TIME                = '17:00:00';
 	private const DEFAULT_SUBSCRIBE_DISCOUNT_PERCENT = 5;
 	private const DEFAULT_SUBSCRIBE_APPLICABILITY    = Subscribe_Applicability::INITIAL_AND_RENEWALS;
+	private const DEFAULT_MAX_DELIVERY_WINDOW_DAYS   = 60;
 
 	/**
 	 * The current settings, falling back to defaults for anything missing or invalid.
 	 */
 	public function get(): Settings {
-		$stored = get_option( self::OPTION_KEY, [] );
+		$raw = get_option( self::OPTION_KEY, [] );
 
-		if ( ! is_array( $stored ) ) {
-			$stored = [];
-		}
+		/** @var array<string, mixed> $stored */
+		$stored = is_array( $raw ) ? $raw : [];
 
 		return new Settings(
-			$this->cutoff_days( $stored['cutoff_days'] ?? null ),
-			$this->cutoff_time( $stored['cutoff_time'] ?? null ),
-			$this->discount_percent( $stored['subscribe_discount_percent'] ?? null ),
-			$this->applicability( $stored['subscribe_applicability'] ?? null )
+			$this->cutoff_days( $this->raw( $stored, 'cutoff_days' ) ),
+			$this->cutoff_time( $this->raw( $stored, 'cutoff_time' ) ),
+			$this->discount_percent( $this->raw( $stored, 'subscribe_discount_percent' ) ),
+			$this->applicability( $this->raw( $stored, 'subscribe_applicability' ) ),
+			$this->max_delivery_window_days( $this->raw( $stored, 'max_delivery_window_days' ) ),
+			$this->label( $this->raw( $stored, 'delivery_date_label' ), $this->default_delivery_date_label() ),
+			$this->description( $this->raw( $stored, 'delivery_date_description' ) ),
+			$this->label( $this->raw( $stored, 'subscribe_save_label' ), $this->default_subscribe_save_label() ),
+			$this->description( $this->raw( $stored, 'subscribe_save_description' ) )
 		);
+	}
+
+	/**
+	 * One field out of the stored settings array, or null when it is not set.
+	 *
+	 * @param array<string, mixed> $stored The stored settings array.
+	 */
+	private function raw( array $stored, string $key ): mixed {
+		return $stored[ $key ] ?? null;
 	}
 
 	/**
@@ -63,6 +77,11 @@ final class Settings_Store {
 				'cutoff_time'                => $settings->cutoff_time(),
 				'subscribe_discount_percent' => $settings->subscribe_discount_percent(),
 				'subscribe_applicability'    => $settings->subscribe_applicability(),
+				'max_delivery_window_days'   => $settings->max_delivery_window_days(),
+				'delivery_date_label'        => $settings->delivery_date_label(),
+				'delivery_date_description'  => $settings->delivery_date_description(),
+				'subscribe_save_label'       => $settings->subscribe_save_label(),
+				'subscribe_save_description' => $settings->subscribe_save_description(),
 			]
 		);
 
@@ -72,6 +91,22 @@ final class Settings_Store {
 		 * @param Settings $settings The saved settings.
 		 */
 		do_action( 'fuelchef_subscriptions/settings/updated', $settings );
+	}
+
+	/**
+	 * The default delivery date checkout field label, translated once here rather than
+	 * hardcoded in `Settings`, which has no access to WordPress i18n context at call time.
+	 */
+	private function default_delivery_date_label(): string {
+		return esc_html__( 'Delivery date', 'fuelchef-subscriptions' );
+	}
+
+	/**
+	 * The default subscribe-and-save checkbox label.
+	 */
+	private function default_subscribe_save_label(): string {
+		/* translators: {percent} is replaced with the discount percentage at render time, not a PHP placeholder. */
+		return esc_html__( 'Subscribe & Save {percent}%', 'fuelchef-subscriptions' );
 	}
 
 	/**
@@ -126,5 +161,50 @@ final class Settings_Store {
 		return is_string( $value ) && Subscribe_Applicability::is_valid( $value )
 			? $value
 			: self::DEFAULT_SUBSCRIBE_APPLICABILITY;
+	}
+
+	/**
+	 * Narrows a stored maximum delivery window, falling back to the default when it is
+	 * missing or not a positive number of days.
+	 *
+	 * @param mixed $value Raw stored value.
+	 */
+	private function max_delivery_window_days( mixed $value ): int {
+		if ( ! is_numeric( $value ) ) {
+			return self::DEFAULT_MAX_DELIVERY_WINDOW_DAYS;
+		}
+
+		$days = (int) $value;
+
+		return $days >= 1 ? $days : self::DEFAULT_MAX_DELIVERY_WINDOW_DAYS;
+	}
+
+	/**
+	 * Narrows a stored customer-facing label, falling back to a default when it is
+	 * missing, blank, or too long to have been saved through `Settings` itself.
+	 *
+	 * @param mixed $value Raw stored value.
+	 */
+	private function label( mixed $value, string $fallback ): string {
+		if ( ! is_string( $value ) || '' === trim( $value ) || strlen( $value ) > Settings::MAX_LABEL_LENGTH ) {
+			return $fallback;
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Narrows a stored customer-facing description, falling back to an empty string -
+	 * meaning "show none" - when it is missing or too long to have been saved through
+	 * `Settings` itself.
+	 *
+	 * @param mixed $value Raw stored value.
+	 */
+	private function description( mixed $value ): string {
+		if ( ! is_string( $value ) || strlen( $value ) > Settings::MAX_DESCRIPTION_LENGTH ) {
+			return '';
+		}
+
+		return $value;
 	}
 }

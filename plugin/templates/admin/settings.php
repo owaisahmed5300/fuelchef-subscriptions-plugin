@@ -34,6 +34,9 @@ $settings = $data['settings'];
 		<button type="button" class="fcs-nav-tab" data-tab="tab-cutoff">
 			<?php esc_html_e( 'Order Cutoff', 'fuelchef-subscriptions' ); ?>
 		</button>
+		<button type="button" class="fcs-nav-tab" data-tab="tab-checkout-fields">
+			<?php esc_html_e( 'Checkout Fields', 'fuelchef-subscriptions' ); ?>
+		</button>
 		<button type="button" class="fcs-nav-tab" data-tab="tab-subscribe">
 			<?php esc_html_e( 'Subscribe & Save', 'fuelchef-subscriptions' ); ?>
 		</button>
@@ -105,6 +108,56 @@ $settings = $data['settings'];
 			</div>
 		</section>
 
+		<section class="fcs-tab-panel" id="tab-checkout-fields">
+			<div class="fcs-card">
+				<div class="fcs-card__header">
+					<h2 class="fcs-card__title"><?php esc_html_e( 'Delivery Date Field', 'fuelchef-subscriptions' ); ?></h2>
+				</div>
+				<div class="fcs-card__body">
+					<p style="margin-top:0; color:var(--fcs-color-text-muted);">
+						<?php esc_html_e( 'Customize how the delivery date field appears to customers at checkout.', 'fuelchef-subscriptions' ); ?>
+					</p>
+
+					<div class="fcs-field">
+						<label for="deliveryDateLabel"><?php esc_html_e( 'Field label', 'fuelchef-subscriptions' ); ?></label>
+						<input
+							class="fcs-input"
+							id="deliveryDateLabel"
+							type="text"
+							maxlength="190"
+							value="<?php echo esc_attr( $settings->delivery_date_label() ); ?>"
+						>
+					</div>
+
+					<div class="fcs-field">
+						<label for="deliveryDateDescription"><?php esc_html_e( 'Help text (optional)', 'fuelchef-subscriptions' ); ?></label>
+						<textarea
+							class="fcs-textarea"
+							id="deliveryDateDescription"
+							maxlength="300"
+							placeholder="<?php esc_attr_e( 'e.g. Choose the day you\'d like this order delivered.', 'fuelchef-subscriptions' ); ?>"
+						><?php echo esc_textarea( $settings->delivery_date_description() ); ?></textarea>
+						<p class="fcs-field__hint"><?php esc_html_e( 'Shown under the field. Leave blank to show none.', 'fuelchef-subscriptions' ); ?></p>
+					</div>
+
+					<div class="fcs-field">
+						<label for="maxDeliveryWindowDays"><?php esc_html_e( 'Maximum delivery window', 'fuelchef-subscriptions' ); ?></label>
+						<div class="fcs-inline-field" style="margin-top:0;">
+							<input
+								class="fcs-input fcs-input--number"
+								id="maxDeliveryWindowDays"
+								type="number"
+								min="1"
+								value="<?php echo esc_attr( (string) $settings->max_delivery_window_days() ); ?>"
+							>
+							<span><?php esc_html_e( 'days into the future', 'fuelchef-subscriptions' ); ?></span>
+						</div>
+						<p class="fcs-field__hint"><?php esc_html_e( 'How far ahead customers can choose a delivery date, still subject to schedules, blackout dates and the order cutoff.', 'fuelchef-subscriptions' ); ?></p>
+					</div>
+				</div>
+			</div>
+		</section>
+
 		<section class="fcs-tab-panel" id="tab-subscribe">
 			<div class="fcs-card">
 				<div class="fcs-card__header">
@@ -137,6 +190,40 @@ $settings = $data['settings'];
 								</option>
 							<?php endforeach; ?>
 						</select>
+					</div>
+				</div>
+			</div>
+
+			<div class="fcs-card">
+				<div class="fcs-card__header">
+					<h2 class="fcs-card__title"><?php esc_html_e( 'Checkout Wording', 'fuelchef-subscriptions' ); ?></h2>
+				</div>
+				<div class="fcs-card__body">
+					<p style="margin-top:0; color:var(--fcs-color-text-muted);">
+						<?php esc_html_e( 'Customize the wording shown next to the Subscribe & Save checkbox at checkout.', 'fuelchef-subscriptions' ); ?>
+					</p>
+
+					<div class="fcs-field">
+						<label for="subscribeSaveLabel"><?php esc_html_e( 'Checkbox label', 'fuelchef-subscriptions' ); ?></label>
+						<input
+							class="fcs-input"
+							id="subscribeSaveLabel"
+							type="text"
+							maxlength="190"
+							value="<?php echo esc_attr( $settings->subscribe_save_label() ); ?>"
+						>
+						<p class="fcs-field__hint"><?php esc_html_e( 'Use {percent} anywhere you want the current discount to appear, e.g. "Subscribe & Save {percent}%".', 'fuelchef-subscriptions' ); ?></p>
+					</div>
+
+					<div class="fcs-field">
+						<label for="subscribeSaveDescription"><?php esc_html_e( 'Help text (optional)', 'fuelchef-subscriptions' ); ?></label>
+						<textarea
+							class="fcs-textarea"
+							id="subscribeSaveDescription"
+							maxlength="300"
+							placeholder="<?php esc_attr_e( 'e.g. Get {percent}% off this order and every renewal.', 'fuelchef-subscriptions' ); ?>"
+						><?php echo esc_textarea( $settings->subscribe_save_description() ); ?></textarea>
+						<p class="fcs-field__hint"><?php esc_html_e( 'Shown under the checkbox. Also accepts {percent}. Leave blank to show none.', 'fuelchef-subscriptions' ); ?></p>
 					</div>
 				</div>
 			</div>

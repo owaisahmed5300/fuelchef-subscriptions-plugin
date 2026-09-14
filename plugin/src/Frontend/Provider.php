@@ -44,6 +44,7 @@ final class Provider implements ServiceProvider {
 			->singleton( Current_Delivery_Window::class )
 			->addParameter( Chosen_Shipping_Destination::class, true )
 			->addParameter( Availability_Service::class, true )
+			->addParameter( Settings_Store::class, true )
 			->addParameter( Clock::class, true );
 
 		$container

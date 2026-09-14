@@ -354,6 +354,35 @@ body {
   color: var(--fcs-color-text-main);
 }
 
+/* Stacked form field: label above, full-width input/textarea, optional hint below */
+.fcs-field {
+  margin-top: 16px;
+}
+
+.fcs-field:first-child {
+  margin-top: 0;
+}
+
+.fcs-field label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--fcs-color-text-main);
+  margin-bottom: 6px;
+}
+
+.fcs-field .fcs-input,
+.fcs-field .fcs-textarea {
+  width: 100%;
+  max-width: 480px;
+}
+
+.fcs-field__hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--fcs-color-text-muted);
+}
+
 /* Submit bar */
 .fcs-submit-bar {
   display: flex;

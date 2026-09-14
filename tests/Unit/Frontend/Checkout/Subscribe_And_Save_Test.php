@@ -28,7 +28,7 @@ final class Subscribe_And_Save_Test extends TestCase {
 	}
 
 	private function settings( int $percent, string $applicability ): Settings {
-		return new Settings( 1, '17:00:00', $percent, $applicability );
+		return new Settings( 1, '17:00:00', $percent, $applicability, 60, 'Delivery date', '', 'Subscribe & Save {percent}%', '' );
 	}
 
 	private function subject(): Subscribe_And_Save {
