@@ -1,8 +1,9 @@
 # Data layer
 
-Entities, repositories and the abstraction under them. Design rationale is in
+Entities, repositories, services, settings and the abstraction under them. Design
+rationale is in
 [`../superpowers/specs/2026-09-13-admin-scheduling-layer-design.md`](../superpowers/specs/2026-09-13-admin-scheduling-layer-design.md);
-this is the "how do I add a table" reference.
+this is the "how do I add a table / a service / a setting" reference.
 
 ## Layering
 
@@ -56,6 +57,48 @@ A repository method with its own extension point (see `find_by_schedule_between(
 runs its result through `apply_filters( 'fuelchef_subscriptions/{area}/{query}', ... )`
 before returning it, and narrows the filtered value back to the declared return type
 rather than trusting it — a filter can hand back anything.
+
+## Services
+
+A service holds business logic and orchestrates repositories; it never touches `$wpdb`
+directly. Add one only when there is an actual business rule or cross-repository
+operation to hold - a single repository call with no validation belongs directly in the
+controller instead (see `Schedule_Destination_Repository::replace_for_schedule()`, called
+straight from the controller for exactly this reason).
+
+- **Validation failures** are `Services\Exceptions\Validation_Exception` - one class,
+  reused for every business-rule rejection (invalid date, duplicate date, blank name,
+  unknown day of week), each with its own named static factory
+  (`Validation_Exception::for_invalid_date()`). Never add a new exception class narrowed
+  to one field or entity.
+- **A cascading delete** (e.g. deleting a schedule also clearing its weekdays, blackouts
+  and destinations) calls each repository's own `delete()`/`delete_by_schedule()` in
+  order, never a DB-level `ON DELETE CASCADE` - see "Caching" above for why.
+- **Register a service** as a container singleton in `Services\Provider::register()`,
+  wired to its repository dependencies the same way `Repositories\Provider` wires a
+  repository to `wpdb`/`Clock`.
+- **Testing**: a real service constructed with real repositories (each over its own
+  mocked `wpdb`) - never a mock of one of this plugin's own final classes. Covers
+  validation, cascade ordering and any seeding behaviour (see
+  `Schedule_Service_Test::test_create_seeds_all_seven_weekdays_disabled_at_noon`).
+
+## Settings
+
+A setting is not a database row, so `plugin/src/Settings/` deliberately does not go
+through the Entity/Repository/Service abstraction above.
+
+- `Settings\Global_Settings` - an immutable value object; its constructor validates every
+  field (a valid `Cutoff_Unit`, a 0-100 discount, a valid `Subscribe_Applicability`) and
+  throws `InvalidArgumentException` on the same "caller's own bug" basis as an entity
+  constructor does.
+- `Settings\Settings_Store` wraps `get_option()`/`update_option()` under one option key.
+  Its `get()` never throws: a missing or no-longer-valid stored value (an old plugin
+  version, hand-edited option data) falls back to a default instead of breaking the
+  settings screen. `save()` fires `fuelchef_subscriptions/settings/updated`. No custom
+  `wp_cache` layer - WordPress's own options cache already covers this.
+- A new setting gets a field on `Global_Settings` (with its own validation branch), a
+  default in `Settings_Store`, and - if its valid values are a fixed set - a
+  `Values\*` enum-shaped class alongside `Cutoff_Unit`/`Subscribe_Applicability`.
 
 ## Row values are `mixed` — narrow them explicitly
 
