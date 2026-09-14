@@ -34,7 +34,7 @@ FCS.State = {
     if (el) {
       el.classList.remove('fcs-save-status--saved');
       el.classList.add('fcs-save-status--dirty');
-      el.innerHTML = '● Unsaved changes';
+      el.innerHTML = `&#9679; ${FCS.escapeHtml(window.fcsAdmin.i18n.unsavedChanges)}`;
     }
   },
   markClean() {
@@ -43,7 +43,7 @@ FCS.State = {
     if (el) {
       el.classList.remove('fcs-save-status--dirty');
       el.classList.add('fcs-save-status--saved');
-      el.innerHTML = '✓ All changes saved';
+      el.innerHTML = `&#10003; ${FCS.escapeHtml(window.fcsAdmin.i18n.allChangesSaved)}`;
     }
   },
   init() {
@@ -98,13 +98,14 @@ FCS.createCalendar = function (options) {
     nextBtn,
     blackouts = [],
     popoverEl,
-    emptyMessage = 'No closures selected yet.',
+    emptyMessage = '',
     onCreate,
     onSave,
     onRemove
   } = options;
 
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const monthNames = window.fcsAdmin.i18n.monthNames;
+  const weekdayNamesShort = window.fcsAdmin.i18n.weekdayNamesShort;
   let viewDate = new Date();
   let items = blackouts.slice();
   let activeId = null;
@@ -195,7 +196,7 @@ FCS.createCalendar = function (options) {
 
     let html = `
       <div class="fcs-calendar__head">
-        ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => `<div class="fcs-calendar__th">${d}</div>`).join('')}
+        ${weekdayNamesShort.map(d => `<div class="fcs-calendar__th">${FCS.escapeHtml(d)}</div>`).join('')}
       </div>
       <div class="fcs-calendar__grid">
     `;
@@ -262,7 +263,7 @@ FCS.createCalendar = function (options) {
       item.label = item.label || dateLabel(y, m - 1, d);
       items.push(item);
       render();
-      FCS.toast('Date marked unavailable');
+      FCS.toast(window.fcsAdmin.i18n.dateMarkedUnavailable);
       openPopover(item, anchor);
     });
   }
@@ -275,7 +276,7 @@ FCS.createCalendar = function (options) {
       items = items.filter(i => i.id !== id);
       closePopover();
       render();
-      FCS.toast('Date removed');
+      FCS.toast(window.fcsAdmin.i18n.dateRemoved);
     });
   }
 
@@ -335,7 +336,7 @@ FCS.createCalendar = function (options) {
           if (existing) existing.reason = item.reason;
           closePopover();
           render();
-          FCS.toast('Note saved');
+          FCS.toast(window.fcsAdmin.i18n.noteSaved);
         });
       };
     }

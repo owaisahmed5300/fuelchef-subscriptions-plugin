@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   FCS.initTabs();
 
   const data = window.fcsSchedulesData;
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayNames = window.fcsAdmin.i18n.dayNames;
 
   const tableBody = document.getElementById('weekdayRows');
   const titleInput = document.getElementById('scheduleTitle');
@@ -36,12 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
         </td>
         <td class="fcs-weekday-status">
           ${day.enabled
-            ? '<span class="fcs-pill-badge fcs-pill-badge--success"><span class="fcs-status-dot"></span> Active</span>'
-            : '<span class="fcs-pill-badge fcs-pill-badge--muted">Closed</span>'}
+            ? `<span class="fcs-pill-badge fcs-pill-badge--success"><span class="fcs-status-dot"></span> ${FCS.escapeHtml(window.fcsAdmin.i18n.dayActive)}</span>`
+            : `<span class="fcs-pill-badge fcs-pill-badge--muted">${FCS.escapeHtml(window.fcsAdmin.i18n.dayClosed)}</span>`}
         </td>
         <td>
           <div class="fcs-weekday-time-ctrl" style="${day.enabled ? '' : 'display:none;'}">
-            <label>Fulfillment start:</label>
+            <label>${FCS.escapeHtml(window.fcsAdmin.i18n.fulfillmentStart)}</label>
             <input type="time" class="fcs-input fcs-day-time-input" value="${FCS.escapeHtml(day.start_time.slice(0, 5))}">
           </div>
         </td>
@@ -58,13 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
           start_time: `${timeInput.value}:00`
         }).done((response) => {
           if (!response.success) {
-            FCS.toast(saveMessage(response, 'Could not save that day'));
+            FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveDay));
             return;
           }
           day.enabled = response.data.enabled;
           day.start_time = response.data.start_time;
           renderDays();
-          FCS.toast('Schedule updated');
+          FCS.toast(window.fcsAdmin.i18n.scheduleUpdated);
         });
       };
 
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function saveName(onSuccess) {
     FCS.post('fcs_save_schedule', { schedule_id: data.selectedId, name: titleInput.value }).done((response) => {
       if (!response.success) {
-        FCS.toast(saveMessage(response, 'Could not save the schedule name'));
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveScheduleName));
         return;
       }
       if (onSuccess) onSuccess();
@@ -93,25 +93,25 @@ document.addEventListener('DOMContentLoaded', () => {
   if (titleInput) {
     titleInput.addEventListener('change', () => saveName(() => {
       FCS.State.markClean();
-      FCS.toast('Schedule name saved');
+      FCS.toast(window.fcsAdmin.i18n.scheduleNameSaved);
     }));
   }
 
   document.getElementById('saveScheduleBtn')?.addEventListener('click', () => {
     saveName(() => {
       FCS.State.markClean();
-      FCS.toast('Schedule saved successfully');
+      FCS.toast(window.fcsAdmin.i18n.scheduleSaved);
     });
   });
 
   // Add a schedule
   document.getElementById('addScheduleBtn')?.addEventListener('click', () => {
-    const name = window.prompt('Name the new schedule:');
+    const name = window.prompt(window.fcsAdmin.i18n.promptNewScheduleName);
     if (!name) return;
 
     FCS.post('fcs_save_schedule', { name }).done((response) => {
       if (!response.success) {
-        FCS.toast(saveMessage(response, 'Could not create that schedule'));
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotCreateSchedule));
         return;
       }
       window.location.href = `${data.baseUrl}&schedule_id=${response.data.id}`;
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('confirmDeleteBtn')?.addEventListener('click', () => {
     FCS.post('fcs_delete_schedule', { schedule_id: data.selectedId }).done((response) => {
       if (!response.success) {
-        FCS.toast(saveMessage(response, 'Could not delete that schedule'));
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotDeleteSchedule));
         return;
       }
       window.location.href = data.baseUrl;
@@ -141,17 +141,17 @@ document.addEventListener('DOMContentLoaded', () => {
     nextBtn: document.getElementById('calNextMonth'),
     popoverEl: document.getElementById('datePopover'),
     blackouts: data.blackouts,
-    emptyMessage: 'No localized closure dates set for this schedule.',
+    emptyMessage: window.fcsAdmin.i18n.noLocalClosures,
     onCreate: (date) => FCS.post('fcs_save_blackout', { schedule_id: data.selectedId, date }).then((response) => {
       if (!response.success) {
-        FCS.toast(saveMessage(response, 'Could not add that date'));
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotAddDate));
         return null;
       }
       return { id: response.data.id, date: response.data.date, reason: response.data.reason };
     }),
     onSave: (id, reason) => FCS.post('fcs_save_blackout', { blackout_id: id, reason }).then((response) => {
       if (!response.success) {
-        FCS.toast(saveMessage(response, 'Could not save that note'));
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveNote));
         return null;
       }
       return { id: response.data.id, date: response.data.date, reason: response.data.reason };
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!destList) return;
 
     if (!destinations.length) {
-      destList.innerHTML = '<div class="fcs-summary-list__empty">No destinations assigned yet.</div>';
+      destList.innerHTML = `<div class="fcs-summary-list__empty">${FCS.escapeHtml(window.fcsAdmin.i18n.noDestinationsYet)}</div>`;
       return;
     }
 
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="fcs-dest-item">
         <span class="fcs-dest-item__name">${FCS.escapeHtml(dest.type)}</span>
         <span class="fcs-dest-item__desc">${FCS.escapeHtml(dest.key)}</span>
-        <button type="button" class="fcs-pill__remove" data-index="${i}" aria-label="Remove destination">×</button>
+        <button type="button" class="fcs-pill__remove" data-index="${i}" aria-label="${FCS.escapeHtml(window.fcsAdmin.i18n.removeDestination)}">×</button>
       </div>
     `).join('');
 
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.onclick = () => {
         destinations.splice(Number(btn.dataset.index), 1);
         renderDestinations();
-        saveDestinations().done(() => FCS.toast('Destination removed'));
+        saveDestinations().done(() => FCS.toast(window.fcsAdmin.i18n.destinationRemoved));
       };
     });
   }
@@ -208,10 +208,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('destinationKey').value = '';
     saveDestinations().done((response) => {
       if (!response.success) {
-        FCS.toast(saveMessage(response, 'Could not save that destination'));
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveDestination));
         return;
       }
-      FCS.toast('Destination added');
+      FCS.toast(window.fcsAdmin.i18n.destinationAdded);
     });
   });
 

@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Admin;
 
 use FuelChef\Subscriptions\Utils\Input;
+use FuelChef\Subscriptions\Values\Day_Of_Week;
+use WP_Locale;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -82,7 +84,63 @@ final class Assets {
 			[
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'fuelchef_subscriptions_admin' ),
+				'i18n'    => $this->strings(),
 			]
 		);
+	}
+
+	/**
+	 * Every string the admin scripts display, translated once here rather than hardcoded
+	 * in JavaScript.
+	 *
+	 * @return array<string, string|list<string>> The strings, keyed by name.
+	 */
+	private function strings(): array {
+		return [
+			'unsavedChanges'           => esc_html__( 'Unsaved changes', 'fuelchef-subscriptions' ),
+			'allChangesSaved'          => esc_html__( 'All changes saved', 'fuelchef-subscriptions' ),
+			'dateMarkedUnavailable'    => esc_html__( 'Date marked unavailable', 'fuelchef-subscriptions' ),
+			'dateRemoved'              => esc_html__( 'Date removed', 'fuelchef-subscriptions' ),
+			'noteSaved'                => esc_html__( 'Note saved', 'fuelchef-subscriptions' ),
+			'couldNotAddDate'          => esc_html__( 'Could not add that date.', 'fuelchef-subscriptions' ),
+			'couldNotSaveNote'         => esc_html__( 'Could not save that note.', 'fuelchef-subscriptions' ),
+			'couldNotSaveSettings'     => esc_html__( 'Could not save settings.', 'fuelchef-subscriptions' ),
+			'settingsSaved'            => esc_html__( 'Settings saved successfully', 'fuelchef-subscriptions' ),
+			'couldNotSaveDay'          => esc_html__( 'Could not save that day.', 'fuelchef-subscriptions' ),
+			'scheduleUpdated'          => esc_html__( 'Schedule updated', 'fuelchef-subscriptions' ),
+			'couldNotSaveScheduleName' => esc_html__( 'Could not save the schedule name.', 'fuelchef-subscriptions' ),
+			'scheduleNameSaved'        => esc_html__( 'Schedule name saved', 'fuelchef-subscriptions' ),
+			'scheduleSaved'            => esc_html__( 'Schedule saved successfully', 'fuelchef-subscriptions' ),
+			'couldNotCreateSchedule'   => esc_html__( 'Could not create that schedule.', 'fuelchef-subscriptions' ),
+			'couldNotDeleteSchedule'   => esc_html__( 'Could not delete that schedule.', 'fuelchef-subscriptions' ),
+			'destinationRemoved'       => esc_html__( 'Destination removed', 'fuelchef-subscriptions' ),
+			'couldNotSaveDestination'  => esc_html__( 'Could not save that destination.', 'fuelchef-subscriptions' ),
+			'destinationAdded'         => esc_html__( 'Destination added', 'fuelchef-subscriptions' ),
+			'promptNewScheduleName'    => esc_html__( 'Name the new schedule:', 'fuelchef-subscriptions' ),
+			'noGlobalClosures'         => esc_html__( 'No global closures scheduled. Orders can be delivered on all standard active days.', 'fuelchef-subscriptions' ),
+			'noLocalClosures'          => esc_html__( 'No localized closure dates set for this schedule.', 'fuelchef-subscriptions' ),
+			'dayActive'                => esc_html__( 'Active', 'fuelchef-subscriptions' ),
+			'dayClosed'                => esc_html__( 'Closed', 'fuelchef-subscriptions' ),
+			'fulfillmentStart'         => esc_html__( 'Fulfillment start:', 'fuelchef-subscriptions' ),
+			'removeDestination'        => esc_html__( 'Remove destination', 'fuelchef-subscriptions' ),
+			'noDestinationsYet'        => esc_html__( 'No destinations assigned yet.', 'fuelchef-subscriptions' ),
+			'dayNames'                 => array_map(
+				static fn ( int $day ): string => Day_Of_Week::label( $day ),
+				Day_Of_Week::all()
+			),
+			'monthNames'               => array_values( $this->wp_locale()->month ),
+			'weekdayNamesShort'        => array_values( $this->wp_locale()->weekday_abbrev ),
+		];
+	}
+
+	/**
+	 * WordPress's own translated month and weekday names, already maintained by core
+	 * translators - reused here instead of asking for the same strings again.
+	 */
+	private function wp_locale(): WP_Locale {
+		/** @var WP_Locale $wp_locale */
+		$wp_locale = $GLOBALS['wp_locale'];
+
+		return $wp_locale;
 	}
 }
