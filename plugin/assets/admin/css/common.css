@@ -184,6 +184,15 @@ body {
   padding: 20px 18px;
 }
 
+.fcs-card__body--tight {
+  padding: 10px;
+}
+
+.fcs-card__intro {
+  margin: 0 0 16px;
+  color: var(--fcs-color-text-muted);
+}
+
 /* Modernized Form Elements */
 .fcs-input,
 .fcs-select,
@@ -297,9 +306,9 @@ body {
 }
 
 .fcs-btn--icon {
-  width: 30px;
-  height: 30px;
-  min-height: 30px;
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
   padding: 0;
   border-radius: var(--fcs-radius-full);
 }
@@ -340,9 +349,8 @@ body {
 
 /* Modern Callout / Notice */
 .fcs-notice {
-  background: #ffffff;
-  border: 1px solid var(--fcs-color-border-subtle);
-  border-left: 4px solid var(--fcs-wp-theme);
+  background: var(--fcs-wp-theme-tint);
+  border: 1px solid rgba(34, 113, 177, 0.2);
   border-radius: var(--fcs-radius-md);
   padding: 12px 16px;
   margin: 18px 0 0;
@@ -372,9 +380,14 @@ body {
 }
 
 .fcs-field .fcs-input,
+.fcs-field .fcs-select,
 .fcs-field .fcs-textarea {
   width: 100%;
   max-width: 480px;
+}
+
+.fcs-field .fcs-input--number {
+  width: 90px;
 }
 
 .fcs-field__hint {
@@ -383,12 +396,53 @@ body {
   color: var(--fcs-color-text-muted);
 }
 
+/* Number input with a fused suffix (e.g. a "%" affix), read as one control */
+.fcs-percent-input {
+  display: inline-flex;
+  align-items: stretch;
+  width: fit-content;
+  border: 1px solid var(--fcs-color-border);
+  border-radius: var(--fcs-radius-md);
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.fcs-percent-input:focus-within {
+  border-color: var(--fcs-wp-theme);
+  box-shadow: var(--fcs-focus-ring);
+}
+
+.fcs-percent-input .fcs-input--number {
+  width: 70px;
+  border: 0;
+  border-radius: 0;
+}
+
+.fcs-percent-input .fcs-input--number:focus {
+  box-shadow: none;
+}
+
+.fcs-percent-input__suffix {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background: var(--fcs-color-surface-subtle);
+  color: var(--fcs-color-text-muted);
+  font-weight: 600;
+  border-left: 1px solid var(--fcs-color-border);
+}
+
 /* Submit bar */
 .fcs-submit-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px 0 20px;
+}
+
+.fcs-submit-bar__actions {
+  display: flex;
+  gap: 8px;
 }
 
 .fcs-save-status {
@@ -564,7 +618,7 @@ body {
 .fcs-summary-month__summary {
   list-style: none;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 10px 14px;
   background: var(--fcs-color-surface-subtle);
   display: flex;
   align-items: center;
@@ -572,16 +626,46 @@ body {
   font-weight: 600;
   font-size: 13px;
   color: var(--fcs-color-text-main);
+  transition: background 0.15s;
+}
+
+.fcs-summary-month__summary:hover {
+  background: var(--fcs-color-surface-hover);
+}
+
+.fcs-summary-month__summary:focus-visible {
+  outline: none;
+  box-shadow: inset var(--fcs-focus-ring);
 }
 
 .fcs-summary-month__summary::-webkit-details-marker {
   display: none;
 }
 
+.fcs-summary-month__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fcs-summary-month__chevron {
+  color: var(--fcs-color-text-subtle);
+  flex-shrink: 0;
+  transition: transform 0.15s ease-in-out;
+}
+
+.fcs-summary-month[open] > .fcs-summary-month__summary .fcs-summary-month__chevron {
+  transform: rotate(-180deg);
+}
+
 .fcs-summary-month__count {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--fcs-color-text-muted);
+  background: var(--fcs-color-surface);
+  border: 1px solid var(--fcs-color-border-subtle);
+  border-radius: var(--fcs-radius-full);
+  padding: 2px 8px;
   margin-left: auto;
 }
 
@@ -599,38 +683,48 @@ body {
 .fcs-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  border: 1px solid var(--fcs-color-border);
-  background: #ffffff;
+  gap: 4px;
+  border: 1px solid var(--fcs-color-border-subtle);
+  background: var(--fcs-color-surface-subtle);
   border-radius: var(--fcs-radius-full);
-  padding: 3px 8px 3px 10px;
+  padding: 4px 6px 4px 12px;
   font-size: 12px;
+  font-weight: 500;
+  color: var(--fcs-color-text-body);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .fcs-pill:hover {
-  border-color: var(--fcs-wp-theme);
+  background: var(--fcs-wp-theme-tint);
+  border-color: rgba(34, 113, 177, 0.25);
 }
 
 .fcs-pill__remove {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border: 0;
   background: transparent;
   border-radius: 50%;
   color: var(--fcs-color-text-muted);
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
 
 .fcs-pill__remove:hover {
   background: var(--fcs-color-danger-bg);
   color: var(--fcs-color-danger);
+}
+
+.fcs-pill__remove:focus-visible {
+  outline: none;
+  box-shadow: var(--fcs-focus-ring);
 }
 
 /* Popover */
