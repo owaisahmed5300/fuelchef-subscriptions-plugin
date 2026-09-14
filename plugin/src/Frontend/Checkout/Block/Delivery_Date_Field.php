@@ -19,11 +19,20 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Registers the delivery date field for the Checkout block's "Order information" section.
  *
- * The Additional Checkout Fields API has no native date type on the WooCommerce version
- * this plugin targets (verified against the installed source - only `text`, `select` and
- * `checkbox` are supported), so this registers a plain `text` field and leaves the
- * calendar widget to `assets/checkout/js/block-delivery-date-field.js`, which enhances it
- * with flatpickr client-side the same way the classic checkout field is enhanced.
+ * Flatpickr, not the Additional Checkout Fields API's native `date` type, by choice on
+ * investigation, not by default:
+ *
+ * - It does not exist yet on the WooCommerce version this plugin targets - verified
+ *   against the installed source (`CheckoutFields::$supported_field_types`), which lists
+ *   only `text`, `select` and `checkbox`.
+ * - Where it does exist (newer WooCommerce), its only configuration is a `min`/`max`
+ *   date range - there is no option to exclude individual dates within that range, which
+ *   is exactly what this field needs for closed weekdays and blackout dates. A plain
+ *   range cannot express that, so it would not replace Flatpickr even once available.
+ *
+ * So this registers a plain `text` field and leaves the calendar widget to
+ * `assets/checkout/js/block-delivery-date-field.js`, which enhances it with flatpickr
+ * client-side the same way the classic checkout field is enhanced.
  *
  * Unlike classic checkout, a block checkout field's value is not available to read back
  * mid-form (see `Block\Subscribe_And_Save` for why) - but `woocommerce_validate_additional_field`
