@@ -100,6 +100,31 @@ through the Entity/Repository/Service abstraction above.
   default in `Settings_Store`, and - if its valid values are a fixed set - a
   `Values\*` enum-shaped class alongside `Cutoff_Unit`/`Subscribe_Applicability`.
 
+## Admin
+
+`plugin/src/Admin/` is the `Controller` in the layering diagram above, plus the menu and
+asset registration around it.
+
+- A controller's `render()` builds its page's data from repositories/services and passes
+  it to `Templating\Renderer::render()` (shared with the frontend checkout, which will use
+  the same class). Data the page's own **script** needs (the calendar, the weekly-hours
+  table, the destination list) goes through `wp_localize_script()` instead of an inline
+  `<script>` block with embedded PHP - simpler, and avoids fighting WPCS's rules on PHP
+  tags mixed into HTML.
+- `Utils\Input::string()` narrows a `$_POST`/`$_GET` value before it reaches `absint()`/
+  `sanitize_text_field()` - PHPStan's strict rules reject passing a superglobal's `mixed`
+  value to either directly.
+- **Match an admin screen on `$_GET['page']`, not `$hook_suffix`.** A submenu's hook
+  suffix is derived from its parent slug in a way that's easy to guess wrong (it was,
+  here - see `Admin\Assets::enqueue()`); `page` is exactly the slug the screen was
+  registered under.
+- A controller's own ajax actions are registered in its `register()` method, called from
+  `Admin\Provider::boot()` - not gated to when its own screen is being viewed, since an
+  ajax request to `admin-ajax.php` carries no "current screen". Two screens sharing one
+  underlying resource (the Schedules screen's local blackouts and the Global Settings
+  screen's store-wide ones) share one registered action rather than each registering the
+  same `wp_ajax_*` hook, which would run both callbacks on every request.
+
 ## Row values are `mixed` — narrow them explicitly
 
 `$wpdb` returns every column as `string` or `null`; `Utils\Row_Caster` has the narrowing

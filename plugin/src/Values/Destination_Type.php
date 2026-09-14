@@ -50,4 +50,21 @@ final class Destination_Type {
 	public static function is_valid( string $destination_type ): bool {
 		return in_array( $destination_type, self::all(), true );
 	}
+
+	/**
+	 * Returns the translated, human-readable label for a destination type.
+	 *
+	 * Falls back to the value itself when it is not a known one, since this is a display
+	 * helper, not a validator.
+	 *
+	 * @param string $destination_type Destination type value.
+	 */
+	public static function label( string $destination_type ): string {
+		$labels = [
+			self::SHIPPING_ZONE   => esc_html__( 'Shipping zone', 'fuelchef-subscriptions' ),
+			self::PICKUP_LOCATION => esc_html__( 'Pickup location', 'fuelchef-subscriptions' ),
+		];
+
+		return $labels[ $destination_type ] ?? $destination_type;
+	}
 }

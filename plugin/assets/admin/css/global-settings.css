@@ -1,0 +1,40 @@
+/**
+ * FuelChef Subscriptions - Global Settings
+ */
+
+.fcs-inline-field {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--fcs-color-text-body);
+}
+
+.fcs-inline-field label {
+  font-weight: 600;
+  color: var(--fcs-color-text-main);
+}
+
+.fcs-inline-field span {
+  color: var(--fcs-color-text-muted);
+}
+
+.fcs-cutoff-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--fcs-color-surface-subtle);
+  border: 1px solid var(--fcs-color-border-subtle);
+  border-radius: var(--fcs-radius-lg);
+  padding: 16px;
+}
+
+.fcs-cutoff-box label {
+  font-weight: 600;
+  color: var(--fcs-color-text-main);
+}
+
+.fcs-cutoff-box span {
+  color: var(--fcs-color-text-muted);
+}
