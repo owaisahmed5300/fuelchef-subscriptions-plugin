@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend;
 
+use FuelChef\Subscriptions\Frontend\Checkout\Block\Delivery_Date_Field as Block_Delivery_Date_Field;
 use WP_Locale;
 
 defined( 'ABSPATH' ) || exit;
@@ -76,12 +77,21 @@ final class Assets {
 			true
 		);
 
+		wp_enqueue_script(
+			'fcs-block-checkout',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/block-delivery-date-field.js',
+			[ 'jquery', 'fcs-checkout' ],
+			FUELCHEF_SUBSCRIPTIONS_VERSION,
+			true
+		);
+
 		wp_localize_script(
 			'fcs-checkout',
 			'fcsCheckout',
 			[
-				'startOfWeek' => $this->start_of_week(),
-				'i18n'        => $this->strings(),
+				'startOfWeek'      => $this->start_of_week(),
+				'eligibleDatesUrl' => rest_url( Block_Delivery_Date_Field::REST_NAMESPACE . Block_Delivery_Date_Field::REST_ROUTE ),
+				'i18n'             => $this->strings(),
 			]
 		);
 	}

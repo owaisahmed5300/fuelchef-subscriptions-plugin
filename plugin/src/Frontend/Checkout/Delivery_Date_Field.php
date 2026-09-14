@@ -8,12 +8,8 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Frontend\Checkout;
 
 use FuelChef\Subscriptions\Entities\Schedule;
-use FuelChef\Subscriptions\Services\Availability_Service;
 use FuelChef\Subscriptions\Templating\Renderer;
-use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Utils\Input;
-use FuelChef\Subscriptions\Values\DateTime;
-use FuelChef\Subscriptions\WooCommerce\Chosen_Shipping_Destination;
 use WC_Order;
 use WP_Error;
 
@@ -23,9 +19,9 @@ defined( 'ABSPATH' ) || exit;
  * Adds a delivery date field to classic checkout, shown only once the customer has
  * chosen a shipping zone or pickup location a schedule is assigned to.
  *
- * Reads and writes nothing of its own: it asks `Chosen_Shipping_Destination` what the
- * customer picked, `Availability_Service` which dates that allows, and renders,
- * validates and persists strictly within what those two already decided.
+ * Reads and writes nothing of its own: it asks `Current_Delivery_Window` what schedule
+ * and dates apply to whatever the customer picked, and renders, validates and persists
+ * strictly within what that already decided.
  */
 final class Delivery_Date_Field {
 
@@ -42,13 +38,6 @@ final class Delivery_Date_Field {
 	public const META_KEY = '_fcs_delivery_date';
 
 	/**
-	 * How many days ahead eligible dates are offered for. Wide enough for a customer to
-	 * plan a few weeks out, narrow enough that computing it on every checkout refresh
-	 * stays cheap.
-	 */
-	private const LOOKAHEAD_DAYS = 60;
-
-	/**
 	 * The date posted in the current request, captured from `post_data` during an
 	 * `update_order_review` AJAX refresh so a re-rendered field keeps its selection.
 	 * Null on a normal page load, where nothing has been posted yet.
@@ -59,9 +48,7 @@ final class Delivery_Date_Field {
 	 * Creates the field handler.
 	 */
 	public function __construct(
-		private Chosen_Shipping_Destination $destination,
-		private Availability_Service $availability,
-		private Clock $clock,
+		private Current_Delivery_Window $window,
 		private Renderer $renderer
 	) {
 	}
@@ -96,7 +83,7 @@ final class Delivery_Date_Field {
 	 * something behind it to fulfil the order.
 	 */
 	public function render(): void {
-		$schedule = $this->resolve_schedule();
+		$schedule = $this->window->schedule();
 
 		if ( null === $schedule ) {
 			return;
@@ -105,7 +92,7 @@ final class Delivery_Date_Field {
 		$html = $this->renderer->render(
 			'frontend/checkout/delivery-date-field',
 			[
-				'eligible_dates' => $this->eligible_dates( $schedule ),
+				'eligible_dates' => $this->window->eligible_dates( $schedule ),
 				'selected_date'  => $this->selected_date( $schedule ),
 			]
 		);
@@ -121,7 +108,7 @@ final class Delivery_Date_Field {
 	 * @param WP_Error             $errors Validation errors, added to by reference.
 	 */
 	public function validate( array $data, WP_Error $errors ): void {
-		$schedule = $this->resolve_schedule();
+		$schedule = $this->window->schedule();
 
 		if ( null === $schedule ) {
 			return;
@@ -129,7 +116,7 @@ final class Delivery_Date_Field {
 
 		$posted = Input::string( $data[ self::FIELD_NAME ] ?? null );
 
-		if ( in_array( $posted, $this->eligible_dates( $schedule ), true ) ) {
+		if ( in_array( $posted, $this->window->eligible_dates( $schedule ), true ) ) {
 			return;
 		}
 
@@ -147,40 +134,11 @@ final class Delivery_Date_Field {
 	 * @param array<string, mixed> $data The posted checkout data.
 	 */
 	public function persist( WC_Order $order, array $data ): void {
-		if ( null === $this->resolve_schedule() ) {
+		if ( null === $this->window->schedule() ) {
 			return;
 		}
 
 		$order->update_meta_data( self::META_KEY, Input::string( $data[ self::FIELD_NAME ] ?? null ) );
-	}
-
-	/**
-	 * The schedule that applies to whatever destination the customer has currently
-	 * chosen, or null when nothing chosen yet resolves to one.
-	 */
-	private function resolve_schedule(): ?Schedule {
-		$destination = $this->destination->resolve();
-
-		if ( null === $destination ) {
-			return null;
-		}
-
-		return $this->availability->schedule_for_destination( $destination->type(), $destination->key() );
-	}
-
-	/**
-	 * Every date the schedule can fulfil on within the lookahead window.
-	 *
-	 * @return list<string> The eligible dates, in order.
-	 */
-	private function eligible_dates( Schedule $schedule ): array {
-		$today = $this->clock->now_wp();
-		$from  = $today->format( DateTime::DATABASE_DATE_FORMAT );
-		$to    = $today->native()
-			->modify( sprintf( '+%d days', self::LOOKAHEAD_DAYS ) )
-			->format( DateTime::DATABASE_DATE_FORMAT );
-
-		return $this->availability->eligible_dates( $schedule, $from, $to );
 	}
 
 	/**
@@ -192,7 +150,7 @@ final class Delivery_Date_Field {
 			return null;
 		}
 
-		return in_array( $this->posted_date, $this->eligible_dates( $schedule ), true )
+		return in_array( $this->posted_date, $this->window->eligible_dates( $schedule ), true )
 			? $this->posted_date
 			: null;
 	}

@@ -127,9 +127,14 @@ asset registration around it.
 
 ## Frontend checkout
 
-`plugin/src/Frontend/` is the storefront counterpart to `Admin\` - the classic checkout's
-delivery date field and subscribe-and-save discount both live here, registered by
-`Frontend\Provider`.
+`plugin/src/Frontend/` is the storefront counterpart to `Admin\` - both checkout
+surfaces' delivery date field and subscribe-and-save discount live here, registered by
+`Frontend\Provider`. `Frontend\Checkout\Current_Delivery_Window` (schedule + eligible
+dates for whatever destination the customer currently has chosen) and `Frontend\Checkout\
+Subscribe_And_Save::discount_amount()` (the discount's own business rule) are shared by
+classic and block checkout's own field classes rather than duplicated - see "Block
+checkout" below for the block-specific pieces (`Frontend\Checkout\Block\*`) that consume
+them.
 
 - `WooCommerce\Chosen_Shipping_Destination` turns whatever shipping rate the customer has
   currently chosen into the `(type, key)` pair `Destination_Catalog` and
@@ -139,11 +144,17 @@ delivery date field and subscribe-and-save discount both live here, registered b
   lookup a package's own rates already come from, not a re-derivation from the rate ID.
   `wc_get_chosen_shipping_method_for_package()` (WooCommerce's own helper, already used by
   `wc_cart_totals_shipping_html()`) resolves the default rate the same way WooCommerce
-  itself would when nothing has been explicitly picked yet.
-- `Frontend\Checkout\Delivery_Date_Field` is the controller-shaped piece: it asks the
-  resolver what the customer picked, `Availability_Service` which dates that allows, and
-  renders, validates and persists strictly within what those two already decided. Not
-  unit-tested for the same reason `Admin\Controllers\*` are not - see "Testing" below.
+  itself would when nothing has been explicitly picked yet. It calculates shipping itself
+  (`WC_Shipping::calculate_shipping()`) whenever `WC_Shipping::get_packages()` is
+  currently empty, rather than assuming a caller already did - classic checkout's own page
+  render and AJAX handler both happen to calculate it earlier in the same request, but
+  that is not true of every context a resolver this general ends up called from (a bare
+  custom REST route has nothing upstream to do it at all) - confirmed the hard way, see
+  "Block checkout" below.
+- `Frontend\Checkout\Delivery_Date_Field` is the controller-shaped piece: it asks
+  `Current_Delivery_Window` what schedule and dates apply, and renders, validates and
+  persists strictly within what that already decided. Not unit-tested for the same reason
+  `Admin\Controllers\*` are not - see "Testing" below.
 - **Why it hooks `woocommerce_review_order_after_shipping`, not a custom fragment.**
   WooCommerce's checkout AJAX (`update_order_review`) re-renders the entire order review
   table server-side and returns it as one of its own `fragments` entries
@@ -183,6 +194,53 @@ delivery date field and subscribe-and-save discount both live here, registered b
   a cart-level discount not tied to a coupon; its own docblock says "do not enter negative
   amounts" but the real `WC_Cart_Fees::add_fee()` implementation never enforces that -
   verified against source rather than trusted at face value.
+
+### Block checkout
+
+`Frontend\Checkout\Block\*` is the Checkout block's own delivery date field and
+subscribe-and-save discount, registered via `woocommerce_register_additional_checkout_
+field()`. It shares `Current_Delivery_Window` and `Subscribe_And_Save::discount_amount()`
+with classic checkout, but the two checkout surfaces need genuinely different integration
+code around them - confirmed by reading the installed WooCommerce Blocks source directly,
+not assumed from its own docs (`docs/woocommerce-reference/` describes a `date` field
+type this installed version does not actually have - only `text`, `select` and
+`checkbox` exist in the real `CheckoutFields::$supported_field_types`).
+
+- **The date field is `type: 'text'`, not `date`**, enhanced client-side with flatpickr
+  by `assets/checkout/js/block-delivery-date-field.js` - the same widget as classic
+  checkout, applied differently since the Checkout block re-renders via React rather than
+  a jQuery fragment swap. The script uses a `MutationObserver` on `document.body` to catch
+  the field's input appearing (there is no `updated_checkout`-equivalent event to hook),
+  and refetches eligible dates from this plugin's own read-only REST route
+  (`fuelchef-subscriptions/v1/eligible-dates`) on any `change`/`input` bubbling up the
+  page, since the block checkout's own field/form class names are not a stable contract
+  worth depending on.
+- **Why a custom REST route at all.** A registered field's `attributes` are fixed once, at
+  `woocommerce_init` registration time - they cannot carry a live, per-request eligible-
+  dates list the way classic checkout's server-rendered fragment does. The route has
+  nothing upstream to load the cart or calculate shipping for it (a bare REST request is
+  its own, otherwise-empty request), so it calls `wc_load_cart()` itself before asking
+  `Current_Delivery_Window` anything - `Chosen_Shipping_Destination` handles the shipping
+  calculation part of that itself, per the note above.
+- **The discount cannot use `WC_Cart`'s fee pipeline at all**, not even at final
+  placement. WooCommerce Blocks defers creating the checkout's draft order until the
+  customer actually places it (a 10.8.0 change), and the *only* `calculate_totals()` call
+  in the place-order request runs *before* that draft order is created and its `order`-
+  location fields are persisted onto it - confirmed by reading the request flow through
+  `StoreApi\Routes\V1\Checkout` and `StoreApi\Utilities\CheckoutTrait` directly, and by
+  watching a `woocommerce_cart_calculate_fees` callback never fire with a usable value in
+  practice. `Block\Subscribe_And_Save::apply_discount()` instead adds the discount as a
+  `WC_Order_Item_Fee` directly on the order, hooked to
+  `woocommerce_store_api_checkout_update_order_from_request` - not the more obviously-
+  named `woocommerce_store_api_checkout_update_order_meta`, which fires *before*
+  `persist_additional_fields_for_order()` runs and so cannot read the checkbox's value
+  either. Both were tried end to end against the real site before settling on the one that
+  actually works; the source comments in `Block\Subscribe_And_Save` document the ordering
+  in more detail.
+- One practical consequence: block checkout has no live "watch the total change" preview
+  before placing the order the way classic checkout's AJAX refresh gives it - only classic
+  checkout does. The discount is still always correct on the order that actually gets
+  created, which is what the money depends on.
 
 ## Row values are `mixed` — narrow them explicitly
 
