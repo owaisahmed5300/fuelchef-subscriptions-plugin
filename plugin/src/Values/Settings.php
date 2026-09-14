@@ -5,10 +5,8 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Settings;
+namespace FuelChef\Subscriptions\Values;
 
-use FuelChef\Subscriptions\Values\Cutoff_Unit;
-use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 use InvalidArgumentException;
 
 defined( 'ABSPATH' ) || exit;

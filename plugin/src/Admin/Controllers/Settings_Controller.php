@@ -13,11 +13,11 @@ use FuelChef\Subscriptions\Entities\Blackout;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Services\Blackout_Service;
 use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
-use FuelChef\Subscriptions\Settings\Settings;
-use FuelChef\Subscriptions\Settings\Settings_Store;
-use FuelChef\Subscriptions\Templating\Renderer;
+use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Input;
+use FuelChef\Subscriptions\Utils\Renderer;
 use FuelChef\Subscriptions\Values\Cutoff_Unit;
+use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 use InvalidArgumentException;
 

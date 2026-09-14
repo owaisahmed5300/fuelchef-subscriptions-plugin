@@ -13,7 +13,6 @@ use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
-use FuelChef\Subscriptions\Settings\Settings_Store;
 use FuelChef\Subscriptions\Utils\Clock;
 
 defined( 'ABSPATH' ) || exit;

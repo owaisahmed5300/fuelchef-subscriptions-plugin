@@ -5,19 +5,19 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\Settings;
+namespace FuelChef\Subscriptions\Tests\Unit\Services;
 
 use Brain\Monkey\Actions;
 use Brain\Monkey\Functions;
-use FuelChef\Subscriptions\Settings\Settings;
-use FuelChef\Subscriptions\Settings\Settings_Store;
+use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Tests\TestCase;
 use FuelChef\Subscriptions\Values\Cutoff_Unit;
+use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 use Mockery;
 
 /**
- * @covers \FuelChef\Subscriptions\Settings\Settings_Store
+ * @covers \FuelChef\Subscriptions\Services\Settings_Store
  */
 final class Settings_Store_Test extends TestCase {
 

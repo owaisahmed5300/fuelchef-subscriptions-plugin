@@ -15,9 +15,9 @@ use FuelChef\Subscriptions\Frontend\Checkout\Current_Delivery_Window;
 use FuelChef\Subscriptions\Frontend\Checkout\Delivery_Date_Field;
 use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save;
 use FuelChef\Subscriptions\Services\Availability_Service;
-use FuelChef\Subscriptions\Settings\Settings_Store;
-use FuelChef\Subscriptions\Templating\Renderer;
+use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Clock;
+use FuelChef\Subscriptions\Utils\Renderer;
 use FuelChef\Subscriptions\WooCommerce\Chosen_Shipping_Destination;
 use FuelChef\Subscriptions\WooCommerce\Destination_Catalog;
 

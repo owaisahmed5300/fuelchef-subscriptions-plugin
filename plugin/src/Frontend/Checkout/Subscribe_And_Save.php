@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend\Checkout;
 
-use FuelChef\Subscriptions\Settings\Settings;
-use FuelChef\Subscriptions\Settings\Settings_Store;
-use FuelChef\Subscriptions\Templating\Renderer;
+use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Input;
+use FuelChef\Subscriptions\Utils\Renderer;
+use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 use WC_Cart;
 use WC_Order;

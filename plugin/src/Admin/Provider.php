@@ -17,8 +17,8 @@ use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
 use FuelChef\Subscriptions\Services\Blackout_Service;
 use FuelChef\Subscriptions\Services\Schedule_Service;
-use FuelChef\Subscriptions\Settings\Settings_Store;
-use FuelChef\Subscriptions\Templating\Renderer;
+use FuelChef\Subscriptions\Services\Settings_Store;
+use FuelChef\Subscriptions\Utils\Renderer;
 use FuelChef\Subscriptions\WooCommerce\Destination_Catalog;
 
 defined( 'ABSPATH' ) || exit;

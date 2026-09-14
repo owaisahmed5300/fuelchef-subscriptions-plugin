@@ -10,7 +10,7 @@ namespace FuelChef\Subscriptions\Frontend\Checkout\Block;
 use Automattic\WooCommerce\Blocks\Domain\Services\CheckoutFields;
 use Automattic\WooCommerce\Blocks\Package;
 use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save as Classic_Subscribe_And_Save;
-use FuelChef\Subscriptions\Settings\Settings_Store;
+use FuelChef\Subscriptions\Services\Settings_Store;
 use WC_Order;
 use WC_Order_Item_Fee;
 

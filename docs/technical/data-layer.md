@@ -84,21 +84,41 @@ straight from the controller for exactly this reason).
 
 ## Settings
 
-A setting is not a database row, so `plugin/src/Settings/` deliberately does not go
-through the Entity/Repository/Service abstraction above.
+A setting is not a database row, so it does not go through the Entity/Repository/Service
+abstraction above - but it is not a directory of its own either. `Values\Settings` and
+`Services\Settings_Store` sit alongside every other value object and service instead:
+a settings feature this small (one value object, one store) does not earn a directory
+that exists to hold exactly two files and nothing else could ever join - see "Directory
+layout" below.
 
-- `Settings\Settings` - an immutable value object; its constructor validates every field
+- `Values\Settings` - an immutable value object; its constructor validates every field
   (a valid `Cutoff_Unit`, a 0-100 discount, a valid `Subscribe_Applicability`) and throws
   `InvalidArgumentException` on the same "caller's own bug" basis as an entity constructor
   does.
-- `Settings\Settings_Store` wraps `get_option()`/`update_option()` under one option key.
+- `Services\Settings_Store` wraps `get_option()`/`update_option()` under one option key.
   Its `get()` never throws: a missing or no-longer-valid stored value (an old plugin
   version, hand-edited option data) falls back to a default instead of breaking the
   settings screen. `save()` fires `fuelchef_subscriptions/settings/updated`. No custom
-  `wp_cache` layer - WordPress's own options cache already covers this.
-- A new setting gets a field on `Settings` (with its own validation branch), a default in
-  `Settings_Store`, and - if its valid values are a fixed set - a `Values\*` enum-shaped
-  class alongside `Cutoff_Unit`/`Subscribe_Applicability`.
+  `wp_cache` layer - WordPress's own options cache already covers this. Registered in
+  `Services\Provider` alongside the other services, which is what it already was in
+  practice before the move - every consumer already reached it through that provider.
+- A new setting gets a field on `Values\Settings` (with its own validation branch), a
+  default in `Services\Settings_Store`, and - if its valid values are a fixed set - a
+  `Values\*` enum-shaped class alongside `Cutoff_Unit`/`Subscribe_Applicability`.
+
+## Directory layout
+
+A namespace gets its own directory when more than one thing belongs there, or a second
+thing plausibly will. `Utils\Renderer` (template rendering) and `Values\Settings` /
+`Services\Settings_Store` used to be the sole occupants of `Templating\` and `Settings\`
+respectively - single-class directories that existed only because "settings" and
+"templating" sound like they should be namespaces, not because a second file was ever
+going to join either. Folded into the directories that already fit what each class *is*:
+`Renderer` is a small stateless utility, alongside `Clock`/`Input`/`Row_Caster`/`Str`;
+`Settings` is a value object, alongside `Cutoff_Unit`/`Destination_Option`/`DateTime`;
+`Settings_Store` is a service, alongside `Availability_Service`/`Schedule_Service` - and
+was already registered in `Services\Provider`, so the move just made the namespace match
+where it already lived operationally.
 
 ## Admin
 
@@ -106,8 +126,8 @@ through the Entity/Repository/Service abstraction above.
 asset registration around it.
 
 - A controller's `render()` builds its page's data from repositories/services and passes
-  it to `Templating\Renderer::render()` (shared with the frontend checkout, which will use
-  the same class). Data the page's own **script** needs (the calendar, the weekly-hours
+  it to `Utils\Renderer::render()` (shared with the frontend checkout, which uses the same
+  class). Data the page's own **script** needs (the calendar, the weekly-hours
   table, the destination list) goes through `wp_localize_script()` instead of an inline
   `<script>` block with embedded PHP - simpler, and avoids fighting WPCS's rules on PHP
   tags mixed into HTML.
