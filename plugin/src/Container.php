@@ -12,6 +12,7 @@ namespace FuelChef\Subscriptions;
 use FuelChef\Subscriptions\Database\Installer as DB_Installer;
 use FuelChef\Subscriptions\Dependencies\WPTechnix\DI\Container as Base_Container;
 use FuelChef\Subscriptions\Repositories\Provider as Repositories_Provider;
+use FuelChef\Subscriptions\Services\Provider as Services_Provider;
 use FuelChef\Subscriptions\Utils\Clock;
 use wpdb;
 
@@ -59,6 +60,7 @@ final class Container {
 			$container->singleton( Clock::class );
 
 			$container->provider( new Repositories_Provider() );
+			$container->provider( new Services_Provider() );
 
 			$container->boot();
 
