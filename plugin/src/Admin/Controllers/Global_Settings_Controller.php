@@ -9,6 +9,7 @@ namespace FuelChef\Subscriptions\Admin\Controllers;
 
 use FuelChef\Subscriptions\Admin\Concerns\Verifies_Ajax_Request;
 use FuelChef\Subscriptions\Admin\Menu;
+use FuelChef\Subscriptions\Entities\Blackout;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Services\Blackout_Service;
 use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
@@ -68,12 +69,16 @@ final class Global_Settings_Controller {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'fuelchef-subscriptions' ) );
 		}
 
+		wp_localize_script(
+			'fcs-admin-global-settings',
+			'fcsGlobalSettings',
+			[ 'blackouts' => $this->blackouts_for_js( $this->blackout_repository->find_by_schedule( null ) ) ]
+		);
+
 		$html = $this->renderer->render(
 			'admin/global-settings',
 			[
 				'settings'        => $this->settings_store->get(),
-				'blackouts'       => $this->blackout_repository->find_by_schedule( null ),
-				'nonce'           => wp_create_nonce( 'fuelchef_subscriptions_admin' ),
 				'cutoff_units'    => Cutoff_Unit::all(),
 				'applicabilities' => Subscribe_Applicability::all(),
 			]
@@ -81,6 +86,25 @@ final class Global_Settings_Controller {
 
 		// The template escapes every dynamic value itself; this is its own fully-built page markup.
 		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	/**
+	 * Shapes a list of blackouts for the calendar script.
+	 *
+	 * @param list<Blackout> $blackouts Blackouts to shape.
+	 *
+	 * @return list<array{id: int|null, date: string, label: string, reason: string|null}> The shaped blackouts.
+	 */
+	private function blackouts_for_js( array $blackouts ): array {
+		return array_map(
+			static fn ( Blackout $blackout ): array => [
+				'id'     => $blackout->id(),
+				'date'   => $blackout->date(),
+				'label'  => gmdate( 'M d, Y', (int) strtotime( $blackout->date() ) ),
+				'reason' => $blackout->reason(),
+			],
+			$blackouts
+		);
 	}
 
 	/**

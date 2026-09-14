@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Admin;
 
+use FuelChef\Subscriptions\Utils\Input;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -25,11 +27,18 @@ final class Assets {
 	/**
 	 * Enqueues the shared and screen-specific assets for the current admin screen, doing
 	 * nothing on any screen that is not one of this plugin's own.
+	 *
+	 * Matched on `$_GET['page']` rather than the `$hook_suffix` WordPress passes in:
+	 * the submenu's hook suffix is derived from its parent in a way that is easy to
+	 * get wrong (verified by hand against the actual admin screen), while `page` is
+	 * exactly the slug this plugin registered its menus under.
 	 */
-	public function enqueue( string $hook_suffix ): void {
-		$screen = match ( $hook_suffix ) {
-			'toplevel_page_' . Menu::GLOBAL_SETTINGS_SLUG => 'global-settings',
-			Menu::GLOBAL_SETTINGS_SLUG . '_page_' . Menu::SCHEDULES_SLUG => 'schedules',
+	public function enqueue(): void {
+		$page = Input::string( $_GET['page'] ?? null ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		$screen = match ( $page ) {
+			Menu::GLOBAL_SETTINGS_SLUG => 'global-settings',
+			Menu::SCHEDULES_SLUG => 'schedules',
 			default => null,
 		};
 
@@ -47,7 +56,7 @@ final class Assets {
 		wp_enqueue_script(
 			'fcs-admin-common',
 			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/admin/js/common.js',
-			[],
+			[ 'jquery' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION,
 			true
 		);

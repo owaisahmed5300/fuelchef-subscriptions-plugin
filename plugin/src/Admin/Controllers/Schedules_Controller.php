@@ -9,8 +9,10 @@ namespace FuelChef\Subscriptions\Admin\Controllers;
 
 use FuelChef\Subscriptions\Admin\Concerns\Verifies_Ajax_Request;
 use FuelChef\Subscriptions\Admin\Menu;
+use FuelChef\Subscriptions\Entities\Blackout;
 use FuelChef\Subscriptions\Entities\Schedule;
 use FuelChef\Subscriptions\Entities\Schedule_Destination;
+use FuelChef\Subscriptions\Entities\Schedule_Weekday;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
@@ -19,6 +21,7 @@ use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
 use FuelChef\Subscriptions\Services\Schedule_Service;
 use FuelChef\Subscriptions\Templating\Renderer;
 use FuelChef\Subscriptions\Utils\Input;
+use FuelChef\Subscriptions\Values\Destination_Type;
 use InvalidArgumentException;
 
 defined( 'ABSPATH' ) || exit;
@@ -71,20 +74,87 @@ final class Schedules_Controller {
 		$requested = absint( Input::string( $_GET['schedule_id'] ?? null ) );
 		$selected  = $this->find_selected( $all, $requested );
 
+		if ( null !== $selected ) {
+			$schedule_id = (int) $selected->id();
+
+			wp_localize_script(
+				'fcs-admin-schedules',
+				'fcsSchedulesData',
+				[
+					'selectedId'   => $schedule_id,
+					'baseUrl'      => admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG ),
+					'weekdays'     => $this->weekdays_for_js( $this->weekdays->find_by_schedule( $schedule_id ) ),
+					'blackouts'    => $this->blackouts_for_js( $this->blackouts->find_by_schedule( $schedule_id ) ),
+					'destinations' => $this->destinations_for_js( $this->destinations->find_by_schedule( $schedule_id ) ),
+				]
+			);
+		}
+
 		$html = $this->renderer->render(
 			'admin/schedules',
 			[
-				'schedules'    => $all,
-				'selected'     => $selected,
-				'weekdays'     => null !== $selected ? $this->weekdays->find_by_schedule( (int) $selected->id() ) : [],
-				'blackouts'    => null !== $selected ? $this->blackouts->find_by_schedule( (int) $selected->id() ) : [],
-				'destinations' => null !== $selected ? $this->destinations->find_by_schedule( (int) $selected->id() ) : [],
-				'nonce'        => wp_create_nonce( 'fuelchef_subscriptions_admin' ),
+				'schedules'         => $all,
+				'selected'          => $selected,
+				'destination_types' => Destination_Type::all(),
 			]
 		);
 
 		// The template escapes every dynamic value itself; this is its own fully-built page markup.
 		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	/**
+	 * Shapes a list of weekdays for the weekly-hours script.
+	 *
+	 * @param list<Schedule_Weekday> $weekdays Weekdays to shape.
+	 *
+	 * @return list<array{day_of_week: int, enabled: bool, start_time: string}> The shaped weekdays.
+	 */
+	private function weekdays_for_js( array $weekdays ): array {
+		return array_map(
+			static fn ( Schedule_Weekday $weekday ): array => [
+				'day_of_week' => $weekday->day_of_week(),
+				'enabled'     => $weekday->enabled(),
+				'start_time'  => $weekday->start_time(),
+			],
+			$weekdays
+		);
+	}
+
+	/**
+	 * Shapes a list of blackouts for the calendar script.
+	 *
+	 * @param list<Blackout> $blackouts Blackouts to shape.
+	 *
+	 * @return list<array{id: int|null, date: string, label: string, reason: string|null}> The shaped blackouts.
+	 */
+	private function blackouts_for_js( array $blackouts ): array {
+		return array_map(
+			static fn ( Blackout $blackout ): array => [
+				'id'     => $blackout->id(),
+				'date'   => $blackout->date(),
+				'label'  => gmdate( 'M d, Y', (int) strtotime( $blackout->date() ) ),
+				'reason' => $blackout->reason(),
+			],
+			$blackouts
+		);
+	}
+
+	/**
+	 * Shapes a list of destinations for the destinations script.
+	 *
+	 * @param list<Schedule_Destination> $destinations Destinations to shape.
+	 *
+	 * @return list<array{type: string, key: string}> The shaped destinations.
+	 */
+	private function destinations_for_js( array $destinations ): array {
+		return array_map(
+			static fn ( Schedule_Destination $destination ): array => [
+				'type' => $destination->destination_type(),
+				'key'  => $destination->destination_key(),
+			],
+			$destinations
+		);
 	}
 
 	/**
