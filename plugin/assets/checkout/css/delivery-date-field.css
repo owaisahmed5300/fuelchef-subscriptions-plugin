@@ -1,24 +1,45 @@
+/**
+ * Classic checkout delivery date field.
+ *
+ * Block checkout's own field styling is untouched by this file - see
+ * block-delivery-date-field.js for why it deliberately does not share these classes.
+ */
+
 .fcs-delivery-date-row th,
 .fcs-delivery-date-row td {
 	vertical-align: top;
+	padding-top: 12px;
+	padding-bottom: 12px;
 }
 
 .fcs-delivery-date-input,
 .fcs-delivery-date-input__display {
 	width: 100%;
-	max-width: 220px;
+	max-width: 260px;
 	box-sizing: border-box;
-	padding: 0.6em 0.8em;
+	padding: 0.65em 0.9em;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
 	cursor: pointer;
 	background-color: #fff;
+	font-size: 1em;
+	transition: border-color 0.15s ease-in-out;
+}
+
+.fcs-delivery-date-input:hover,
+.fcs-delivery-date-input__display:hover {
+	border-color: #8c8f94;
+}
+
+.fcs-delivery-date-input:focus,
+.fcs-delivery-date-input__display:focus {
+	outline: none;
+	border-color: #3858e9;
+	box-shadow: 0 0 0 1px #3858e9;
 }
 
 .fcs-delivery-date-empty {
 	margin: 0.5em 0 0;
 	font-size: 0.9em;
 	color: #a94442;
-}
-
-.flatpickr-day.fcs-unavailable-date {
-	cursor: not-allowed;
 }

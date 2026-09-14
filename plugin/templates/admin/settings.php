@@ -3,7 +3,7 @@
  * Settings admin screen.
  *
  * Rendered by Settings_Controller::render(). $data carries `settings`
- * (Settings\Settings), `cutoff_units` (list<string>) and `applicabilities`
+ * (Values\Settings), `cutoff_units` (list<string>) and `applicabilities`
  * (list<string>). The blackout calendar reads its own data from the
  * `fcsSettings` script localization instead - see the controller.
  */

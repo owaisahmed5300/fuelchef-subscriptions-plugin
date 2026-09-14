@@ -198,6 +198,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
   }
 
+  function catalogDescription(dest) {
+    const option = catalog.find(o => o.type === dest.type && o.key === dest.key);
+    return option && option.description ? option.description : '';
+  }
+
+  function destinationItemHtml(dest, index) {
+    const description = catalogDescription(dest);
+
+    return `
+      <div class="fcs-dest-item">
+        <div class="fcs-dest-item__info">
+          <span class="fcs-dest-item__name">${FCS.escapeHtml(dest.label)}</span>
+          ${description ? `<span class="fcs-dest-item__desc">${FCS.escapeHtml(description)}</span>` : ''}
+        </div>
+        <div class="fcs-dest-item__actions">
+          ${dest.available === false ? `<span class="fcs-pill-badge fcs-pill-badge--muted">${FCS.escapeHtml(window.fcsAdmin.i18n.destinationUnavailable)}</span>` : ''}
+          <button type="button" class="fcs-pill__remove" data-index="${index}" aria-label="${FCS.escapeHtml(window.fcsAdmin.i18n.removeDestination)}">×</button>
+        </div>
+      </div>
+    `;
+  }
+
   function renderDestinations() {
     if (!destList) return;
 
@@ -206,13 +228,27 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    destList.innerHTML = destinations.map((dest, i) => `
-      <div class="fcs-dest-item">
-        <span class="fcs-dest-item__name">${FCS.escapeHtml(dest.label)}</span>
-        ${dest.available === false ? `<span class="fcs-pill-badge fcs-pill-badge--muted">${FCS.escapeHtml(window.fcsAdmin.i18n.destinationUnavailable)}</span>` : ''}
-        <button type="button" class="fcs-pill__remove" data-index="${i}" aria-label="${FCS.escapeHtml(window.fcsAdmin.i18n.removeDestination)}">×</button>
-      </div>
-    `).join('');
+    const groups = window.fcsAdmin.i18n.destinationTypeLabels || {};
+
+    destList.innerHTML = Object.keys(groups).map(type => {
+      const items = destinations
+        .map((dest, i) => ({ dest, i }))
+        .filter(({ dest }) => dest.type === type);
+
+      if (!items.length) return '';
+
+      return `
+        <div class="fcs-dest-group">
+          <div class="fcs-dest-group__title">
+            ${FCS.escapeHtml(groups[type])}
+            <span class="fcs-dest-group__count">${items.length}</span>
+          </div>
+          <div class="fcs-dest-group__items">
+            ${items.map(({ dest, i }) => destinationItemHtml(dest, i)).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
 
     destList.querySelectorAll('[data-index]').forEach(btn => {
       btn.onclick = () => {
