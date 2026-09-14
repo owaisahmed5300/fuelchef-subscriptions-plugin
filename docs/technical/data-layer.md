@@ -87,18 +87,18 @@ straight from the controller for exactly this reason).
 A setting is not a database row, so `plugin/src/Settings/` deliberately does not go
 through the Entity/Repository/Service abstraction above.
 
-- `Settings\Global_Settings` - an immutable value object; its constructor validates every
-  field (a valid `Cutoff_Unit`, a 0-100 discount, a valid `Subscribe_Applicability`) and
-  throws `InvalidArgumentException` on the same "caller's own bug" basis as an entity
-  constructor does.
+- `Settings\Settings` - an immutable value object; its constructor validates every field
+  (a valid `Cutoff_Unit`, a 0-100 discount, a valid `Subscribe_Applicability`) and throws
+  `InvalidArgumentException` on the same "caller's own bug" basis as an entity constructor
+  does.
 - `Settings\Settings_Store` wraps `get_option()`/`update_option()` under one option key.
   Its `get()` never throws: a missing or no-longer-valid stored value (an old plugin
   version, hand-edited option data) falls back to a default instead of breaking the
   settings screen. `save()` fires `fuelchef_subscriptions/settings/updated`. No custom
   `wp_cache` layer - WordPress's own options cache already covers this.
-- A new setting gets a field on `Global_Settings` (with its own validation branch), a
-  default in `Settings_Store`, and - if its valid values are a fixed set - a
-  `Values\*` enum-shaped class alongside `Cutoff_Unit`/`Subscribe_Applicability`.
+- A new setting gets a field on `Settings` (with its own validation branch), a default in
+  `Settings_Store`, and - if its valid values are a fixed set - a `Values\*` enum-shaped
+  class alongside `Cutoff_Unit`/`Subscribe_Applicability`.
 
 ## Admin
 
@@ -121,9 +121,9 @@ asset registration around it.
 - A controller's own ajax actions are registered in its `register()` method, called from
   `Admin\Provider::boot()` - not gated to when its own screen is being viewed, since an
   ajax request to `admin-ajax.php` carries no "current screen". Two screens sharing one
-  underlying resource (the Schedules screen's local blackouts and the Global Settings
-  screen's store-wide ones) share one registered action rather than each registering the
-  same `wp_ajax_*` hook, which would run both callbacks on every request.
+  underlying resource (the Schedules screen's local blackouts and the Settings screen's
+  store-wide ones) share one registered action rather than each registering the same
+  `wp_ajax_*` hook, which would run both callbacks on every request.
 
 ## Frontend checkout
 

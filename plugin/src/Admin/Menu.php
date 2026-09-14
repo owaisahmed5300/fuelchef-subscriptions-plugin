@@ -7,18 +7,18 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Admin;
 
-use FuelChef\Subscriptions\Admin\Controllers\Global_Settings_Controller;
 use FuelChef\Subscriptions\Admin\Controllers\Schedules_Controller;
+use FuelChef\Subscriptions\Admin\Controllers\Settings_Controller;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Registers the FuelChef top-level admin menu and its two screens.
  *
- * The top-level menu and the "Global Settings" submenu share
- * `GLOBAL_SETTINGS_SLUG`: WordPress always registers the top-level page itself as the
- * first submenu entry, so giving it the same slug as "Global Settings" replaces that
- * auto-added duplicate instead of leaving a redundant third entry.
+ * The top-level menu and the "Settings" submenu share `SETTINGS_SLUG`: WordPress always
+ * registers the top-level page itself as the first submenu entry, so giving it the same
+ * slug as "Settings" replaces that auto-added duplicate instead of leaving a redundant
+ * third entry.
  */
 final class Menu {
 
@@ -29,9 +29,9 @@ final class Menu {
 	public const CAPABILITY = 'manage_woocommerce';
 
 	/**
-	 * Slug shared by the top-level menu and the Global Settings screen.
+	 * Slug shared by the top-level menu and the Settings screen.
 	 */
-	public const GLOBAL_SETTINGS_SLUG = 'fuelchef-global-settings';
+	public const SETTINGS_SLUG = 'fuelchef-settings';
 
 	/**
 	 * Slug of the Schedules screen.
@@ -42,7 +42,7 @@ final class Menu {
 	 * Creates the menu.
 	 */
 	public function __construct(
-		private Global_Settings_Controller $global_settings_controller,
+		private Settings_Controller $settings_controller,
 		private Schedules_Controller $schedules_controller
 	) {
 	}
@@ -55,22 +55,22 @@ final class Menu {
 			esc_html__( 'FuelChef Subscriptions', 'fuelchef-subscriptions' ),
 			esc_html__( 'FuelChef', 'fuelchef-subscriptions' ),
 			self::CAPABILITY,
-			self::GLOBAL_SETTINGS_SLUG,
-			[ $this->global_settings_controller, 'render' ],
+			self::SETTINGS_SLUG,
+			[ $this->settings_controller, 'render' ],
 			'dashicons-calendar-alt'
 		);
 
 		add_submenu_page(
-			self::GLOBAL_SETTINGS_SLUG,
-			esc_html__( 'Global Settings', 'fuelchef-subscriptions' ),
-			esc_html__( 'Global Settings', 'fuelchef-subscriptions' ),
+			self::SETTINGS_SLUG,
+			esc_html__( 'Settings', 'fuelchef-subscriptions' ),
+			esc_html__( 'Settings', 'fuelchef-subscriptions' ),
 			self::CAPABILITY,
-			self::GLOBAL_SETTINGS_SLUG,
-			[ $this->global_settings_controller, 'render' ]
+			self::SETTINGS_SLUG,
+			[ $this->settings_controller, 'render' ]
 		);
 
 		add_submenu_page(
-			self::GLOBAL_SETTINGS_SLUG,
+			self::SETTINGS_SLUG,
 			esc_html__( 'Schedules', 'fuelchef-subscriptions' ),
 			esc_html__( 'Schedules', 'fuelchef-subscriptions' ),
 			self::CAPABILITY,

@@ -1,6 +1,6 @@
 <?php
 /**
- * Global settings controller.
+ * Settings controller.
  */
 
 declare(strict_types=1);
@@ -13,7 +13,7 @@ use FuelChef\Subscriptions\Entities\Blackout;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Services\Blackout_Service;
 use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
-use FuelChef\Subscriptions\Settings\Global_Settings;
+use FuelChef\Subscriptions\Settings\Settings;
 use FuelChef\Subscriptions\Settings\Settings_Store;
 use FuelChef\Subscriptions\Templating\Renderer;
 use FuelChef\Subscriptions\Utils\Input;
@@ -24,13 +24,13 @@ use InvalidArgumentException;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Renders the Global Settings screen and handles its ajax actions.
+ * Renders the Settings screen and handles its ajax actions.
  *
  * Not unit-tested: view/glue code that reads a request, calls a service, and renders a
  * template or sends a JSON response, with no branchy logic of its own to break - see
  * docs/guidelines/03-testing.md.
  */
-final class Global_Settings_Controller {
+final class Settings_Controller {
 
 
 	use Verifies_Ajax_Request;
@@ -56,13 +56,13 @@ final class Global_Settings_Controller {
 	 * action.
 	 */
 	public function register(): void {
-		add_action( 'wp_ajax_fcs_save_global_settings', [ $this, 'ajax_save_settings' ] );
+		add_action( 'wp_ajax_fcs_save_settings', [ $this, 'ajax_save_settings' ] );
 		add_action( 'wp_ajax_fcs_save_blackout', [ $this, 'ajax_save_blackout' ] );
 		add_action( 'wp_ajax_fcs_delete_blackout', [ $this, 'ajax_delete_blackout' ] );
 	}
 
 	/**
-	 * Renders the Global Settings screen.
+	 * Renders the Settings screen.
 	 */
 	public function render(): void {
 		if ( ! current_user_can( Menu::CAPABILITY ) ) {
@@ -70,13 +70,13 @@ final class Global_Settings_Controller {
 		}
 
 		wp_localize_script(
-			'fcs-admin-global-settings',
-			'fcsGlobalSettings',
+			'fcs-admin-settings',
+			'fcsSettings',
 			[ 'blackouts' => $this->blackouts_for_js( $this->blackout_repository->find_by_schedule( null ) ) ]
 		);
 
 		$html = $this->renderer->render(
-			'admin/global-settings',
+			'admin/settings',
 			[
 				'settings'        => $this->settings_store->get(),
 				'cutoff_units'    => Cutoff_Unit::all(),
@@ -114,7 +114,7 @@ final class Global_Settings_Controller {
 		$this->verify_ajax_request();
 
 		try {
-			$settings = new Global_Settings(
+			$settings = new Settings(
 				absint( Input::string( $_POST['cutoff_amount'] ?? null ) ),
 				sanitize_text_field( wp_unslash( Input::string( $_POST['cutoff_unit'] ?? null ) ) ),
 				absint( Input::string( $_POST['subscribe_discount_percent'] ?? null ) ),

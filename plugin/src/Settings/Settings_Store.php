@@ -1,6 +1,6 @@
 <?php
 /**
- * Global settings store.
+ * Settings store.
  */
 
 declare(strict_types=1);
@@ -26,7 +26,7 @@ final class Settings_Store {
 	/**
 	 * The option key every setting is stored under.
 	 */
-	private const OPTION_KEY = 'fuelchef_subscriptions_global_settings';
+	private const OPTION_KEY = 'fuelchef_subscriptions_settings';
 
 	private const DEFAULT_CUTOFF_AMOUNT              = 24;
 	private const DEFAULT_CUTOFF_UNIT                = Cutoff_Unit::HOURS;
@@ -36,14 +36,14 @@ final class Settings_Store {
 	/**
 	 * The current settings, falling back to defaults for anything missing or invalid.
 	 */
-	public function get(): Global_Settings {
+	public function get(): Settings {
 		$stored = get_option( self::OPTION_KEY, [] );
 
 		if ( ! is_array( $stored ) ) {
 			$stored = [];
 		}
 
-		return new Global_Settings(
+		return new Settings(
 			$this->cutoff_amount( $stored['cutoff_amount'] ?? null ),
 			$this->cutoff_unit( $stored['cutoff_unit'] ?? null ),
 			$this->discount_percent( $stored['subscribe_discount_percent'] ?? null ),
@@ -54,7 +54,7 @@ final class Settings_Store {
 	/**
 	 * Persists the settings, and fires an action other code can react to.
 	 */
-	public function save( Global_Settings $settings ): void {
+	public function save( Settings $settings ): void {
 		update_option(
 			self::OPTION_KEY,
 			[
@@ -66,9 +66,9 @@ final class Settings_Store {
 		);
 
 		/**
-		 * Fires after the global settings are saved.
+		 * Fires after the settings are saved.
 		 *
-		 * @param Global_Settings $settings The saved settings.
+		 * @param Settings $settings The saved settings.
 		 */
 		do_action( 'fuelchef_subscriptions/settings/updated', $settings );
 	}

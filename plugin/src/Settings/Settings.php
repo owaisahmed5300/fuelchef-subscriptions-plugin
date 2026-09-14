@@ -1,6 +1,6 @@
 <?php
 /**
- * Global settings value object.
+ * Settings value object.
  */
 
 declare(strict_types=1);
@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
  * A setting is not a database row, so this does not go through the
  * Entity/Repository abstraction - see `Settings_Store`.
  */
-final class Global_Settings {
+final class Settings {
 
 
 	/**

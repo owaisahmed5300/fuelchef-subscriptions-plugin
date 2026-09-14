@@ -9,7 +9,7 @@ namespace FuelChef\Subscriptions\Tests\Unit\Settings;
 
 use Brain\Monkey\Actions;
 use Brain\Monkey\Functions;
-use FuelChef\Subscriptions\Settings\Global_Settings;
+use FuelChef\Subscriptions\Settings\Settings;
 use FuelChef\Subscriptions\Settings\Settings_Store;
 use FuelChef\Subscriptions\Tests\TestCase;
 use FuelChef\Subscriptions\Values\Cutoff_Unit;
@@ -87,7 +87,7 @@ final class Settings_Store_Test extends TestCase {
 		Functions\expect( 'update_option' )
 			->once()
 			->with(
-				'fuelchef_subscriptions_global_settings',
+				'fuelchef_subscriptions_settings',
 				[
 					'cutoff_amount'              => 48,
 					'cutoff_unit'                => Cutoff_Unit::DAYS,
@@ -97,7 +97,7 @@ final class Settings_Store_Test extends TestCase {
 			);
 
 		( new Settings_Store() )->save(
-			new Global_Settings( 48, Cutoff_Unit::DAYS, 10, Subscribe_Applicability::RENEWAL_ONLY )
+			new Settings( 48, Cutoff_Unit::DAYS, 10, Subscribe_Applicability::RENEWAL_ONLY )
 		);
 	}
 
@@ -106,10 +106,10 @@ final class Settings_Store_Test extends TestCase {
 
 		Actions\expectDone( 'fuelchef_subscriptions/settings/updated' )
 			->once()
-			->with( Mockery::type( Global_Settings::class ) );
+			->with( Mockery::type( Settings::class ) );
 
 		( new Settings_Store() )->save(
-			new Global_Settings( 24, Cutoff_Unit::HOURS, 5, Subscribe_Applicability::INITIAL_AND_RENEWALS )
+			new Settings( 24, Cutoff_Unit::HOURS, 5, Subscribe_Applicability::INITIAL_AND_RENEWALS )
 		);
 	}
 }
