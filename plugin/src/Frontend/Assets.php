@@ -42,7 +42,7 @@ final class Assets {
 
 		wp_enqueue_style(
 			'fcs-flatpickr',
-			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/lib/flatpickr/flatpickr.min.css',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/lib/flatpickr/airbnb.css',
 			[],
 			self::FLATPICKR_VERSION
 		);
@@ -59,6 +59,20 @@ final class Assets {
 			'fcs-checkout',
 			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/css/delivery-date-field.css',
 			[ 'fcs-flatpickr' ],
+			FUELCHEF_SUBSCRIPTIONS_VERSION
+		);
+
+		wp_enqueue_style(
+			'fcs-block-checkout',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/css/block-delivery-date-field.css',
+			[ 'fcs-flatpickr' ],
+			FUELCHEF_SUBSCRIPTIONS_VERSION
+		);
+
+		wp_enqueue_style(
+			'fcs-block-checkout-section',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/css/block-checkout.css',
+			[],
 			FUELCHEF_SUBSCRIPTIONS_VERSION
 		);
 

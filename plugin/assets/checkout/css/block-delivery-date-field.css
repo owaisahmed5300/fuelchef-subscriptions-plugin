@@ -1,0 +1,14 @@
+/**
+ * Block checkout delivery date field.
+ *
+ * Deliberately does not touch width, padding or border here - the field is the Checkout
+ * block's own <input>, already styled and sized by its own field wrapper and label.
+ * Overriding that (as an earlier version of this field did, via flatpickr's altInput)
+ * is what caused it to render too narrow with its label overlapping the placeholder.
+ * This only adds the one affordance a plain readonly input doesn't already have: a
+ * pointer cursor, so it reads as "click to open a calendar" rather than a disabled field.
+ */
+
+[data-fcs-block-delivery-date] {
+	cursor: pointer;
+}

@@ -193,40 +193,53 @@
   font-weight: 500;
 }
 
-/* Destinations list cards */
-.fcs-dest-group {
-  margin-bottom: 20px;
-}
-
-.fcs-dest-group:last-child {
-  margin-bottom: 0;
+/* Destinations list, grouped by type (shipping zones, pickup locations) */
+.fcs-dest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .fcs-dest-group__title {
   font-weight: 600;
-  font-size: 13px;
-  color: var(--fcs-color-text-main);
-  margin-bottom: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fcs-color-text-muted);
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
 }
 
-.fcs-dest-list {
+.fcs-dest-group__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--fcs-radius-full);
+  background: var(--fcs-color-surface-hover);
+  color: var(--fcs-color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.fcs-dest-group__items {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .fcs-dest-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 16px;
+  padding: 12px 16px;
   background: #ffffff;
   border: 1px solid var(--fcs-color-border-subtle);
   border-radius: var(--fcs-radius-md);
-  cursor: pointer;
   transition: all 0.15s;
 }
 
@@ -235,11 +248,11 @@
   background: var(--fcs-color-surface-subtle);
 }
 
-.fcs-dest-item input[type="checkbox"] {
-  accent-color: var(--fcs-wp-theme);
-  width: 16px;
-  height: 16px;
-  margin: 0;
+.fcs-dest-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .fcs-dest-item__name {
@@ -251,7 +264,32 @@
 .fcs-dest-item__desc {
   font-size: 12px;
   color: var(--fcs-color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fcs-dest-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* "Add a destination" row */
+.fcs-dest-add {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--fcs-color-border-subtle);
+}
+
+.fcs-dest-add .fcs-select {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 /* Modal */

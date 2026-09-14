@@ -137,9 +137,9 @@ $selected = $data['selected'];
 
 							<div class="fcs-dest-list" id="destinationList"></div>
 
-							<div class="fcs-inline-field" style="margin-top: 12px;">
+							<div class="fcs-dest-add">
 								<select class="fcs-select" id="destinationCatalog"></select>
-								<button type="button" class="fcs-btn" id="addDestinationBtn"><?php esc_html_e( 'Add', 'fuelchef-subscriptions' ); ?></button>
+								<button type="button" class="fcs-btn fcs-btn--add" id="addDestinationBtn"><?php esc_html_e( 'Add', 'fuelchef-subscriptions' ); ?></button>
 							</div>
 						</div>
 					</div>

@@ -7,6 +7,15 @@
  * attaches flatpickr to it, refetching eligible dates whenever anything in the checkout
  * form changes - shipping method and address fields included - since none of those are
  * reliably identifiable by a fixed selector under the block checkout's own markup.
+ *
+ * Deliberately does not use flatpickr's `altInput` mode here, unlike the classic
+ * checkout field: altInput inserts a second, brand-new <input> next to the original and
+ * hides the original - which works cleanly in classic checkout's own template, but here
+ * the original input is one the Checkout block itself rendered and wraps with its own
+ * label and sizing. Disconnecting that with a foreign sibling element is what caused the
+ * field to render too narrow with its label overlapping the placeholder text. Attaching
+ * directly to the block's own input, with no DOM changes around it, keeps its native
+ * width and label behaviour intact.
  */
 
 jQuery(function ($) {
@@ -64,17 +73,16 @@ jQuery(function ($) {
       instance = null;
     }
 
+    // No placeholder to set here: the field's own registered label already serves as
+    // its placeholder, per the Additional Checkout Fields API's own documented
+    // behaviour - setting a second one would fight the block's own rendering of it.
     instance = window.flatpickr($input[0], {
       dateFormat: 'Y-m-d',
-      altInput: true,
-      altFormat: 'F j, Y',
-      altInputClass: 'fcs-delivery-date-input__display',
       enable: [],
       locale,
       disableMobile: true
     });
 
-    instance.altInput.setAttribute('placeholder', i18n.chooseDate);
     refetchEligibleDates();
   }
 
