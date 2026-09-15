@@ -1,19 +1,19 @@
 /**
- * Classic checkout delivery date field.
+ * Classic checkout fulfilment date field.
  *
  * Block checkout's own field styling is untouched by this file - see
- * block-delivery-date-field.js for why it deliberately does not share these classes.
+ * block-fulfilment-date-field.js for why it deliberately does not share these classes.
  */
 
-.fcs-delivery-date-row .description {
+.fcs-fulfilment-date-row .description {
 	display: block;
 	margin: 0.4em 0 0;
 	font-size: 0.9em;
 	color: #646970;
 }
 
-.fcs-delivery-date-input,
-.fcs-delivery-date-input__display {
+.fcs-fulfilment-date-input,
+.fcs-fulfilment-date-input__display {
 	width: 100%;
 	max-width: 260px;
 	box-sizing: border-box;
@@ -26,25 +26,25 @@
 	transition: border-color 0.15s ease-in-out;
 }
 
-.fcs-delivery-date-input:hover,
-.fcs-delivery-date-input__display:hover {
+.fcs-fulfilment-date-input:hover,
+.fcs-fulfilment-date-input__display:hover {
 	border-color: #8c8f94;
 }
 
-.fcs-delivery-date-input:focus,
-.fcs-delivery-date-input__display:focus {
+.fcs-fulfilment-date-input:focus,
+.fcs-fulfilment-date-input__display:focus {
 	outline: none;
 	border-color: #3858e9;
 	box-shadow: 0 0 0 1px #3858e9;
 }
 
-.fcs-delivery-date-window {
+.fcs-fulfilment-date-window {
 	margin: 0.5em 0 0;
 	font-size: 0.9em;
 	color: #646970;
 }
 
-.fcs-delivery-date-description {
+.fcs-fulfilment-date-description {
 	margin: 0.4em 0 0;
 	font-size: 0.9em;
 	color: #646970;

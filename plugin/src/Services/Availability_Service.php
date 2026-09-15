@@ -222,7 +222,7 @@ final class Availability_Service {
 
 	/**
 	 * The instant after which a date can no longer be ordered or changed: the store's
-	 * configured cutoff time, on the configured number of days before the delivery date.
+	 * configured cutoff time, on the configured number of days before the fulfilment date.
 	 *
 	 * Null when the schedule is unknown or the date's weekday is not open, since there is
 	 * then nothing to order in the first place.

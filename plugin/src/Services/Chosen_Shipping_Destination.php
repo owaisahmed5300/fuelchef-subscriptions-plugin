@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\WooCommerce;
+namespace FuelChef\Subscriptions\Services;
 
 use FuelChef\Subscriptions\Values\Destination_Option;
 use FuelChef\Subscriptions\Values\Destination_Type;

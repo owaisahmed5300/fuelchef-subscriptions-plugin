@@ -1,22 +1,22 @@
 <?php
 /**
- * Classic checkout delivery date field.
+ * Classic checkout fulfilment date field.
  *
- * Rendered by Frontend\Checkout\Delivery_Date_Field::render(), alongside the other
+ * Rendered by Frontend\Checkout\Fulfilment_Date_Field::render(), alongside the other
  * checkout fields via `woocommerce_form_field()` so it looks and behaves like a native
  * WooCommerce field. $data carries `has_schedule` (bool - whether a schedule currently
  * applies, at the time of this page load), `eligible_dates` (list<string>, `Y-m-d`),
  * `windows` (array<string, array{start: string, end: string}>, keyed by date), `label`
  * (string) and `description` (string, empty for none - both store-configured).
  *
- * The date picker is initialized by delivery-date-field.js, which also re-fetches
+ * The date picker is initialized by fulfilment-date-field.js, which also re-fetches
  * eligible dates and toggles this field's visibility whenever the checkout form changes,
  * since this part of checkout is never re-rendered server-side after this first paint.
  */
 
 declare(strict_types=1);
 
-use FuelChef\Subscriptions\Frontend\Checkout\Delivery_Date_Field;
+use FuelChef\Subscriptions\Frontend\Checkout\Fulfilment_Date_Field;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -32,20 +32,20 @@ $label = $data['label'];
 $description = $data['description'];
 
 $description = ( $has_schedule && [] === $eligible_dates )
-	? __( 'No delivery dates are currently available for this destination.', 'fuelchef-subscriptions' )
+	? __( 'No fulfilment dates are currently available for this destination.', 'fuelchef-subscriptions' )
 	: $description;
 ?>
-<div id="fcsDeliveryDateFieldWrap" <?php echo $has_schedule ? '' : 'hidden'; ?>>
+<div id="fcsFulfilmentDateFieldWrap" <?php echo $has_schedule ? '' : 'hidden'; ?>>
 	<?php
 	woocommerce_form_field(
-		Delivery_Date_Field::FIELD_NAME,
+		Fulfilment_Date_Field::FIELD_NAME,
 		[
 			'type'              => 'text',
 			'label'             => $label,
 			'description'       => $description,
 			'placeholder'       => __( 'Choose a date', 'fuelchef-subscriptions' ),
-			'class'             => [ 'form-row-wide', 'fcs-delivery-date-row' ],
-			'input_class'       => [ 'fcs-delivery-date-input' ],
+			'class'             => [ 'form-row-wide', 'fcs-fulfilment-date-row' ],
+			'input_class'       => [ 'fcs-fulfilment-date-input' ],
 			'custom_attributes' => [
 				'readonly'            => 'readonly',
 				'autocomplete'        => 'off',
@@ -56,5 +56,5 @@ $description = ( $has_schedule && [] === $eligible_dates )
 		''
 	);
 	?>
-	<p class="fcs-delivery-date-window" id="fcsDeliveryDateWindow" aria-live="polite" hidden></p>
+	<p class="fcs-fulfilment-date-window" id="fcsFulfilmentDateWindow" aria-live="polite" hidden></p>
 </div>

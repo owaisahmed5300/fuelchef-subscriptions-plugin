@@ -1,5 +1,5 @@
 /**
- * Block checkout delivery date field.
+ * Block checkout fulfilment date field.
  *
  * Deliberately does not touch width, padding or border here - the field is the Checkout
  * block's own <input>, already styled and sized by its own field wrapper and label.
@@ -9,6 +9,6 @@
  * pointer cursor, so it reads as "click to open a calendar" rather than a disabled field.
  */
 
-[data-fcs-block-delivery-date] {
+[data-fcs-block-fulfilment-date] {
 	cursor: pointer;
 }

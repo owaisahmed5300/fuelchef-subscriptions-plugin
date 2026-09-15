@@ -5,7 +5,7 @@
  * is a plain field with no support for either:
  *
  * - Adds the store's configured help text as a plain sibling element next to the
- *   checkbox once it appears - the same DOM-watching approach block-delivery-date-field.js
+ *   checkbox once it appears - the same DOM-watching approach block-fulfilment-date-field.js
  *   uses for the same reason, since there is no description slot to fill.
  * - Reports the checkbox's value to the server through the Store API's own documented
  *   `extensionCartUpdate()` mechanism (see Block\Subscribe_And_Save::

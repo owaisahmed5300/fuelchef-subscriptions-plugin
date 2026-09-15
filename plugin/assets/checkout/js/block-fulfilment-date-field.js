@@ -1,5 +1,5 @@
 /**
- * FuelChef Subscriptions - Block checkout delivery date field
+ * FuelChef Subscriptions - Block checkout fulfilment date field
  *
  * The Checkout block re-renders its fields with React, not a full page/fragment
  * replace, so there is no `updated_checkout`-style event to hook. This watches the DOM
@@ -38,7 +38,7 @@ jQuery(function ($) {
     return;
   }
 
-  const SELECTOR = '[data-fcs-block-delivery-date]';
+  const SELECTOR = '[data-fcs-block-fulfilment-date]';
   const i18n = window.fcsCheckout.i18n;
   const locale = window.fcsCheckoutShared.buildFlatpickrLocale(i18n, window.fcsCheckout.startOfWeek);
 
@@ -47,10 +47,10 @@ jQuery(function ($) {
   let currentWindows = {};
 
   function windowCaption($input) {
-    let $caption = $input.next('.fcs-delivery-date-window');
+    let $caption = $input.next('.fcs-fulfilment-date-window');
 
     if (!$caption.length) {
-      $caption = $('<p class="fcs-delivery-date-window" aria-live="polite" hidden></p>');
+      $caption = $('<p class="fcs-fulfilment-date-window" aria-live="polite" hidden></p>');
       $input.after($caption);
     }
 
@@ -58,13 +58,13 @@ jQuery(function ($) {
   }
 
   function addDescription($input) {
-    const description = window.fcsCheckout.deliveryDateDescription;
+    const description = window.fcsCheckout.fulfilmentDateDescription;
 
-    if (!description || $input.siblings('.fcs-delivery-date-description').length) {
+    if (!description || $input.siblings('.fcs-fulfilment-date-description').length) {
       return;
     }
 
-    $input.after($('<p class="fcs-delivery-date-description"></p>').text(description));
+    $input.after($('<p class="fcs-fulfilment-date-description"></p>').text(description));
   }
 
   function updateWindowCaption() {
@@ -73,14 +73,14 @@ jQuery(function ($) {
     }
 
     const $caption = windowCaption($(instance.input));
-    const deliveryWindow = currentWindows[instance.input.value];
+    const fulfilmentWindow = currentWindows[instance.input.value];
 
-    if (!deliveryWindow) {
+    if (!fulfilmentWindow) {
       $caption.attr('hidden', true);
       return;
     }
 
-    $caption.text(i18n.deliveryWindow.replace('%1$s', deliveryWindow.start).replace('%2$s', deliveryWindow.end));
+    $caption.text(i18n.fulfilmentWindow.replace('%1$s', fulfilmentWindow.start).replace('%2$s', fulfilmentWindow.end));
     $caption.removeAttr('hidden');
   }
 

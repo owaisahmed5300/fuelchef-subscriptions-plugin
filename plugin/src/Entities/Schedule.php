@@ -15,7 +15,7 @@ use FuelChef\Subscriptions\Contracts\Timestamped;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * A named fulfillment schedule.
+ * A named fulfilment schedule.
  */
 final class Schedule implements Entity, Timestamped {
 

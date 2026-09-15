@@ -5,17 +5,17 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\WooCommerce;
+namespace FuelChef\Subscriptions\Tests\Unit\Services;
 
 use Brain\Monkey\Functions;
+use FuelChef\Subscriptions\Services\Destination_Catalog;
 use FuelChef\Subscriptions\Tests\TestCase;
 use FuelChef\Subscriptions\Values\Destination_Type;
-use FuelChef\Subscriptions\WooCommerce\Destination_Catalog;
 use WC_Shipping_Zone;
 use WC_Shipping_Zones;
 
 /**
- * @covers \FuelChef\Subscriptions\WooCommerce\Destination_Catalog
+ * @covers \FuelChef\Subscriptions\Services\Destination_Catalog
  */
 final class Destination_Catalog_Test extends TestCase {
 

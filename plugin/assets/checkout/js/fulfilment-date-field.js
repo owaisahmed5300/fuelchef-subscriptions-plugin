@@ -1,5 +1,5 @@
 /**
- * FuelChef Subscriptions - Checkout delivery date field
+ * FuelChef Subscriptions - Checkout fulfilment date field
  *
  * This field lives alongside the other checkout fields, not inside the order review
  * table, so it is not replaced by WooCommerce's own `update_order_review` AJAX refresh.
@@ -36,15 +36,15 @@ jQuery(function ($) {
   }
 
   function updateWindowCaption(selectedDate) {
-    const $caption = $('#fcsDeliveryDateWindow');
-    const deliveryWindow = currentWindows[selectedDate];
+    const $caption = $('#fcsFulfilmentDateWindow');
+    const fulfilmentWindow = currentWindows[selectedDate];
 
-    if (!$caption.length || !deliveryWindow) {
+    if (!$caption.length || !fulfilmentWindow) {
       $caption.attr('hidden', true);
       return;
     }
 
-    $caption.text(i18n.deliveryWindow.replace('%1$s', deliveryWindow.start).replace('%2$s', deliveryWindow.end));
+    $caption.text(i18n.fulfilmentWindow.replace('%1$s', fulfilmentWindow.start).replace('%2$s', fulfilmentWindow.end));
     $caption.removeAttr('hidden');
   }
 
@@ -63,7 +63,7 @@ jQuery(function ($) {
         return response.ok ? response.json() : { hasSchedule: false, dates: [], windows: {} };
       })
       .then(function (data) {
-        $('#fcsDeliveryDateFieldWrap').attr('hidden', !data.hasSchedule);
+        $('#fcsFulfilmentDateFieldWrap').attr('hidden', !data.hasSchedule);
         applyEligibleDates(data.dates, data.windows);
       })
       .catch(function () {
@@ -72,7 +72,7 @@ jQuery(function ($) {
   }
 
   function initDatePicker() {
-    const $input = $('.fcs-delivery-date-input');
+    const $input = $('.fcs-fulfilment-date-input');
 
     if (!$input.length || instance) {
       return;
@@ -87,7 +87,7 @@ jQuery(function ($) {
       dateFormat: 'Y-m-d',
       altInput: true,
       altFormat: 'F j, Y',
-      altInputClass: 'fcs-delivery-date-input__display',
+      altInputClass: 'fcs-fulfilment-date-input__display',
       enable: dates,
       locale,
       disableMobile: true,

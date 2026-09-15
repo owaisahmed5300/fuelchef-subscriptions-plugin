@@ -44,6 +44,17 @@ final class Str {
 	}
 
 	/**
+	 * Turns a blank string into null.
+	 *
+	 * @param string $value String value.
+	 *
+	 * @return string|null The value, or null when it is blank.
+	 */
+	public static function blank_to_null( string $value ): ?string {
+		return self::is_blank( $value ) ? null : $value;
+	}
+
+	/**
 	 * Returns the length of a string in characters.
 	 *
 	 * Uses multibyte string handling when available and falls back to the

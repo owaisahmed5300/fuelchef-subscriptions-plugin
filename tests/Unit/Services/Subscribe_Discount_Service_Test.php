@@ -1,24 +1,22 @@
 <?php
 /**
- * Unit tests for the subscribe-and-save checkout discount.
+ * Unit tests for the subscribe-and-save discount service.
  */
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\Frontend\Checkout;
+namespace FuelChef\Subscriptions\Tests\Unit\Services;
 
 use Brain\Monkey\Functions;
-use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save;
-use FuelChef\Subscriptions\Services\Settings_Store;
+use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
 use FuelChef\Subscriptions\Tests\TestCase;
-use FuelChef\Subscriptions\Utils\Renderer;
 use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
 /**
- * @covers \FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save
+ * @covers \FuelChef\Subscriptions\Services\Subscribe_Discount_Service
  */
-final class Subscribe_And_Save_Test extends TestCase {
+final class Subscribe_Discount_Service_Test extends TestCase {
 
 
 	protected function setUp(): void {
@@ -28,11 +26,11 @@ final class Subscribe_And_Save_Test extends TestCase {
 	}
 
 	private function settings( int $percent, string $applicability ): Settings {
-		return new Settings( 1, '17:00:00', $percent, $applicability, 60, 'Delivery date', '', 'Subscribe & Save {percent}%', '' );
+		return new Settings( 1, '17:00:00', $percent, $applicability, 60, 'Fulfilment date', '', 'Subscribe & Save {percent}%', '' );
 	}
 
-	private function subject(): Subscribe_And_Save {
-		return new Subscribe_And_Save( new Settings_Store(), new Renderer( __DIR__ ) );
+	private function subject(): Subscribe_Discount_Service {
+		return new Subscribe_Discount_Service();
 	}
 
 	public function test_discount_amount_is_a_percentage_of_the_subtotal(): void {

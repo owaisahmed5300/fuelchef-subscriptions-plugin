@@ -10,8 +10,7 @@ namespace FuelChef\Subscriptions\Repositories;
 use FuelChef\Subscriptions\Contracts\Entity;
 use FuelChef\Subscriptions\Database\Tables;
 use FuelChef\Subscriptions\Entities\Schedule;
-use FuelChef\Subscriptions\Repositories\Abstracts\Abstract_Repository;
-use FuelChef\Subscriptions\Utils\Row_Caster;
+use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Values\DateTime;
 
 defined( 'ABSPATH' ) || exit;
@@ -75,12 +74,12 @@ final class Schedule_Repository extends Abstract_Repository {
 	 * @param array<string, mixed> $row Raw database row.
 	 */
 	protected function hydrate( array $row ): Schedule {
-		$schedule = new Schedule( Row_Caster::string( $row['name'] ?? null ) );
+		$schedule = new Schedule( Narrow::string( $row['name'] ?? null ) );
 
 		$schedule
-			->set_id( Row_Caster::int( $row['id'] ?? null ) )
-			->set_date_created( DateTime::from_database( Row_Caster::string( $row['date_created'] ?? null ) ) )
-			->set_date_updated( DateTime::from_database( Row_Caster::string( $row['date_updated'] ?? null ) ) );
+			->set_id( Narrow::int( $row['id'] ?? null ) )
+			->set_date_created( DateTime::from_database( Narrow::string( $row['date_created'] ?? null ) ) )
+			->set_date_updated( DateTime::from_database( Narrow::string( $row['date_updated'] ?? null ) ) );
 
 		return $schedule;
 	}

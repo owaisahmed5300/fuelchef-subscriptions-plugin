@@ -19,7 +19,7 @@ use Mockery;
  * other repository shares.
  *
  * @covers \FuelChef\Subscriptions\Repositories\Schedule_Repository
- * @covers \FuelChef\Subscriptions\Repositories\Abstracts\Abstract_Repository
+ * @covers \FuelChef\Subscriptions\Repositories\Abstract_Repository
  */
 final class Schedule_Repository_Test extends Repository_TestCase {
 

@@ -32,7 +32,7 @@ final class Settings_Test extends TestCase {
 	 * @return array{0: int, 1: string, 2: int, 3: string, 4: int, 5: string, 6: string, 7: string, 8: string}
 	 */
 	private function valid_args(): array {
-		return [ 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS, 60, 'Delivery date', '', 'Subscribe & Save {percent}%', '' ];
+		return [ 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS, 60, 'Fulfilment date', '', 'Subscribe & Save {percent}%', '' ];
 	}
 
 	public function test_accepts_valid_values(): void {
@@ -42,9 +42,9 @@ final class Settings_Test extends TestCase {
 		$this->assertSame( '17:00:00', $settings->cutoff_time() );
 		$this->assertSame( 5, $settings->subscribe_discount_percent() );
 		$this->assertSame( Subscribe_Applicability::INITIAL_AND_RENEWALS, $settings->subscribe_applicability() );
-		$this->assertSame( 60, $settings->max_delivery_window_days() );
-		$this->assertSame( 'Delivery date', $settings->delivery_date_label() );
-		$this->assertSame( '', $settings->delivery_date_description() );
+		$this->assertSame( 60, $settings->max_fulfilment_window_days() );
+		$this->assertSame( 'Fulfilment date', $settings->fulfilment_date_label() );
+		$this->assertSame( '', $settings->fulfilment_date_description() );
 		$this->assertSame( 'Subscribe & Save {percent}%', $settings->subscribe_save_label() );
 		$this->assertSame( '', $settings->subscribe_save_description() );
 	}
@@ -111,7 +111,7 @@ final class Settings_Test extends TestCase {
 		new Settings( ...$args );
 	}
 
-	public function test_rejects_a_max_delivery_window_of_zero_days(): void {
+	public function test_rejects_a_max_fulfilment_window_of_zero_days(): void {
 		$args    = $this->valid_args();
 		$args[4] = 0;
 
@@ -120,7 +120,7 @@ final class Settings_Test extends TestCase {
 		new Settings( ...$args );
 	}
 
-	public function test_rejects_a_blank_delivery_date_label(): void {
+	public function test_rejects_a_blank_fulfilment_date_label(): void {
 		$args    = $this->valid_args();
 		$args[5] = '   ';
 
@@ -129,7 +129,7 @@ final class Settings_Test extends TestCase {
 		new Settings( ...$args );
 	}
 
-	public function test_rejects_a_delivery_date_label_over_the_length_limit(): void {
+	public function test_rejects_a_fulfilment_date_label_over_the_length_limit(): void {
 		$args    = $this->valid_args();
 		$args[5] = str_repeat( 'a', Settings::MAX_LABEL_LENGTH + 1 );
 
@@ -138,7 +138,7 @@ final class Settings_Test extends TestCase {
 		new Settings( ...$args );
 	}
 
-	public function test_rejects_a_delivery_date_description_over_the_length_limit(): void {
+	public function test_rejects_a_fulfilment_date_description_over_the_length_limit(): void {
 		$args    = $this->valid_args();
 		$args[6] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
 
@@ -171,6 +171,6 @@ final class Settings_Test extends TestCase {
 
 		$settings = new Settings( ...$args );
 
-		$this->assertSame( $args[6], $settings->delivery_date_description() );
+		$this->assertSame( $args[6], $settings->fulfilment_date_description() );
 	}
 }

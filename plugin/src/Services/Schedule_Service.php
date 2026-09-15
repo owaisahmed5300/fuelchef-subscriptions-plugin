@@ -22,18 +22,18 @@ use InvalidArgumentException;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Creates, renames, reconfigures and deletes fulfillment schedules.
+ * Creates, renames, reconfigures and deletes fulfilment schedules.
  */
 final class Schedule_Service {
 
 
 	/**
-	 * Every new weekday row's starting fulfillment time, before an admin sets one.
+	 * Every new weekday row's starting fulfilment time, before an admin sets one.
 	 */
 	private const DEFAULT_START_TIME = '12:00:00';
 
 	/**
-	 * Every new weekday row's ending fulfillment time, before an admin sets one.
+	 * Every new weekday row's ending fulfilment time, before an admin sets one.
 	 */
 	private const DEFAULT_END_TIME = '17:00:00';
 

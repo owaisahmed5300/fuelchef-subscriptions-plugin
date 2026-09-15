@@ -8,10 +8,9 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Frontend\Checkout;
 
 use FuelChef\Subscriptions\Services\Settings_Store;
-use FuelChef\Subscriptions\Utils\Input;
+use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
+use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Utils\Renderer;
-use FuelChef\Subscriptions\Values\Settings;
-use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 use WC_Cart;
 use WC_Order;
 
@@ -58,7 +57,8 @@ final class Subscribe_And_Save {
 	 */
 	public function __construct(
 		private Settings_Store $settings,
-		private Renderer $renderer
+		private Renderer $renderer,
+		private Subscribe_Discount_Service $discount_service
 	) {
 	}
 
@@ -104,7 +104,7 @@ final class Subscribe_And_Save {
 
 		// WC_Cart::get_subtotal() is declared to return float but actually returns the
 		// value formatted as a numeric string; cast it back at this one boundary.
-		$amount = $this->discount_amount( (float) $cart->get_subtotal(), $this->settings->get() );
+		$amount = $this->discount_service->discount_amount( (float) $cart->get_subtotal(), $this->settings->get() );
 
 		if ( $amount <= 0.0 ) {
 			return;
@@ -117,30 +117,13 @@ final class Subscribe_And_Save {
 	}
 
 	/**
-	 * The discount amount for a subtotal under a given settings configuration. Zero
-	 * when the applicability setting excludes the initial order, the discount percent
-	 * is zero, or the subtotal itself is zero.
-	 */
-	public function discount_amount( float $subtotal, Settings $settings ): float {
-		if ( Subscribe_Applicability::RENEWAL_ONLY === $settings->subscribe_applicability() ) {
-			return 0.0;
-		}
-
-		if ( $settings->subscribe_discount_percent() <= 0 || $subtotal <= 0.0 ) {
-			return 0.0;
-		}
-
-		return round( $subtotal * $settings->subscribe_discount_percent() / 100, wc_get_price_decimals() );
-	}
-
-	/**
 	 * Saves whether the customer chose to subscribe to the order.
 	 *
 	 * @param WC_Order             $order The order being created.
 	 * @param array<string, mixed> $data The posted checkout data.
 	 */
 	public function persist( WC_Order $order, array $data ): void {
-		$subscribed = '' !== Input::string( $data[ self::FIELD_NAME ] ?? null );
+		$subscribed = '' !== Narrow::string( $data[ self::FIELD_NAME ] ?? null );
 
 		$order->update_meta_data( self::META_KEY, $subscribed ? 'yes' : 'no' );
 	}
@@ -175,11 +158,11 @@ final class Subscribe_And_Save {
 	 */
 	private function is_checked_in_request(): bool {
 		if ( isset( $_POST['post_data'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			$post_data = Input::string( wp_unslash( $_POST['post_data'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$post_data = Narrow::string( wp_unslash( $_POST['post_data'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
 			parse_str( $post_data, $parsed );
 
-			return '' !== Input::string( $parsed[ self::FIELD_NAME ] ?? null );
+			return '' !== Narrow::string( $parsed[ self::FIELD_NAME ] ?? null );
 		}
 
 		if ( isset( $_POST[ self::FIELD_NAME ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing

@@ -24,7 +24,7 @@ $selected = $data['selected'];
 			<span class="fcs-badge-plugin"><?php esc_html_e( 'Schedules', 'fuelchef-subscriptions' ); ?></span>
 		</h1>
 		<p class="fcs-page-subtitle">
-			<?php esc_html_e( 'Configure operating fulfillment days, delivery hours, localized closures, and destination zones.', 'fuelchef-subscriptions' ); ?>
+			<?php esc_html_e( 'Configure operating fulfilment days, fulfilment hours, localized closures, and destination zones.', 'fuelchef-subscriptions' ); ?>
 		</p>
 	</header>
 
@@ -60,7 +60,7 @@ $selected = $data['selected'];
 			<?php if ( null === $selected ) : ?>
 				<div class="fcs-card">
 					<div class="fcs-card__body">
-						<p><?php esc_html_e( 'No schedules yet. Add one to configure its fulfillment days and destinations.', 'fuelchef-subscriptions' ); ?></p>
+						<p><?php esc_html_e( 'No schedules yet. Add one to configure its fulfilment days and destinations.', 'fuelchef-subscriptions' ); ?></p>
 					</div>
 				</div>
 			<?php else : ?>
@@ -87,11 +87,11 @@ $selected = $data['selected'];
 				<section class="fcs-tab-panel fcs-tab-panel--active" id="tab-availability">
 					<div class="fcs-card">
 						<div class="fcs-card__header">
-							<h2 class="fcs-card__title"><?php esc_html_e( 'Weekly Fulfillment Days', 'fuelchef-subscriptions' ); ?></h2>
+							<h2 class="fcs-card__title"><?php esc_html_e( 'Weekly Fulfilment Days', 'fuelchef-subscriptions' ); ?></h2>
 						</div>
 						<div class="fcs-card__body">
 							<p class="fcs-card__intro">
-								<?php esc_html_e( 'Enable the days of the week when recurring orders can be fulfilled, and set the delivery hours for each active day.', 'fuelchef-subscriptions' ); ?>
+								<?php esc_html_e( 'Enable the days of the week when recurring orders can be fulfilled, and set the fulfilment hours for each active day.', 'fuelchef-subscriptions' ); ?>
 							</p>
 							<table class="fcs-weekday-table">
 								<tbody id="weekdayRows"></tbody>
@@ -134,7 +134,7 @@ $selected = $data['selected'];
 				<section class="fcs-tab-panel" id="tab-destinations">
 					<div class="fcs-card">
 						<div class="fcs-card__header">
-							<h2 class="fcs-card__title"><?php esc_html_e( 'Assigned Fulfillment Zones', 'fuelchef-subscriptions' ); ?></h2>
+							<h2 class="fcs-card__title"><?php esc_html_e( 'Assigned Fulfilment Zones', 'fuelchef-subscriptions' ); ?></h2>
 						</div>
 						<div class="fcs-card__body">
 							<p class="fcs-card__intro">

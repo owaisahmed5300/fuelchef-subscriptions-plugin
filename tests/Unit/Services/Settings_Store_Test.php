@@ -24,7 +24,7 @@ final class Settings_Store_Test extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		// The default delivery-date and subscribe-and-save labels are translated at read
+		// The default fulfilment-date and subscribe-and-save labels are translated at read
 		// time, so every get() call reaches esc_html__() even when nothing else is stored.
 		Functions\when( 'esc_html__' )->returnArg( 1 );
 	}
@@ -38,9 +38,9 @@ final class Settings_Store_Test extends TestCase {
 		$this->assertSame( '17:00:00', $settings->cutoff_time() );
 		$this->assertSame( 5, $settings->subscribe_discount_percent() );
 		$this->assertSame( Subscribe_Applicability::INITIAL_AND_RENEWALS, $settings->subscribe_applicability() );
-		$this->assertSame( 60, $settings->max_delivery_window_days() );
-		$this->assertSame( 'Delivery date', $settings->delivery_date_label() );
-		$this->assertSame( '', $settings->delivery_date_description() );
+		$this->assertSame( 60, $settings->max_fulfilment_window_days() );
+		$this->assertSame( 'Fulfilment date', $settings->fulfilment_date_label() );
+		$this->assertSame( '', $settings->fulfilment_date_description() );
 		$this->assertSame( 'Subscribe & Save {percent}%', $settings->subscribe_save_label() );
 		$this->assertSame( '', $settings->subscribe_save_description() );
 	}
@@ -48,15 +48,15 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_returns_the_stored_values_when_they_are_valid(): void {
 		Functions\when( 'get_option' )->justReturn(
 			[
-				'cutoff_days'                => 2,
-				'cutoff_time'                => '23:30:00',
-				'subscribe_discount_percent' => 10,
-				'subscribe_applicability'    => Subscribe_Applicability::RENEWAL_ONLY,
-				'max_delivery_window_days'   => 30,
-				'delivery_date_label'        => 'Preferred delivery day',
-				'delivery_date_description'  => 'Choose any day we deliver to your area.',
-				'subscribe_save_label'       => 'Save {percent}% every order',
-				'subscribe_save_description' => 'Cancel anytime from My Account.',
+				'cutoff_days'                 => 2,
+				'cutoff_time'                 => '23:30:00',
+				'subscribe_discount_percent'  => 10,
+				'subscribe_applicability'     => Subscribe_Applicability::RENEWAL_ONLY,
+				'max_fulfilment_window_days'  => 30,
+				'fulfilment_date_label'       => 'Preferred fulfilment day',
+				'fulfilment_date_description' => 'Choose any day we can fulfil in your area.',
+				'subscribe_save_label'        => 'Save {percent}% every order',
+				'subscribe_save_description'  => 'Cancel anytime from My Account.',
 			]
 		);
 
@@ -66,9 +66,9 @@ final class Settings_Store_Test extends TestCase {
 		$this->assertSame( '23:30:00', $settings->cutoff_time() );
 		$this->assertSame( 10, $settings->subscribe_discount_percent() );
 		$this->assertSame( Subscribe_Applicability::RENEWAL_ONLY, $settings->subscribe_applicability() );
-		$this->assertSame( 30, $settings->max_delivery_window_days() );
-		$this->assertSame( 'Preferred delivery day', $settings->delivery_date_label() );
-		$this->assertSame( 'Choose any day we deliver to your area.', $settings->delivery_date_description() );
+		$this->assertSame( 30, $settings->max_fulfilment_window_days() );
+		$this->assertSame( 'Preferred fulfilment day', $settings->fulfilment_date_label() );
+		$this->assertSame( 'Choose any day we can fulfil in your area.', $settings->fulfilment_date_description() );
 		$this->assertSame( 'Save {percent}% every order', $settings->subscribe_save_label() );
 		$this->assertSame( 'Cancel anytime from My Account.', $settings->subscribe_save_description() );
 	}
@@ -105,44 +105,44 @@ final class Settings_Store_Test extends TestCase {
 		$this->assertSame( 1, $settings->cutoff_days() );
 	}
 
-	public function test_get_falls_back_to_the_default_max_delivery_window_when_the_stored_one_is_not_positive(): void {
-		Functions\when( 'get_option' )->justReturn( [ 'max_delivery_window_days' => 0 ] );
+	public function test_get_falls_back_to_the_default_max_fulfilment_window_when_the_stored_one_is_not_positive(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'max_fulfilment_window_days' => 0 ] );
 
 		$settings = ( new Settings_Store() )->get();
 
-		$this->assertSame( 60, $settings->max_delivery_window_days() );
+		$this->assertSame( 60, $settings->max_fulfilment_window_days() );
 	}
 
-	public function test_get_falls_back_to_the_default_delivery_date_label_when_the_stored_one_is_blank(): void {
-		Functions\when( 'get_option' )->justReturn( [ 'delivery_date_label' => '   ' ] );
+	public function test_get_falls_back_to_the_default_fulfilment_date_label_when_the_stored_one_is_blank(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'fulfilment_date_label' => '   ' ] );
 
 		$settings = ( new Settings_Store() )->get();
 
-		$this->assertSame( 'Delivery date', $settings->delivery_date_label() );
+		$this->assertSame( 'Fulfilment date', $settings->fulfilment_date_label() );
 	}
 
-	public function test_get_falls_back_to_the_default_delivery_date_label_when_the_stored_one_is_too_long(): void {
-		Functions\when( 'get_option' )->justReturn( [ 'delivery_date_label' => str_repeat( 'a', 191 ) ] );
+	public function test_get_falls_back_to_the_default_fulfilment_date_label_when_the_stored_one_is_too_long(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'fulfilment_date_label' => str_repeat( 'a', 191 ) ] );
 
 		$settings = ( new Settings_Store() )->get();
 
-		$this->assertSame( 'Delivery date', $settings->delivery_date_label() );
+		$this->assertSame( 'Fulfilment date', $settings->fulfilment_date_label() );
 	}
 
-	public function test_get_keeps_an_empty_stored_delivery_date_description(): void {
-		Functions\when( 'get_option' )->justReturn( [ 'delivery_date_description' => '' ] );
+	public function test_get_keeps_an_empty_stored_fulfilment_date_description(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'fulfilment_date_description' => '' ] );
 
 		$settings = ( new Settings_Store() )->get();
 
-		$this->assertSame( '', $settings->delivery_date_description() );
+		$this->assertSame( '', $settings->fulfilment_date_description() );
 	}
 
-	public function test_get_falls_back_to_an_empty_delivery_date_description_when_the_stored_one_is_too_long(): void {
-		Functions\when( 'get_option' )->justReturn( [ 'delivery_date_description' => str_repeat( 'a', 301 ) ] );
+	public function test_get_falls_back_to_an_empty_fulfilment_date_description_when_the_stored_one_is_too_long(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'fulfilment_date_description' => str_repeat( 'a', 301 ) ] );
 
 		$settings = ( new Settings_Store() )->get();
 
-		$this->assertSame( '', $settings->delivery_date_description() );
+		$this->assertSame( '', $settings->fulfilment_date_description() );
 	}
 
 	public function test_save_persists_every_field_under_one_option(): void {
@@ -151,15 +151,15 @@ final class Settings_Store_Test extends TestCase {
 			->with(
 				'fuelchef_subscriptions_settings',
 				[
-					'cutoff_days'                => 2,
-					'cutoff_time'                => '23:30:00',
-					'subscribe_discount_percent' => 10,
-					'subscribe_applicability'    => Subscribe_Applicability::RENEWAL_ONLY,
-					'max_delivery_window_days'   => 30,
-					'delivery_date_label'        => 'Preferred delivery day',
-					'delivery_date_description'  => 'Choose any day we deliver to your area.',
-					'subscribe_save_label'       => 'Save {percent}% every order',
-					'subscribe_save_description' => 'Cancel anytime from My Account.',
+					'cutoff_days'                 => 2,
+					'cutoff_time'                 => '23:30:00',
+					'subscribe_discount_percent'  => 10,
+					'subscribe_applicability'     => Subscribe_Applicability::RENEWAL_ONLY,
+					'max_fulfilment_window_days'  => 30,
+					'fulfilment_date_label'       => 'Preferred fulfilment day',
+					'fulfilment_date_description' => 'Choose any day we can fulfil in your area.',
+					'subscribe_save_label'        => 'Save {percent}% every order',
+					'subscribe_save_description'  => 'Cancel anytime from My Account.',
 				]
 			);
 
@@ -170,8 +170,8 @@ final class Settings_Store_Test extends TestCase {
 				10,
 				Subscribe_Applicability::RENEWAL_ONLY,
 				30,
-				'Preferred delivery day',
-				'Choose any day we deliver to your area.',
+				'Preferred fulfilment day',
+				'Choose any day we can fulfil in your area.',
 				'Save {percent}% every order',
 				'Cancel anytime from My Account.'
 			)
@@ -186,7 +186,7 @@ final class Settings_Store_Test extends TestCase {
 			->with( Mockery::type( Settings::class ) );
 
 		( new Settings_Store() )->save(
-			new Settings( 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS, 60, 'Delivery date', '', 'Subscribe & Save {percent}%', '' )
+			new Settings( 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS, 60, 'Fulfilment date', '', 'Subscribe & Save {percent}%', '' )
 		);
 	}
 }

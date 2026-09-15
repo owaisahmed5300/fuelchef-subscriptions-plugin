@@ -83,7 +83,7 @@ $settings = $data['settings'];
 				</div>
 				<div class="fcs-card__body">
 					<p class="fcs-card__intro">
-						<?php esc_html_e( 'Customers can no longer place, change or cancel an order for a delivery date once that date\'s cutoff has passed.', 'fuelchef-subscriptions' ); ?>
+						<?php esc_html_e( 'Customers can no longer place, change or cancel an order for a fulfilment date once that date\'s cutoff has passed.', 'fuelchef-subscriptions' ); ?>
 					</p>
 
 					<div class="fcs-inline-field">
@@ -95,7 +95,7 @@ $settings = $data['settings'];
 							min="0"
 							value="<?php echo esc_attr( (string) $settings->cutoff_days() ); ?>"
 						>
-						<span><?php esc_html_e( 'day(s) before delivery, at', 'fuelchef-subscriptions' ); ?></span>
+						<span><?php esc_html_e( 'day(s) before fulfilment, at', 'fuelchef-subscriptions' ); ?></span>
 						<input
 							class="fcs-input"
 							id="cutoffTime"
@@ -106,7 +106,7 @@ $settings = $data['settings'];
 
 					<div class="fcs-notice">
 						<strong><?php esc_html_e( 'Example:', 'fuelchef-subscriptions' ); ?></strong>
-						<?php esc_html_e( 'With a 1-day cutoff at 11:30 PM, a Friday delivery must be ordered before 11:30 PM on Thursday. After that, Saturday becomes the earliest available date.', 'fuelchef-subscriptions' ); ?>
+						<?php esc_html_e( 'With a 1-day cutoff at 11:30 PM, a Friday order must be placed before 11:30 PM on Thursday. After that, Saturday becomes the earliest available date.', 'fuelchef-subscriptions' ); ?>
 					</div>
 				</div>
 			</div>
@@ -115,48 +115,48 @@ $settings = $data['settings'];
 		<section class="fcs-tab-panel" id="tab-checkout-fields">
 			<div class="fcs-card">
 				<div class="fcs-card__header">
-					<h2 class="fcs-card__title"><?php esc_html_e( 'Delivery Date Field', 'fuelchef-subscriptions' ); ?></h2>
+					<h2 class="fcs-card__title"><?php esc_html_e( 'Fulfilment Date Field', 'fuelchef-subscriptions' ); ?></h2>
 				</div>
 				<div class="fcs-card__body">
 					<p class="fcs-card__intro">
-						<?php esc_html_e( 'Customize how the delivery date field appears to customers at checkout.', 'fuelchef-subscriptions' ); ?>
+						<?php esc_html_e( 'Customize how the fulfilment date field appears to customers at checkout.', 'fuelchef-subscriptions' ); ?>
 					</p>
 
 					<div class="fcs-field">
-						<label for="deliveryDateLabel"><?php esc_html_e( 'Field label', 'fuelchef-subscriptions' ); ?></label>
+						<label for="fulfilmentDateLabel"><?php esc_html_e( 'Field label', 'fuelchef-subscriptions' ); ?></label>
 						<input
 							class="fcs-input"
-							id="deliveryDateLabel"
+							id="fulfilmentDateLabel"
 							type="text"
 							maxlength="190"
-							value="<?php echo esc_attr( $settings->delivery_date_label() ); ?>"
+							value="<?php echo esc_attr( $settings->fulfilment_date_label() ); ?>"
 						>
 					</div>
 
 					<div class="fcs-field">
-						<label for="deliveryDateDescription"><?php esc_html_e( 'Help text (optional)', 'fuelchef-subscriptions' ); ?></label>
+						<label for="fulfilmentDateDescription"><?php esc_html_e( 'Help text (optional)', 'fuelchef-subscriptions' ); ?></label>
 						<textarea
 							class="fcs-textarea"
-							id="deliveryDateDescription"
+							id="fulfilmentDateDescription"
 							maxlength="300"
-							placeholder="<?php esc_attr_e( 'e.g. Choose the day you\'d like this order delivered.', 'fuelchef-subscriptions' ); ?>"
-						><?php echo esc_textarea( $settings->delivery_date_description() ); ?></textarea>
+							placeholder="<?php esc_attr_e( 'e.g. Choose the day you\'d like this order fulfilled.', 'fuelchef-subscriptions' ); ?>"
+						><?php echo esc_textarea( $settings->fulfilment_date_description() ); ?></textarea>
 						<p class="fcs-field__hint"><?php esc_html_e( 'Shown under the field. Leave blank to show none.', 'fuelchef-subscriptions' ); ?></p>
 					</div>
 
 					<div class="fcs-field">
-						<label for="maxDeliveryWindowDays"><?php esc_html_e( 'Maximum delivery window', 'fuelchef-subscriptions' ); ?></label>
+						<label for="maxFulfilmentWindowDays"><?php esc_html_e( 'Maximum fulfilment window', 'fuelchef-subscriptions' ); ?></label>
 						<div class="fcs-inline-field">
 							<input
 								class="fcs-input fcs-input--number"
-								id="maxDeliveryWindowDays"
+								id="maxFulfilmentWindowDays"
 								type="number"
 								min="1"
-								value="<?php echo esc_attr( (string) $settings->max_delivery_window_days() ); ?>"
+								value="<?php echo esc_attr( (string) $settings->max_fulfilment_window_days() ); ?>"
 							>
 							<span><?php esc_html_e( 'days into the future', 'fuelchef-subscriptions' ); ?></span>
 						</div>
-						<p class="fcs-field__hint"><?php esc_html_e( 'How far ahead customers can choose a delivery date, still subject to schedules, blackout dates and the order cutoff.', 'fuelchef-subscriptions' ); ?></p>
+						<p class="fcs-field__hint"><?php esc_html_e( 'How far ahead customers can choose a fulfilment date, still subject to schedules, blackout dates and the order cutoff.', 'fuelchef-subscriptions' ); ?></p>
 					</div>
 				</div>
 			</div>

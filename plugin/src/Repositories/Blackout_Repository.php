@@ -10,8 +10,7 @@ namespace FuelChef\Subscriptions\Repositories;
 use FuelChef\Subscriptions\Contracts\Entity;
 use FuelChef\Subscriptions\Database\Tables;
 use FuelChef\Subscriptions\Entities\Blackout;
-use FuelChef\Subscriptions\Repositories\Abstracts\Abstract_Repository;
-use FuelChef\Subscriptions\Utils\Row_Caster;
+use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Values\DateTime;
 
 defined( 'ABSPATH' ) || exit;
@@ -186,15 +185,15 @@ final class Blackout_Repository extends Abstract_Repository {
 	 */
 	protected function hydrate( array $row ): Blackout {
 		$blackout = new Blackout(
-			Row_Caster::nullable_int( $row['schedule_id'] ?? null ),
-			Row_Caster::string( $row['blackout_date'] ?? null ),
-			Row_Caster::nullable_string( $row['reason'] ?? null )
+			Narrow::nullable_int( $row['schedule_id'] ?? null ),
+			Narrow::string( $row['blackout_date'] ?? null ),
+			Narrow::nullable_string( $row['reason'] ?? null )
 		);
 
 		$blackout
-			->set_id( Row_Caster::int( $row['id'] ?? null ) )
-			->set_date_created( DateTime::from_database( Row_Caster::string( $row['date_created'] ?? null ) ) )
-			->set_date_updated( DateTime::from_database( Row_Caster::string( $row['date_updated'] ?? null ) ) );
+			->set_id( Narrow::int( $row['id'] ?? null ) )
+			->set_date_created( DateTime::from_database( Narrow::string( $row['date_created'] ?? null ) ) )
+			->set_date_updated( DateTime::from_database( Narrow::string( $row['date_updated'] ?? null ) ) );
 
 		return $blackout;
 	}

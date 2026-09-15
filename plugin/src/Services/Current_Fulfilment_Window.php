@@ -1,30 +1,27 @@
 <?php
 /**
- * Current checkout delivery window.
+ * Current checkout fulfilment window.
  */
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Frontend\Checkout;
+namespace FuelChef\Subscriptions\Services;
 
 use FuelChef\Subscriptions\Entities\Schedule;
-use FuelChef\Subscriptions\Services\Availability_Service;
-use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Values\DateTime;
-use FuelChef\Subscriptions\WooCommerce\Chosen_Shipping_Destination;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Resolves the schedule and eligible delivery dates for whatever destination the
+ * Resolves the schedule and eligible fulfilment dates for whatever destination the
  * customer currently has chosen at checkout.
  *
- * Shared between classic and block checkout's own delivery date field, since both ask
+ * Shared between classic and block checkout's own fulfilment date field, since both ask
  * exactly this question the same way - only how each reads and renders the answer
  * differs.
  */
-final class Current_Delivery_Window {
+final class Current_Fulfilment_Window {
 
 
 	/**
@@ -61,7 +58,7 @@ final class Current_Delivery_Window {
 		$today = $this->clock->now_wp();
 		$from  = $today->format( DateTime::DATABASE_DATE_FORMAT );
 		$to    = $today->native()
-			->modify( sprintf( '+%d days', $this->settings->get()->max_delivery_window_days() ) )
+			->modify( sprintf( '+%d days', $this->settings->get()->max_fulfilment_window_days() ) )
 			->format( DateTime::DATABASE_DATE_FORMAT );
 
 		return $this->availability->eligible_dates( $schedule, $from, $to );
@@ -69,7 +66,7 @@ final class Current_Delivery_Window {
 
 	/**
 	 * Whether a posted date is one of the schedule's currently eligible dates - the same
-	 * check classic and block checkout's own delivery date field each validate a
+	 * check classic and block checkout's own fulfilment date field each validate a
 	 * submission against.
 	 */
 	public function is_eligible_date( Schedule $schedule, string $date ): bool {
@@ -77,8 +74,8 @@ final class Current_Delivery_Window {
 	}
 
 	/**
-	 * The delivery hours for each of a schedule's eligible dates, formatted in the site's
-	 * configured time format.
+	 * The fulfilment hours for each of a schedule's eligible dates, formatted in the
+	 * site's configured time format.
 	 *
 	 * @param Schedule     $schedule The schedule to read hours from.
 	 * @param list<string> $dates Dates to look up, in `Y-m-d` form.

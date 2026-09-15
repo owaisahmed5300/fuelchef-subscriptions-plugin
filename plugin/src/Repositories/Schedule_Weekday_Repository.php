@@ -10,8 +10,7 @@ namespace FuelChef\Subscriptions\Repositories;
 use FuelChef\Subscriptions\Contracts\Entity;
 use FuelChef\Subscriptions\Database\Tables;
 use FuelChef\Subscriptions\Entities\Schedule_Weekday;
-use FuelChef\Subscriptions\Repositories\Abstracts\Abstract_Repository;
-use FuelChef\Subscriptions\Utils\Row_Caster;
+use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Values\DateTime;
 
 defined( 'ABSPATH' ) || exit;
@@ -92,17 +91,17 @@ final class Schedule_Weekday_Repository extends Abstract_Repository {
 	 */
 	protected function hydrate( array $row ): Schedule_Weekday {
 		$weekday = new Schedule_Weekday(
-			Row_Caster::int( $row['schedule_id'] ?? null ),
-			Row_Caster::int( $row['day_of_week'] ?? null ),
-			Row_Caster::bool( $row['enabled'] ?? null ),
-			Row_Caster::string( $row['start_time'] ?? null ),
-			Row_Caster::string( $row['end_time'] ?? null )
+			Narrow::int( $row['schedule_id'] ?? null ),
+			Narrow::int( $row['day_of_week'] ?? null ),
+			Narrow::bool( $row['enabled'] ?? null ),
+			Narrow::string( $row['start_time'] ?? null ),
+			Narrow::string( $row['end_time'] ?? null )
 		);
 
 		$weekday
-			->set_id( Row_Caster::int( $row['id'] ?? null ) )
-			->set_date_created( DateTime::from_database( Row_Caster::string( $row['date_created'] ?? null ) ) )
-			->set_date_updated( DateTime::from_database( Row_Caster::string( $row['date_updated'] ?? null ) ) );
+			->set_id( Narrow::int( $row['id'] ?? null ) )
+			->set_date_created( DateTime::from_database( Narrow::string( $row['date_created'] ?? null ) ) )
+			->set_date_updated( DateTime::from_database( Narrow::string( $row['date_updated'] ?? null ) ) );
 
 		return $weekday;
 	}

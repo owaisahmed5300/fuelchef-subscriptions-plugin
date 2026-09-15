@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Admin;
 
-use FuelChef\Subscriptions\Utils\Input;
 use FuelChef\Subscriptions\Utils\Locale;
+use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Values\Day_Of_Week;
 use FuelChef\Subscriptions\Values\Destination_Type;
 
@@ -37,7 +37,7 @@ final class Assets {
 	 * exactly the slug this plugin registered its menus under.
 	 */
 	public function enqueue(): void {
-		$page = Input::string( $_GET['page'] ?? null ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$page = Narrow::string( $_GET['page'] ?? null ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		$screen = match ( $page ) {
 			Menu::SETTINGS_SLUG => 'settings',

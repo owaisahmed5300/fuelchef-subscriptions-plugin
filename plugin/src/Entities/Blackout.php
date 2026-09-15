@@ -15,7 +15,7 @@ use FuelChef\Subscriptions\Contracts\Timestamped;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * A date fulfillment does not happen on.
+ * A date fulfilment does not happen on.
  *
  * A null schedule ID means a store-wide closure; a set one means it applies
  * only to that schedule.

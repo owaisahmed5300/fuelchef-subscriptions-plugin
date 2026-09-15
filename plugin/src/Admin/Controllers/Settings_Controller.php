@@ -14,7 +14,7 @@ use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Services\Blackout_Service;
 use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
 use FuelChef\Subscriptions\Services\Settings_Store;
-use FuelChef\Subscriptions\Utils\Input;
+use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Utils\Renderer;
 use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
@@ -99,9 +99,9 @@ final class Settings_Controller {
 				$this->posted_text( 'cutoff_time' ),
 				$this->posted_int( 'subscribe_discount_percent' ),
 				$this->posted_text( 'subscribe_applicability' ),
-				$this->posted_int( 'max_delivery_window_days' ),
-				$this->posted_text( 'delivery_date_label' ),
-				$this->posted_text( 'delivery_date_description' ),
+				$this->posted_int( 'max_fulfilment_window_days' ),
+				$this->posted_text( 'fulfilment_date_label' ),
+				$this->posted_text( 'fulfilment_date_description' ),
 				$this->posted_text( 'subscribe_save_label' ),
 				$this->posted_text( 'subscribe_save_description' )
 			);
@@ -118,14 +118,14 @@ final class Settings_Controller {
 	 * A posted field, sanitized as plain text.
 	 */
 	private function posted_text( string $key ): string {
-		return sanitize_text_field( wp_unslash( Input::string( $_POST[ $key ] ?? null ) ) );
+		return sanitize_text_field( wp_unslash( Narrow::string( $_POST[ $key ] ?? null ) ) );
 	}
 
 	/**
 	 * A posted field, as a non-negative integer.
 	 */
 	private function posted_int( string $key ): int {
-		return absint( Input::string( $_POST[ $key ] ?? null ) );
+		return absint( Narrow::string( $_POST[ $key ] ?? null ) );
 	}
 
 	/**
@@ -138,12 +138,12 @@ final class Settings_Controller {
 	public function ajax_save_blackout(): void {
 		$this->verify_ajax_request();
 
-		$blackout_id     = absint( Input::string( $_POST['blackout_id'] ?? null ) );
-		$raw_schedule_id = absint( Input::string( $_POST['schedule_id'] ?? null ) );
+		$blackout_id     = absint( Narrow::string( $_POST['blackout_id'] ?? null ) );
+		$raw_schedule_id = absint( Narrow::string( $_POST['schedule_id'] ?? null ) );
 		$schedule_id     = $raw_schedule_id > 0 ? $raw_schedule_id : null;
-		$date            = sanitize_text_field( wp_unslash( Input::string( $_POST['date'] ?? null ) ) );
+		$date            = sanitize_text_field( wp_unslash( Narrow::string( $_POST['date'] ?? null ) ) );
 		$reason          = isset( $_POST['reason'] )
-			? sanitize_textarea_field( wp_unslash( Input::string( $_POST['reason'] ) ) )
+			? sanitize_textarea_field( wp_unslash( Narrow::string( $_POST['reason'] ) ) )
 			: null;
 
 		try {
@@ -171,7 +171,7 @@ final class Settings_Controller {
 	public function ajax_delete_blackout(): void {
 		$this->verify_ajax_request();
 
-		$this->blackout_service->remove( absint( Input::string( $_POST['blackout_id'] ?? null ) ) );
+		$this->blackout_service->remove( absint( Narrow::string( $_POST['blackout_id'] ?? null ) ) );
 
 		wp_send_json_success();
 	}
