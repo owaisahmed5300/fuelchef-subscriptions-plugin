@@ -1,12 +1,13 @@
 /**
  * FuelChef Subscriptions - Checkout fulfilment date field
  *
- * This field lives alongside the other checkout fields, not inside the order review
- * table, so it is not replaced by WooCommerce's own `update_order_review` AJAX refresh.
- * The flatpickr instance is created once and kept; eligible dates are re-fetched from the
- * same REST route the block checkout field uses whenever the checkout form changes - that
- * refresh is also what shows or hides the field once the shipping destination resolves to
- * a schedule (or stops resolving to one).
+ * This field lives inside the order review table, alongside the shipping options -
+ * WooCommerce's own `update_order_review` AJAX refresh replaces that table's markup
+ * wholesale on every address or shipping method change, so this script's job is only to
+ * (re-)attach Flatpickr to whichever `<input>` the latest refresh rendered, using the
+ * eligible-dates list and window data that refresh's own server-rendered `data-*`
+ * attributes already carry. Unlike an earlier version of this field, there is no
+ * separate REST fetch here: the server already recomputes both on every render.
  */
 
 jQuery(function ($) {
@@ -48,33 +49,19 @@ jQuery(function ($) {
     $caption.removeAttr('hidden');
   }
 
-  function applyEligibleDates(dates, windows) {
-    currentWindows = windows && typeof windows === 'object' ? windows : {};
-
-    if (instance) {
-      instance.set('enable', Array.isArray(dates) ? dates : []);
-      updateWindowCaption(instance.input.value);
-    }
-  }
-
-  function refetchEligibleDates() {
-    fetch(window.fcsCheckout.eligibleDatesUrl, { credentials: 'same-origin' })
-      .then(function (response) {
-        return response.ok ? response.json() : { hasSchedule: false, dates: [], windows: {} };
-      })
-      .then(function (data) {
-        $('#fcsFulfilmentDateFieldWrap').attr('hidden', !data.hasSchedule);
-        applyEligibleDates(data.dates, data.windows);
-      })
-      .catch(function () {
-        // Leave the field as it was; the next checkout change retries.
-      });
-  }
-
+  // Runs on both `init_checkout` (first paint) and `updated_checkout` (every order
+  // review refresh) - the row this field lives in is fully replaced on each refresh, so
+  // any instance already attached is bound to a now-removed DOM node and must be
+  // recreated, never merely updated.
   function initDatePicker() {
     const $input = $('.fcs-fulfilment-date-input');
 
-    if (!$input.length || instance) {
+    if (instance) {
+      instance.destroy();
+      instance = null;
+    }
+
+    if (!$input.length) {
       return;
     }
 
@@ -95,8 +82,8 @@ jQuery(function ($) {
     });
 
     instance.altInput.setAttribute('placeholder', i18n.chooseDate);
+    updateWindowCaption($input.val());
   }
 
-  $(document.body).on('init_checkout', initDatePicker);
-  $(document.body).on('updated_checkout', refetchEligibleDates);
+  $(document.body).on('init_checkout updated_checkout', initDatePicker);
 });

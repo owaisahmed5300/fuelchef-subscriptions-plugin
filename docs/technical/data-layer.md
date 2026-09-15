@@ -199,25 +199,44 @@ pieces (`Frontend\Checkout\Block\*`) that consume them.
   `Current_Fulfilment_Window` what schedule and dates apply, and renders, validates and
   persists strictly within what that already decided. Not unit-tested for the same reason
   `Admin\Controllers\*` are not - see "Testing" below.
-- **Why it hooks `woocommerce_checkout_after_customer_details`, not a custom fragment.**
-  This field renders once, on the initial page load, alongside the other checkout fields -
-  it is *not* part of the order review table, so it is never replaced by WooCommerce's own
-  `update_order_review` AJAX refresh (`.woocommerce-checkout-review-order-table`). Instead
-  `assets/checkout/js/fulfilment-date-field.js` listens for the same `updated_checkout`
-  event that refresh fires and re-fetches eligible dates itself, from this plugin's own
-  read-only REST route (shared with block checkout, see "Block checkout" below), showing
-  or hiding the field as the customer's shipping destination changes.
-- **Why eligibility is re-checked against a live REST fetch, not read back from the DOM.**
-  The field is rendered once and never re-rendered server-side, so nothing about its own
-  markup can tell it whether a shipping/address change invalidated the customer's earlier
-  selection. `Fulfilment_Date_Field::validate()` re-checks the posted date against
-  `Current_Fulfilment_Window::is_eligible_date()` at submission time regardless of what the
-  client-side script last displayed, so a selection made valid, then invalidated by a later
-  change the customer never noticed, is still rejected server-side.
+- **Why it hooks `woocommerce_review_order_after_shipping`, inside the order review
+  `<table>`, and renders a `<tr>` rather than a `<div>`.** An earlier version rendered
+  outside the order review table entirely, on `woocommerce_checkout_after_customer_details`,
+  and needed a separate REST fetch (see below) just to notice a shipping/address change had
+  happened. Moving it inside the table so it refreshes for free on every
+  `update_order_review` AJAX update surfaced a real HTML-validity constraint: a `<div>` is
+  not valid content directly inside a `<tfoot>`, and a browser silently relocates it outside
+  the table - the "incorrect HTML" this plugin's own task list flagged. `templates/frontend/
+  checkout/fulfilment-date-field.php` builds a `<tr><th><label>...</label></th><td>
+  <input>...</td></tr>` by hand rather than calling `woocommerce_form_field()`, which has no
+  table-row output mode.
+- **Why the posted date is captured and restored, not just re-read from `$_POST` on
+  render.** Because this hook sits inside the order review table, WooCommerce's own
+  `update_order_review` AJAX handler replaces this row's markup wholesale on every address
+  or shipping method change - a fresh `render()` call has nothing of its own to say what
+  the customer had already picked. `capture_posted_date()`, hooked to
+  `woocommerce_checkout_update_order_review`, reads the AJAX request's raw `post_data`
+  (WooCommerce serializes the whole checkout form into it before the table re-renders, this
+  field's own input included) into `$captured_date`; `render()`'s `restored_date()` then
+  restores it into the new row's `value` attribute - but only once
+  `Current_Fulfilment_Window::is_eligible_date()` confirms it is still eligible for whatever
+  destination the refresh just resolved to, so a selection made valid, then invalidated by a
+  later change the customer never noticed, is not silently restored. Because the row now
+  carries fresh eligible dates and window data as `data-*` attributes on every refresh,
+  `assets/checkout/js/fulfilment-date-field.js` no longer needs the separate REST fetch an
+  earlier version used to re-derive them itself (see "Block checkout" below for the route
+  that earlier version shared with block checkout, now block-only) - it only (re-)attaches
+  Flatpickr to whichever `<input>` the latest refresh rendered, destroying any prior
+  instance first since the DOM node it was bound to is gone.
 - The calendar widget is [flatpickr](https://flatpickr.js.org/), vendored under
   `plugin/assets/lib/flatpickr/` rather than `assets/vendor/` - the latter is caught by
   the root `vendor/` entry in `.gitignore`, meant for Composer's PHP vendor directories,
   and would have silently dropped the library from every commit.
+- `Frontend\Checkout\Subscribe_And_Save` renders on `woocommerce_review_order_before_submit`
+  - also inside the order review area, so it re-renders on the same AJAX refreshes as the
+  date field above, but needs none of that field's capture/restore machinery: `render()`
+  already re-derives `checked` fresh from `$_POST` on every call (see below), so a refreshed
+  render is already correct on its own, with nothing to restore.
 - `Frontend\Checkout\Subscribe_And_Save` reads nothing across requests - whether the
   checkbox is checked is read straight from `$_POST` (`post_data` on an AJAX refresh, the
   field directly on the final submission) every time it is needed, rather than cached in
@@ -227,6 +246,19 @@ pieces (`Frontend\Checkout\Block\*`) that consume them.
   or leaks a stale one onto the cart page after an abandoned checkout. Reading `$_POST`
   fresh on every use makes a plain page load (no relevant `$_POST` at all) unchecked by
   construction, with nothing to reset.
+- **Both fields' final `validate()`/`persist()` read `$_POST` directly, not the `$data`
+  those hooks are also given.** `$data` is `WC_Checkout::get_posted_data()`'s own curated
+  array, built strictly from WC's own registered checkout fieldsets (billing, shipping,
+  order) - a field rendered by hand outside that registry, as both of these are, never
+  appears in it regardless of what was actually posted. This was a genuine, pre-existing
+  bug rather than something the table-row move introduced, caught only once a real order
+  placement was driven through classic checkout end to end: it kept failing
+  `Fulfilment_Date_Field::validate()` with a genuinely-selected, genuinely-eligible date
+  until this was traced to `$data[self::FIELD_NAME]` always being absent.
+  `Subscribe_And_Save::persist()` had the identical bug; its fix reuses the same
+  `is_checked_in_request()` its own `render()`/`maybe_apply_discount()` already relied on,
+  rather than reading `$data` either. Every request either hook runs in has already passed
+  WooCommerce's own nonce check before these classes are ever reached.
 - `Services\Subscribe_Discount_Service::discount_amount()` is the one piece of this
   feature with a real business rule (the `Subscribe_Applicability::RENEWAL_ONLY` gate) and
   is unit-tested; `Subscribe_And_Save::maybe_apply_discount()` around it is the thin,

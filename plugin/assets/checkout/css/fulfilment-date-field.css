@@ -1,15 +1,17 @@
 /**
  * Classic checkout fulfilment date field.
  *
- * Block checkout's own field styling is untouched by this file - see
+ * Rendered as a <tr> inside WooCommerce's own order review table (see
+ * Frontend\Checkout\Fulfilment_Date_Field and its template for why), so this styles a
+ * table row, not the `<p class="form-row">` structure `woocommerce_form_field()` would
+ * have produced. Block checkout's own field styling is untouched by this file - see
  * block-fulfilment-date-field.js for why it deliberately does not share these classes.
  */
 
-.fcs-fulfilment-date-row .description {
-	display: block;
-	margin: 0.4em 0 0;
-	font-size: 0.9em;
-	color: #646970;
+.fcs-fulfilment-date-row th,
+.fcs-fulfilment-date-row td {
+	padding: 0.75em 0;
+	vertical-align: top;
 }
 
 .fcs-fulfilment-date-input,
@@ -38,8 +40,11 @@
 	box-shadow: 0 0 0 1px #3858e9;
 }
 
+/* Extra bottom margin, not just top: this is the last thing the customer sees before
+   the Subscribe & Save field further down the order review table, and the two need
+   visible separation between them. */
 .fcs-fulfilment-date-window {
-	margin: 0.5em 0 0;
+	margin: 0.5em 0 1em;
 	font-size: 0.9em;
 	color: #646970;
 }

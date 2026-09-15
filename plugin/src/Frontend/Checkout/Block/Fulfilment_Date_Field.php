@@ -240,15 +240,18 @@ final class Fulfilment_Date_Field {
 	 * nothing chosen yet resolves to a schedule. Read-only and carries nothing specific
 	 * to the customer beyond what their own cart/session already determines.
 	 *
-	 * Shared by both checkout implementations' enhancement scripts, despite living on the
-	 * block checkout field class - registering it once here and pointing classic
-	 * checkout's own script at the same URL avoids the alternative of running the same
-	 * route (and the cart-loading workaround below) twice.
+	 * Only `assets/checkout/js/block-fulfilment-date-field.js` polls this now - classic
+	 * checkout's own field re-renders server-side with fresh eligible dates on every
+	 * `update_order_review` AJAX refresh instead (it sits inside the order review table),
+	 * so its script has no REST fetch of its own to point at this route. It still lives
+	 * here rather than on the classic field class only because a bare REST request needs
+	 * the cart-loading workaround below, which has nothing to do with either field's own
+	 * concerns.
 	 *
-	 * Classic checkout's own page render and AJAX handler both load the cart earlier in
-	 * the same request, before `Current_Fulfilment_Window` is ever asked to resolve
-	 * anything - confirmed by reading both code paths. A bare REST request has none of
-	 * that: `WC()->cart` is null here until `wc_load_cart()` is called.
+	 * A bare REST request has no cart loaded yet - unlike classic checkout's own page
+	 * render and AJAX handler, which both load it earlier in the same request before
+	 * `Current_Fulfilment_Window` is ever asked to resolve anything (confirmed by reading
+	 * both code paths) - so `WC()->cart` is null here until `wc_load_cart()` is called.
 	 * `Chosen_Shipping_Destination` calculates shipping itself once the cart exists, so
 	 * nothing further is needed here.
 	 */

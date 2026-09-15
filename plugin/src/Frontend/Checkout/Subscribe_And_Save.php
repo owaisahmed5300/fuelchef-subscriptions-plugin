@@ -63,12 +63,18 @@ final class Subscribe_And_Save {
 	}
 
 	/**
-	 * Hooks this discount into the classic checkout lifecycle: rendered alongside the
-	 * other checkout fields, applied while cart totals are calculated, and saved to the
+	 * Hooks this discount into the classic checkout lifecycle: rendered just above the
+	 * Place Order button, applied while cart totals are calculated, and saved to the
 	 * order once it is created.
+	 *
+	 * `woocommerce_review_order_before_submit` fires inside the order review area, so -
+	 * like the fulfilment date field - this re-renders on every `update_order_review` AJAX
+	 * refresh. Unlike that field, nothing here needs capturing and restoring across a
+	 * refresh: `render()` already re-derives `checked` fresh from `$_POST` on every call
+	 * (see the class docblock), so a refreshed render is already correct on its own.
 	 */
 	public function register(): void {
-		add_action( 'woocommerce_checkout_after_customer_details', [ $this, 'render' ] );
+		add_action( 'woocommerce_review_order_before_submit', [ $this, 'render' ] );
 		add_action( 'woocommerce_cart_calculate_fees', [ $this, 'maybe_apply_discount' ] );
 		add_action( 'woocommerce_checkout_create_order', [ $this, 'persist' ], 10, 2 );
 	}
@@ -119,13 +125,18 @@ final class Subscribe_And_Save {
 	/**
 	 * Saves whether the customer chose to subscribe to the order.
 	 *
+	 * Reuses {@see self::is_checked_in_request()} rather than reading the `$data` this
+	 * hook is also given: `$data` is `WC_Checkout::get_posted_data()`'s own curated array,
+	 * built strictly from WC's own registered checkout fieldsets - a field rendered by
+	 * hand outside that registry, as this one is, never appears in it regardless of what
+	 * was actually posted (confirmed the hard way alongside the same bug in
+	 * `Fulfilment_Date_Field::persist()` - see its docblock).
+	 *
 	 * @param WC_Order             $order The order being created.
-	 * @param array<string, mixed> $data The posted checkout data.
+	 * @param array<string, mixed> $data The posted checkout data. Unused - see above.
 	 */
-	public function persist( WC_Order $order, array $data ): void {
-		$subscribed = '' !== Narrow::string( $data[ self::FIELD_NAME ] ?? null );
-
-		$order->update_meta_data( self::META_KEY, $subscribed ? 'yes' : 'no' );
+	public function persist( WC_Order $order, array $data ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		$order->update_meta_data( self::META_KEY, $this->is_checked_in_request() ? 'yes' : 'no' );
 	}
 
 	/**
