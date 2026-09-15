@@ -15,10 +15,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Reads one of this plugin's own Additional Checkout Fields API fields back off an order,
- * shared by `Block\Fulfilment_Date_Field` and `Block\Subscribe_And_Save` - both need the
- * same technique, once `persist_additional_fields_for_order()` has already saved whatever
- * the customer posted, to check what actually ended up on the order rather than trusting
- * the request that led to it.
+ * shared by `Block\Fulfilment_Date_Field` and `Block\Subscribe_And_Save`.
  */
 trait Reads_Persisted_Field {
 

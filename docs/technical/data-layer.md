@@ -273,6 +273,15 @@ pieces (`Frontend\Checkout\Block\*`) that consume them.
   amounts" but the real `WC_Cart_Fees::add_fee()` implementation never enforces that -
   verified against source rather than trusted at face value.
 
+#### Account gating
+
+"Subscribe & Save" is only offered to a logged-in customer, on both checkout surfaces -
+subscribing needs an account for a renewal to attach to. Classic checkout's
+`Subscribe_And_Save::render()`/`maybe_apply_discount()`/`persist()` and block checkout's
+`Block\Subscribe_And_Save::register_field()`/`apply_discount()` each check
+`is_user_logged_in()` directly - a single WordPress core check, reused at a handful of
+call sites, not worth its own service or enum.
+
 ### Block checkout
 
 `Frontend\Checkout\Block\*` is the Checkout block's own fulfilment date field and

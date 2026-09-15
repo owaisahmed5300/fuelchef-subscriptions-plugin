@@ -17,32 +17,12 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Adds a fulfilment date field to classic checkout, alongside the shipping options in the
- * order review table.
+ * Adds a fulfilment date field to classic checkout, inside the order review table.
  *
- * Rendered on `woocommerce_review_order_after_shipping`, inside the `<table>` WooCommerce's
- * own order review renders (see `templates/frontend/checkout/fulfilment-date-field.php` -
- * it outputs a `<tr>`, not a `<div>`, because a `<div>` is not valid content directly
- * inside a `<tfoot>`; an earlier version of this field rendered a `<div>` at this exact
- * hook, and the browser's own HTML parser silently moved it outside the table entirely,
- * which is the "incorrect HTML" this plugin's own task list flagged in the checkout
- * layout). Because this hook is *inside* the order review table, it re-renders on every
- * `update_order_review` AJAX refresh (address changes, shipping method changes) with
- * fresh eligible dates every time - unlike the field's previous position outside that
- * table, this needs no separate REST-fetch-and-patch script; the enhancement script only
- * has to re-attach Flatpickr to whatever `<input>` the latest refresh rendered.
- *
- * A refresh replaces this row's markup entirely, which would otherwise discard whatever
- * date the customer had already picked. `capture_posted_date()`, hooked to
- * `woocommerce_checkout_update_order_review`, reads the AJAX request's raw `post_data`
- * (WooCommerce serializes the whole checkout form into it before triggering the refresh -
- * this field's own input included) before the table re-renders, so `render()` can restore
- * that selection - but only once `Current_Fulfilment_Window::is_eligible_date()` confirms
- * it is still eligible for whatever destination the refresh just resolved to.
- *
- * Reads and writes nothing else of its own: it asks `Current_Fulfilment_Window` what
- * schedule and dates apply to whatever the customer picked, and renders, validates and
- * persists strictly within what that already decided.
+ * Renders a `<tr>`, not a `<div>` - a `<div>` is not valid content directly inside a
+ * `<tfoot>`. Sitting inside the table means it re-renders with fresh eligible dates on
+ * every `update_order_review` AJAX refresh; `capture_posted_date()` reads the refresh's
+ * raw `post_data` first so `render()` can restore a still-eligible selection across it.
  */
 final class Fulfilment_Date_Field {
 
@@ -76,10 +56,7 @@ final class Fulfilment_Date_Field {
 	}
 
 	/**
-	 * Hooks this field into the classic checkout lifecycle: rendered alongside the
-	 * shipping options in the order review table, its posted value captured on every AJAX
-	 * refresh so a still-eligible selection survives one, validated before an order is
-	 * created, and saved to the order once it is.
+	 * Hooks this field's capture, render, validation and persistence into checkout.
 	 */
 	public function register(): void {
 		add_action( 'woocommerce_checkout_update_order_review', [ $this, 'capture_posted_date' ] );
@@ -89,9 +66,8 @@ final class Fulfilment_Date_Field {
 	}
 
 	/**
-	 * Captures this field's own value out of an `update_order_review` AJAX request's raw,
-	 * serialized form data, ahead of the order review table re-rendering within the same
-	 * request.
+	 * Captures this field's posted value from an `update_order_review` AJAX request,
+	 * ahead of the order review table re-rendering.
 	 *
 	 * @param string $post_data The request's raw, urlencoded form data.
 	 */
@@ -102,9 +78,8 @@ final class Fulfilment_Date_Field {
 	}
 
 	/**
-	 * Renders the field's table row, only when a schedule applies to whatever destination
-	 * the customer's most recent selection resolved to. Nothing to render otherwise - this
-	 * re-runs on every order review refresh, so the row reappears as soon as one does.
+	 * Renders the field's table row, only when a schedule applies to the customer's
+	 * chosen destination.
 	 */
 	public function render(): void {
 		$schedule = $this->window->schedule();
@@ -136,9 +111,7 @@ final class Fulfilment_Date_Field {
 
 	/**
 	 * The captured date to restore, only when it is still one of the currently eligible
-	 * dates - a destination change since the customer picked it may have made it
-	 * ineligible, in which case this renders unselected rather than restoring a date the
-	 * field itself would immediately reject.
+	 * dates.
 	 *
 	 * @param list<string> $eligible_dates The currently eligible dates.
 	 */
@@ -152,18 +125,12 @@ final class Fulfilment_Date_Field {
 
 	/**
 	 * Rejects checkout when a schedule applies but the posted date is not one it can
-	 * actually fulfil - missing, malformed, or no longer eligible since it was chosen.
+	 * actually fulfil.
 	 *
-	 * Reads `$_POST` directly rather than the `$data` this hook is also given: `$data` is
-	 * `WC_Checkout::get_posted_data()`'s own curated array, built strictly from WC's own
-	 * registered checkout fieldsets (billing, shipping, order) - a field rendered by hand
-	 * outside that registry, as this one is, never appears in it regardless of what was
-	 * actually posted. Confirmed the hard way: a real order placement kept failing this
-	 * validation with a genuinely-selected, genuinely-eligible date until this was traced
-	 * to `$data[self::FIELD_NAME]` always being absent. Every request this runs in has
-	 * already passed WooCommerce's own nonce check before this class is ever reached.
+	 * Reads `$_POST` directly rather than `$data`: `$data` is built only from WC's
+	 * registered checkout fieldsets, and this field is not one of them.
 	 *
-	 * @param array<string, mixed> $data The posted checkout data. Unused - see above.
+	 * @param array<string, mixed> $data Unused - see above.
 	 * @param WP_Error             $errors Validation errors, added to by reference.
 	 */
 	public function validate( array $data, WP_Error $errors ): void {
@@ -186,13 +153,10 @@ final class Fulfilment_Date_Field {
 	}
 
 	/**
-	 * Saves the chosen date to the order once a schedule applies, having already been
-	 * confirmed eligible by {@see self::validate()}.
-	 *
-	 * Reads `$_POST` directly rather than `$data` - see {@see self::validate()} for why.
+	 * Saves the chosen date to the order once a schedule applies.
 	 *
 	 * @param WC_Order             $order The order being created.
-	 * @param array<string, mixed> $data The posted checkout data. Unused - see `validate()`.
+	 * @param array<string, mixed> $data Unused - see {@see self::validate()}.
 	 */
 	public function persist( WC_Order $order, array $data ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		if ( null === $this->window->schedule() ) {
