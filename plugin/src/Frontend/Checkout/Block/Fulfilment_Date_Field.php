@@ -7,12 +7,15 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend\Checkout\Block;
 
+use Automattic\WooCommerce\StoreApi\Exceptions\RouteException;
 use DateTimeImmutable;
+use FuelChef\Subscriptions\Frontend\Checkout\Block\Concerns\Reads_Persisted_Field;
 use FuelChef\Subscriptions\Services\Current_Fulfilment_Window;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Values\DateTime;
+use WC_Order;
 use WP_Error;
 use WP_REST_Response;
 use WP_REST_Server;
@@ -61,9 +64,27 @@ defined( 'ABSPATH' ) || exit;
  * mid-form (see `Block\Subscribe_And_Save` for why) - but `woocommerce_validate_additional_field`
  * hands the posted value directly, so validating and rejecting an ineligible date needs
  * nothing extra.
+ *
+ * `validate()` alone is not enough to guarantee a schedule-bound order always carries a
+ * date, though: confirmed against the installed source
+ * (`StoreApi\Routes\V1\Checkout::process_order()`), WooCommerce skips calling
+ * `woocommerce_validate_additional_field` entirely for a field whose posted value is empty
+ * and whose registration is not `required: true` - which this one is, deliberately, since
+ * it must never be required for a destination with no schedule at all, and registration
+ * happens once at `woocommerce_init` with no per-customer context to condition `required`
+ * on (the same reasoning `register_rest_route()`'s docblock already gives for why
+ * eligibility cannot be baked into registration either). A customer who never touches the
+ * field therefore reaches place-order with nothing for `validate()` to have ever seen.
+ * `validate_order()` is the backstop: hooked to `woocommerce_store_api_checkout_order_processed`,
+ * which always fires once per place-order attempt regardless of any field's own
+ * required/empty state, it re-checks whatever ended up persisted on the order and throws
+ * to reject the order outright if a schedule applies and nothing eligible was ever saved -
+ * whether nothing was ever selected, or nothing was ever available to select at all.
  */
 final class Fulfilment_Date_Field {
 
+
+	use Reads_Persisted_Field;
 
 	/**
 	 * This field's registered ID. Namespaced per the Additional Checkout Fields API's
@@ -107,6 +128,7 @@ final class Fulfilment_Date_Field {
 	public function register(): void {
 		add_action( 'woocommerce_init', [ $this, 'register_field' ] );
 		add_action( 'woocommerce_validate_additional_field', [ $this, 'validate' ], 10, 3 );
+		add_action( 'woocommerce_store_api_checkout_order_processed', [ $this, 'validate_order' ] );
 		add_action( 'rest_api_init', [ $this, 'register_rest_route' ] );
 	}
 
@@ -215,6 +237,41 @@ final class Fulfilment_Date_Field {
 		$errors->add(
 			'fcs_fulfilment_date',
 			esc_html__( 'Please choose a fulfilment date.', 'fuelchef-subscriptions' )
+		);
+	}
+
+	/**
+	 * Rejects the order outright when a schedule applies but nothing eligible was ever
+	 * actually saved to it - the backstop `validate()` above cannot always be; see the
+	 * class docblock for why. Reads the order's own persisted field value rather than the
+	 * request: `persist_additional_fields_for_order()` has already saved whatever was (or
+	 * was not) posted by the time this fires.
+	 *
+	 * Throws `RouteException` rather than returning one - the Store API's own documented
+	 * way for a `woocommerce_store_api_checkout_order_processed` handler to reject an
+	 * order in flight, caught and converted into a proper REST error response by
+	 * `AbstractRoute::get_response()`. Not covered by any available PHPStan stub package
+	 * (confirmed against the installed source: no `Automattic\WooCommerce\StoreApi\*`
+	 * class is stubbed at all), so both the `@throws` tag and the `throw` below would
+	 * otherwise report a false "class not found".
+	 */
+	public function validate_order( WC_Order $order ): void {
+		$schedule = $this->window->schedule();
+
+		if ( null === $schedule ) {
+			return;
+		}
+
+		$posted = Narrow::string( $this->persisted_field_value( self::FIELD_ID, $order ) );
+
+		if ( $this->window->is_eligible_date( $schedule, $posted ) ) {
+			return;
+		}
+
+		throw new RouteException( // @phpstan-ignore-line
+			'fcs_fulfilment_date_required',
+			esc_html__( 'Please choose a fulfilment date.', 'fuelchef-subscriptions' ),
+			400
 		);
 	}
 
