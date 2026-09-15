@@ -16,6 +16,7 @@ use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save;
 use FuelChef\Subscriptions\Services\Current_Fulfilment_Window;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
+use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Utils\Renderer;
 
 defined( 'ABSPATH' ) || exit;
@@ -51,7 +52,8 @@ final class Provider implements ServiceProvider {
 		$container
 			->singleton( Block_Fulfilment_Date_Field::class )
 			->addParameter( Current_Fulfilment_Window::class, true )
-			->addParameter( Settings_Store::class, true );
+			->addParameter( Settings_Store::class, true )
+			->addParameter( Clock::class, true );
 
 		$container
 			->singleton( Block_Subscribe_And_Save::class )

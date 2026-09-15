@@ -74,7 +74,7 @@ final class Assets {
 		wp_enqueue_style(
 			'fcs-block-fulfilment-date',
 			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/css/block-fulfilment-date-field.css',
-			[ 'fcs-flatpickr' ],
+			[],
 			FUELCHEF_SUBSCRIPTIONS_VERSION
 		);
 
@@ -108,10 +108,12 @@ final class Assets {
 			true
 		);
 
+		// Unlike the classic field, the block field is a native <select> - no Flatpickr,
+		// so no dependency on it or on the script that loads it.
 		wp_enqueue_script(
 			'fcs-block-fulfilment-date',
 			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/block-fulfilment-date-field.js',
-			[ 'jquery', 'fcs-fulfilment-date', 'fcs-checkout-shared' ],
+			[ 'jquery', 'fcs-checkout-shared' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION,
 			true
 		);
@@ -119,15 +121,18 @@ final class Assets {
 		wp_enqueue_script(
 			'fcs-block-checkout-subscribe',
 			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/block-subscribe-and-save.js',
-			[ 'jquery', 'fcs-fulfilment-date' ],
+			[ 'jquery', 'fcs-checkout-shared' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION,
 			true
 		);
 
 		$settings = $this->settings->get();
 
+		// Localized on fcs-checkout-shared, not fcs-fulfilment-date: every checkout script
+		// depends on the shared script, but only the classic field depends on Flatpickr,
+		// so the shared script is the one handle guaranteed to load before any of them.
 		wp_localize_script(
-			'fcs-fulfilment-date',
+			'fcs-checkout-shared',
 			'fcsCheckout',
 			[
 				'startOfWeek'               => $this->start_of_week(),
