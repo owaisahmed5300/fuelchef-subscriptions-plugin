@@ -7,8 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend\Checkout\Block;
 
-use Automattic\WooCommerce\Blocks\Domain\Services\CheckoutFields;
-use Automattic\WooCommerce\Blocks\Package;
+use FuelChef\Subscriptions\Frontend\Checkout\Block\Concerns\Reads_Persisted_Field;
 use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save as Classic_Subscribe_And_Save;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
@@ -49,6 +48,8 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Subscribe_And_Save {
 
+
+	use Reads_Persisted_Field;
 
 	/**
 	 * This field's registered ID. Namespaced per the Additional Checkout Fields API's
@@ -195,18 +196,9 @@ final class Subscribe_And_Save {
 	}
 
 	/**
-	 * Whether the checkbox was checked on the given order, read through the Additional
-	 * Checkout Fields API rather than the order's raw meta.
+	 * Whether the checkbox was checked on the given order.
 	 */
 	private function is_checked( WC_Order $order ): bool {
-		// Automattic\WooCommerce\Blocks\Container is not covered by any available
-		// PHPStan stub package, so its return type is unknowable here; narrowed
-		// straight to the one class this plugin actually calls a method on.
-		$container = Package::container();
-
-		/** @var CheckoutFields $checkout_fields */
-		$checkout_fields = $container->get( CheckoutFields::class ); // @phpstan-ignore-line
-
-		return (bool) $checkout_fields->get_field_from_object( self::FIELD_ID, $order, 'other' );
+		return (bool) $this->persisted_field_value( self::FIELD_ID, $order );
 	}
 }
