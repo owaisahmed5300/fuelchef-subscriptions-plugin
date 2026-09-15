@@ -1,14 +1,15 @@
 /**
  * Block checkout fulfilment date field.
  *
- * Deliberately does not touch width, padding or border here - the field is the Checkout
- * block's own <input>, already styled and sized by its own field wrapper and label.
- * Overriding that (as an earlier version of this field did, via flatpickr's altInput)
- * is what caused it to render too narrow with its label overlapping the placeholder.
- * This only adds the one affordance a plain readonly input doesn't already have: a
- * pointer cursor, so it reads as "click to open a calendar" rather than a disabled field.
+ * The field is a native <select>, already styled and sized by the Checkout block's own
+ * field wrapper and label - nothing to override here, unlike the text-input-plus-Flatpickr
+ * version this replaced, which fought that wrapper's own sizing. The month/year group
+ * headers `block-fulfilment-date-field.js` inserts are plain disabled <option>s (the
+ * Additional Checkout Fields API's `select` type has no real <optgroup> concept); browsers
+ * that support styling a disabled option at all show it italic, which is the extent of
+ * cross-browser <option> styling support.
  */
 
-[data-fcs-block-fulfilment-date] {
-	cursor: pointer;
+[data-fcs-block-fulfilment-date] option:disabled {
+	font-style: italic;
 }

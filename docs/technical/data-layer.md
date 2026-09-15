@@ -255,22 +255,37 @@ installed WooCommerce Blocks source directly, not assumed from its own docs
 even WooCommerce's own docs for the type describe only a continuous `min`/`max` range,
 never per-date exclusion, which this field needs for closed weekdays and blackout dates).
 
-- **The date field is `type: 'text'`, not `date`**, enhanced client-side with flatpickr
-  by `assets/checkout/js/block-fulfilment-date-field.js` - the same widget as classic
-  checkout, applied differently since the Checkout block re-renders via React rather than
-  a jQuery fragment swap. The script uses a `MutationObserver` on `document.body` to catch
-  the field's input appearing (there is no `updated_checkout`-equivalent event to hook),
-  and refetches eligible dates from this plugin's own read-only REST route
-  (`fuelchef-subscriptions/v1/eligible-dates`) on any `change`/`input` bubbling up the
-  page, since the block checkout's own field/form class names are not a stable contract
-  worth depending on.
-- **Why a custom REST route at all.** A registered field's `attributes` are fixed once, at
-  `woocommerce_init` registration time - they cannot carry a live, per-request eligible-
-  dates list the way classic checkout's server-rendered fragment does. The route has
-  nothing upstream to load the cart or calculate shipping for it (a bare REST request is
-  its own, otherwise-empty request), so it calls `wc_load_cart()` itself before asking
-  `Current_Fulfilment_Window` anything - `Chosen_Shipping_Destination` handles the
-  shipping calculation part of that itself, per the note above.
+- **The date field is `type: 'select'`, not `date` or a Flatpickr-enhanced `text` field**
+  (an earlier version of this field used the latter). `select` is natively supported by
+  the Additional Checkout Fields API, unlike `date`, so the Checkout block's own React
+  renders and owns it - no calendar popup escaping React's DOM subtree, no `altInput`
+  fighting the block's field wrapper, none of the workarounds Flatpickr needed
+  specifically on this React-rendered surface (classic checkout keeps Flatpickr - it has
+  no React to fight, so nothing there was actually fragile). `assets/checkout/js/
+  block-fulfilment-date-field.js` only ever repopulates the select's `<option>` children
+  and reads its `change` event, never attaches a third-party widget to it. The script
+  uses a `MutationObserver` on `document.body` to catch the field's select appearing
+  (there is no `updated_checkout`-equivalent event to hook), and refetches eligible dates
+  from this plugin's own read-only REST route (`fuelchef-subscriptions/v1/eligible-dates`)
+  on any `change`/`input` bubbling up the page, since the block checkout's own field/form
+  class names are not a stable contract worth depending on. Month/year group headers in
+  the option list are plain disabled `<option>`s, not `<optgroup>` - the Additional
+  Checkout Fields API's `options` schema is a flat `{value, label}` list with no grouping
+  concept, and disabled sibling options match what React already expects to find as this
+  select's children, unlike a nested `<optgroup>` would.
+- **Why a custom REST route at all.** A registered field's `options` (like a `text`
+  field's `attributes`) are fixed once, at `woocommerce_init` registration time - they
+  cannot carry a live, per-request eligible-dates list the way classic checkout's
+  server-rendered fragment does, and `woocommerce_init` itself fires on every
+  WooCommerce-bootstrapped request (admin-ajax, REST, cron), not only a checkout page
+  view for a known customer, so there is no per-destination list to register with in the
+  first place - `register_field()` registers one harmless placeholder option (WooCommerce
+  itself rejects an empty `options` array - `CheckoutFields::process_select_field()`) and
+  leaves the real list to the same REST route. That route has nothing upstream to load
+  the cart or calculate shipping for it (a bare REST request is its own, otherwise-empty
+  request), so it calls `wc_load_cart()` itself before asking `Current_Fulfilment_Window`
+  anything - `Chosen_Shipping_Destination` handles the shipping calculation part of that
+  itself, per the note above.
 - **The discount cannot use `WC_Cart`'s fee pipeline at all**, not even at final
   placement. WooCommerce Blocks defers creating the checkout's draft order until the
   customer actually places it (a 10.8.0 change), and the *only* `calculate_totals()` call

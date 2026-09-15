@@ -1,79 +1,66 @@
 /**
  * FuelChef Subscriptions - Block checkout fulfilment date field
  *
+ * The field itself is registered as a native `select`, with every calendar date in the
+ * store's lookahead window already a real, individually registered option (see
+ * Frontend\Checkout\Block\Fulfilment_Date_Field for why: WooCommerce validates a
+ * submission against exactly the registered `options` set, not against whatever
+ * `<option>` elements a script injects afterwards - confirmed the hard way, a real order
+ * placement failing with "is not one of ..." before this script settled on only ever
+ * toggling `disabled` on pre-existing options, never adding, removing or relabelling one.
+ * That is also why this script - unlike the classic field's own script - never attaches a
+ * third-party widget to the field: an earlier version of this field used a
+ * Flatpickr-enhanced text input here, and the calendar popup escaping React's own DOM
+ * subtree, plus Flatpickr's `altInput` fighting the block's field wrapper, were real,
+ * documented problems specific to this React-rendered surface. Toggling one boolean
+ * attribute on an element React already rendered has none of that.
+ *
  * The Checkout block re-renders its fields with React, not a full page/fragment
  * replace, so there is no `updated_checkout`-style event to hook. This watches the DOM
- * for the field's input appearing (or reappearing, if its visibility ever changes) and
- * attaches flatpickr to it, refetching eligible dates whenever anything in the checkout
- * form changes - shipping method and address fields included - since none of those are
- * reliably identifiable by a fixed selector under the block checkout's own markup.
- *
- * Deliberately does not use flatpickr's `altInput` mode here, unlike the classic
- * checkout field: altInput inserts a second, brand-new <input> next to the original and
- * hides the original - which works cleanly in classic checkout's own template, but here
- * the original input is one the Checkout block itself rendered and wraps with its own
- * label and sizing. Disconnecting that with a foreign sibling element is what caused the
- * field to render too narrow with its label overlapping the placeholder text. Attaching
- * directly to the block's own input, with no DOM changes around it, keeps its native
- * width and label behaviour intact.
- *
- * `appendTo: document.body` (below) is a second, separate fix for the calendar popup
- * itself: by default flatpickr inserts `.flatpickr-calendar` as a plain sibling of the
- * input, inside the exact subtree React renders and reconciles for this field. React does
- * not know about that foreign node - any re-render of this field's surroundings (which
- * WooCommerce Blocks triggers often, e.g. on totals or validation state changes elsewhere
- * on the page) can discard or detach it, which is what made the calendar fail to open, or
- * open and immediately vanish. Rendering it as a direct child of <body> instead keeps it
- * entirely outside any subtree the Checkout block manages.
+ * for the field's select appearing (or reappearing, if its visibility ever changes) and
+ * fetches eligible dates whenever anything in the checkout form changes - shipping method
+ * and address fields included - since none of those are reliably identifiable by a fixed
+ * selector under the block checkout's own markup.
  */
 
 jQuery(function ($) {
   'use strict';
 
-  if (
-    typeof window.fcsCheckout === 'undefined' ||
-    typeof window.fcsCheckoutShared === 'undefined' ||
-    typeof window.flatpickr === 'undefined'
-  ) {
+  if (typeof window.fcsCheckout === 'undefined') {
     return;
   }
 
   const SELECTOR = '[data-fcs-block-fulfilment-date]';
   const i18n = window.fcsCheckout.i18n;
-  const locale = window.fcsCheckoutShared.buildFlatpickrLocale(i18n, window.fcsCheckout.startOfWeek);
 
-  let instance = null;
-  let refetchTimer = null;
+  let currentSelect = null;
   let currentWindows = {};
+  let refetchTimer = null;
 
-  function windowCaption($input) {
-    let $caption = $input.next('.fcs-fulfilment-date-window');
+  function windowCaption($select) {
+    let $caption = $select.next('.fcs-fulfilment-date-window');
 
     if (!$caption.length) {
       $caption = $('<p class="fcs-fulfilment-date-window" aria-live="polite" hidden></p>');
-      $input.after($caption);
+      $select.after($caption);
     }
 
     return $caption;
   }
 
-  function addDescription($input) {
+  function addDescription($select) {
     const description = window.fcsCheckout.fulfilmentDateDescription;
 
-    if (!description || $input.siblings('.fcs-fulfilment-date-description').length) {
+    if (!description || $select.siblings('.fcs-fulfilment-date-description').length) {
       return;
     }
 
-    $input.after($('<p class="fcs-fulfilment-date-description"></p>').text(description));
+    $select.after($('<p class="fcs-fulfilment-date-description"></p>').text(description));
   }
 
-  function updateWindowCaption() {
-    if (!instance) {
-      return;
-    }
-
-    const $caption = windowCaption($(instance.input));
-    const fulfilmentWindow = currentWindows[instance.input.value];
+  function updateWindowCaption($select) {
+    const $caption = windowCaption($select);
+    const fulfilmentWindow = currentWindows[$select.val()];
 
     if (!fulfilmentWindow) {
       $caption.attr('hidden', true);
@@ -84,67 +71,93 @@ jQuery(function ($) {
     $caption.removeAttr('hidden');
   }
 
-  function refetchEligibleDates() {
-    if (!instance) {
-      return;
+  // Every real date option already exists (registered server-side); this only enables
+  // the ones the customer's current destination is actually eligible for and disables
+  // the rest, since a submission is validated against the full registered set regardless
+  // of which options this leaves enabled. Group-heading options (value starting with
+  // "__group_") are always left disabled - they are never a real date.
+  function applyEligibility($select, dates, windows) {
+    currentWindows = windows && typeof windows === 'object' ? windows : {};
+
+    const eligible = {};
+    (Array.isArray(dates) ? dates : []).forEach(function (date) {
+      eligible[date] = true;
+    });
+
+    $select.find('option[value]').each(function () {
+      const value = this.value;
+
+      if (!value || value.indexOf('__group_') === 0) {
+        return;
+      }
+
+      this.disabled = !eligible[value];
+    });
+
+    const $selectedOption = $select.find('option:selected');
+
+    if ($selectedOption.length && $selectedOption.prop('disabled')) {
+      $select.val('');
     }
 
+    updateWindowCaption($select);
+  }
+
+  function refetchEligibleDates($select) {
     fetch(window.fcsCheckout.eligibleDatesUrl, { credentials: 'same-origin' })
       .then(function (response) {
-        return response.ok ? response.json() : { dates: [], windows: {} };
+        return response.ok ? response.json() : { hasSchedule: false, dates: [], windows: {} };
       })
       .then(function (data) {
-        if (instance) {
-          instance.set('enable', Array.isArray(data.dates) ? data.dates : []);
-          currentWindows = data.windows && typeof data.windows === 'object' ? data.windows : {};
-          updateWindowCaption();
+        if (currentSelect && currentSelect.is($select)) {
+          applyEligibility($select, data.dates, data.windows);
         }
       })
       .catch(function () {
-        // Leave the picker's current date list as-is; the next change event retries.
+        // Leave the select's current enabled/disabled state as-is; the next change retries.
       });
   }
 
   function queueRefetch() {
-    window.clearTimeout(refetchTimer);
-    refetchTimer = window.setTimeout(refetchEligibleDates, 400);
-  }
-
-  function attach($input) {
-    if (instance) {
-      instance.destroy();
-      instance = null;
+    if (!currentSelect) {
+      return;
     }
 
-    // No placeholder to set here: the field's own registered label already serves as
-    // its placeholder, per the Additional Checkout Fields API's own documented
-    // behaviour - setting a second one would fight the block's own rendering of it.
-    instance = window.flatpickr($input[0], {
-      dateFormat: 'Y-m-d',
-      enable: [],
-      locale,
-      disableMobile: true,
-      appendTo: document.body,
-      onChange: updateWindowCaption
+    const $select = currentSelect;
+
+    window.clearTimeout(refetchTimer);
+    refetchTimer = window.setTimeout(function () {
+      refetchEligibleDates($select);
+    }, 400);
+  }
+
+  // Group-heading options have no way to register as `disabled` server-side - the
+  // Additional Checkout Fields API's `select` options schema is only {value, label} - so
+  // this is the one thing attach() must set once itself, before any eligibility data
+  // exists, rather than leaving to applyEligibility().
+  function disableGroupHeadings($select) {
+    $select.find('option[value^="__group_"]').prop('disabled', true);
+  }
+
+  function attach($select) {
+    currentSelect = $select;
+
+    disableGroupHeadings($select);
+    addDescription($select);
+    $select.on('change', function () {
+      updateWindowCaption($select);
     });
 
-    // Order matters: windowCaption() creates its element first so addDescription()'s
-    // insertion (also right after the input) pushes it below, keeping the static
-    // description above the per-date availability caption - matching classic checkout.
-    windowCaption($input);
-    addDescription($input);
-
-    refetchEligibleDates();
+    refetchEligibleDates($select);
   }
 
   const observer = new MutationObserver(function () {
-    const $input = $(SELECTOR);
+    const $select = $(SELECTOR);
 
-    if ($input.length && $input[0] !== (instance ? instance.input : null)) {
-      attach($input);
-    } else if (!$input.length && instance) {
-      instance.destroy();
-      instance = null;
+    if ($select.length && (!currentSelect || $select[0] !== currentSelect[0])) {
+      attach($select);
+    } else if (!$select.length && currentSelect) {
+      currentSelect = null;
     }
   });
 
