@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Entities;
 
+use FuelChef\Subscriptions\Concerns\Has_Id;
 use FuelChef\Subscriptions\Concerns\Has_Timestamps;
 use FuelChef\Subscriptions\Contracts\Entity;
 use FuelChef\Subscriptions\Contracts\Timestamped;
@@ -20,12 +21,8 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Schedule_Destination implements Entity, Timestamped {
 
+	use Has_Id;
 	use Has_Timestamps;
-
-	/**
-	 * Row ID, or null before it has been persisted.
-	 */
-	private ?int $id = null;
 
 	/**
 	 * The schedule this destination is assigned to.
@@ -60,24 +57,6 @@ final class Schedule_Destination implements Entity, Timestamped {
 		$this->schedule_id      = $schedule_id;
 		$this->destination_type = $destination_type;
 		$this->destination_key  = $destination_key;
-	}
-
-	/**
-	 * Row ID, or null before it has been persisted.
-	 */
-	public function id(): ?int {
-		return $this->id;
-	}
-
-	/**
-	 * Sets the row ID. Called by the repository after an insert.
-	 *
-	 * @param int $id Row ID.
-	 */
-	public function set_id( int $id ): static {
-		$this->id = $id;
-
-		return $this;
 	}
 
 	/**

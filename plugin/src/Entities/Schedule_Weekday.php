@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Entities;
 
+use FuelChef\Subscriptions\Concerns\Has_Id;
 use FuelChef\Subscriptions\Concerns\Has_Timestamps;
 use FuelChef\Subscriptions\Contracts\Entity;
 use FuelChef\Subscriptions\Contracts\Timestamped;
@@ -20,12 +21,8 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Schedule_Weekday implements Entity, Timestamped {
 
+	use Has_Id;
 	use Has_Timestamps;
-
-	/**
-	 * Row ID, or null before it has been persisted.
-	 */
-	private ?int $id = null;
 
 	/**
 	 * The schedule this weekday belongs to.
@@ -79,24 +76,6 @@ final class Schedule_Weekday implements Entity, Timestamped {
 		$this->enabled     = $enabled;
 		$this->start_time  = $start_time;
 		$this->end_time    = $end_time;
-	}
-
-	/**
-	 * Row ID, or null before it has been persisted.
-	 */
-	public function id(): ?int {
-		return $this->id;
-	}
-
-	/**
-	 * Sets the row ID. Called by the repository after an insert.
-	 *
-	 * @param int $id Row ID.
-	 */
-	public function set_id( int $id ): static {
-		$this->id = $id;
-
-		return $this;
 	}
 
 	/**

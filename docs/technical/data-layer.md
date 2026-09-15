@@ -21,9 +21,10 @@ business logic.
 1. Add the bare table name to `Database\Tables`, and a `CREATE TABLE` method on
    `Database\Installer` (added as a closure in its `schemas()` method — see the existing
    four for the `PRIMARY KEY  (id)` double-space dbDelta quirk).
-2. Add an entity under `Entities\` implementing `Contracts\Entity`; add
-   `Contracts\Timestamped` (`use Concerns\Has_Timestamps`) if it has `date_created`/
-   `date_updated` columns, which every table here does so far.
+2. Add an entity under `Entities\` implementing `Contracts\Entity` (`use
+   Concerns\Has_Id` for its `id()`/`set_id()`); add `Contracts\Timestamped` (`use
+   Concerns\Has_Timestamps`) if it has `date_created`/`date_updated` columns, which every
+   table here does so far.
 3. Add a repository under `Repositories\` extending
    `Repositories\Abstracts\Abstract_Repository<TheEntity>`. It supplies `$table`,
    `$cache_group`, `hydrate()` and `dehydrate()`; `find()`/`insert()`/`update()`/
@@ -176,20 +177,21 @@ them.
   `Current_Delivery_Window` what schedule and dates apply, and renders, validates and
   persists strictly within what that already decided. Not unit-tested for the same reason
   `Admin\Controllers\*` are not - see "Testing" below.
-- **Why it hooks `woocommerce_review_order_after_shipping`, not a custom fragment.**
-  WooCommerce's checkout AJAX (`update_order_review`) re-renders the entire order review
-  table server-side and returns it as one of its own `fragments` entries
-  (`.woocommerce-checkout-review-order-table`), which the browser swaps in wholesale via
-  `wc_checkout_params` / `checkout.js`. Hooking an action that already runs inside that
-  table means the field refreshes automatically on every shipping/address change, with no
-  custom `woocommerce_update_order_review_fragments` filter needed.
-- **Why the posted date is captured on `woocommerce_checkout_update_order_review`, not
-  read back from the DOM.** The whole table - the field included - is a fresh server
-  render on every refresh, so a JavaScript-only selection would be wiped by an unrelated
-  change (e.g. the customer editing their address). `Delivery_Date_Field::
-  capture_posted_date()` reads the AJAX request's raw `post_data` before rendering, so a
-  still-eligible selection survives; `render()` only trusts it once `Availability_Service::
-  eligible_dates()` confirms it is still eligible.
+- **Why it hooks `woocommerce_checkout_after_customer_details`, not a custom fragment.**
+  This field renders once, on the initial page load, alongside the other checkout fields -
+  it is *not* part of the order review table, so it is never replaced by WooCommerce's own
+  `update_order_review` AJAX refresh (`.woocommerce-checkout-review-order-table`). Instead
+  `assets/checkout/js/delivery-date-field.js` listens for the same `updated_checkout` event
+  that refresh fires and re-fetches eligible dates itself, from this plugin's own read-only
+  REST route (shared with block checkout, see "Block checkout" below), showing or hiding
+  the field as the customer's shipping destination changes.
+- **Why eligibility is re-checked against a live REST fetch, not read back from the DOM.**
+  The field is rendered once and never re-rendered server-side, so nothing about its own
+  markup can tell it whether a shipping/address change invalidated the customer's earlier
+  selection. `Delivery_Date_Field::validate()` re-checks the posted date against
+  `Current_Delivery_Window::is_eligible_date()` at submission time regardless of what the
+  client-side script last displayed, so a selection made valid, then invalidated by a later
+  change the customer never noticed, is still rejected server-side.
 - The calendar widget is [flatpickr](https://flatpickr.js.org/), vendored under
   `plugin/assets/lib/flatpickr/` rather than `assets/vendor/` - the latter is caught by
   the root `vendor/` entry in `.gitignore`, meant for Composer's PHP vendor directories,

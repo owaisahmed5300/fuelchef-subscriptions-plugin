@@ -103,7 +103,7 @@ final class Delivery_Date_Field {
 
 		$posted = Input::string( $data[ self::FIELD_NAME ] ?? null );
 
-		if ( in_array( $posted, $this->window->eligible_dates( $schedule ), true ) ) {
+		if ( $this->window->is_eligible_date( $schedule, $posted ) ) {
 			return;
 		}
 

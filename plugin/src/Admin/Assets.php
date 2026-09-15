@@ -8,9 +8,9 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Admin;
 
 use FuelChef\Subscriptions\Utils\Input;
+use FuelChef\Subscriptions\Utils\Locale;
 use FuelChef\Subscriptions\Values\Day_Of_Week;
 use FuelChef\Subscriptions\Values\Destination_Type;
-use WP_Locale;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -140,19 +140,8 @@ final class Assets {
 				static fn ( int $day ): string => Day_Of_Week::label( $day ),
 				Day_Of_Week::all()
 			),
-			'monthNames'               => array_values( $this->wp_locale()->month ),
-			'weekdayNamesShort'        => array_values( $this->wp_locale()->weekday_abbrev ),
+			'monthNames'               => array_values( Locale::current()->month ),
+			'weekdayNamesShort'        => array_values( Locale::current()->weekday_abbrev ),
 		];
-	}
-
-	/**
-	 * WordPress's own translated month and weekday names, already maintained by core
-	 * translators - reused here instead of asking for the same strings again.
-	 */
-	private function wp_locale(): WP_Locale {
-		/** @var WP_Locale $wp_locale */
-		$wp_locale = $GLOBALS['wp_locale'];
-
-		return $wp_locale;
 	}
 }

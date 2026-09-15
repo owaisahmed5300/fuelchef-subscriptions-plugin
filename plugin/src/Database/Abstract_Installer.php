@@ -109,18 +109,15 @@ abstract class Abstract_Installer {
 	/**
 	 * The full name of one of the plugin's tables.
 	 *
-	 * Static because repositories need it without taking the installer as a dependency, and
-	 * the answer depends only on `$wpdb`.
+	 * Delegates to `Tables::get_full_name()`, the single source of truth for the
+	 * `$wpdb->prefix . 'fcs_'` rule - kept as its own method here since a schema closure
+	 * reads more plainly calling `self::table()` than the fully-qualified `Tables` class.
 	 *
-	 * @param string $name The table name without the site prefix or the `fcs_` prefix, such
-	 *                     as `deliveries`.
+	 * @param string $name One of the `Tables` constants.
 	 *
 	 * @return string The name to use in a query, prefixed for the current site.
 	 */
 	public static function table( string $name ): string {
-		/** @var wpdb $wpdb */
-		$wpdb = $GLOBALS['wpdb'];
-
-		return $wpdb->prefix . 'fcs_' . $name;
+		return Tables::get_full_name( $name );
 	}
 }
