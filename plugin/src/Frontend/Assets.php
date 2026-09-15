@@ -9,7 +9,7 @@ namespace FuelChef\Subscriptions\Frontend;
 
 use FuelChef\Subscriptions\Frontend\Checkout\Block\Delivery_Date_Field as Block_Delivery_Date_Field;
 use FuelChef\Subscriptions\Services\Settings_Store;
-use WP_Locale;
+use FuelChef\Subscriptions\Utils\Locale;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -93,9 +93,17 @@ final class Assets {
 		);
 
 		wp_enqueue_script(
+			'fcs-checkout-shared',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/checkout-shared.js',
+			[],
+			FUELCHEF_SUBSCRIPTIONS_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
 			'fcs-checkout',
 			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/delivery-date-field.js',
-			[ 'jquery', 'fcs-flatpickr' ],
+			[ 'jquery', 'fcs-flatpickr', 'fcs-checkout-shared' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION,
 			true
 		);
@@ -103,7 +111,7 @@ final class Assets {
 		wp_enqueue_script(
 			'fcs-block-checkout',
 			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/block-delivery-date-field.js',
-			[ 'jquery', 'fcs-checkout' ],
+			[ 'jquery', 'fcs-checkout', 'fcs-checkout-shared' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION,
 			true
 		);
@@ -153,21 +161,10 @@ final class Assets {
 			'chooseDate'      => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
 			/* translators: %1$s: opening time, %2$s: closing time. Resolved client-side. */
 			'deliveryWindow'  => esc_html__( 'Delivery available between %1$s and %2$s.', 'fuelchef-subscriptions' ),
-			'monthNames'      => array_values( $this->wp_locale()->month ),
-			'monthNamesShort' => array_values( $this->wp_locale()->month_abbrev ),
-			'dayNames'        => array_values( $this->wp_locale()->weekday ),
-			'dayNamesShort'   => array_values( $this->wp_locale()->weekday_abbrev ),
+			'monthNames'      => array_values( Locale::current()->month ),
+			'monthNamesShort' => array_values( Locale::current()->month_abbrev ),
+			'dayNames'        => array_values( Locale::current()->weekday ),
+			'dayNamesShort'   => array_values( Locale::current()->weekday_abbrev ),
 		];
-	}
-
-	/**
-	 * WordPress's own translated month and weekday names, already maintained by core
-	 * translators - reused here instead of asking for the same strings again.
-	 */
-	private function wp_locale(): WP_Locale {
-		/** @var WP_Locale $wp_locale */
-		$wp_locale = $GLOBALS['wp_locale'];
-
-		return $wp_locale;
 	}
 }

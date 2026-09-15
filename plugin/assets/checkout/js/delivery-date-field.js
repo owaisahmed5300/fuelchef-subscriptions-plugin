@@ -12,23 +12,16 @@
 jQuery(function ($) {
   'use strict';
 
-  if (typeof window.fcsCheckout === 'undefined' || typeof window.flatpickr === 'undefined') {
+  if (
+    typeof window.fcsCheckout === 'undefined' ||
+    typeof window.fcsCheckoutShared === 'undefined' ||
+    typeof window.flatpickr === 'undefined'
+  ) {
     return;
   }
 
   const i18n = window.fcsCheckout.i18n;
-
-  const locale = {
-    firstDayOfWeek: window.fcsCheckout.startOfWeek,
-    weekdays: {
-      shorthand: i18n.dayNamesShort,
-      longhand: i18n.dayNames
-    },
-    months: {
-      shorthand: i18n.monthNamesShort,
-      longhand: i18n.monthNames
-    }
-  };
+  const locale = window.fcsCheckoutShared.buildFlatpickrLocale(i18n, window.fcsCheckout.startOfWeek);
 
   let instance = null;
   let currentWindows = {};

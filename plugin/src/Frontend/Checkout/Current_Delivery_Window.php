@@ -68,6 +68,15 @@ final class Current_Delivery_Window {
 	}
 
 	/**
+	 * Whether a posted date is one of the schedule's currently eligible dates - the same
+	 * check classic and block checkout's own delivery date field each validate a
+	 * submission against.
+	 */
+	public function is_eligible_date( Schedule $schedule, string $date ): bool {
+		return in_array( $date, $this->eligible_dates( $schedule ), true );
+	}
+
+	/**
 	 * The delivery hours for each of a schedule's eligible dates, formatted in the site's
 	 * configured time format.
 	 *

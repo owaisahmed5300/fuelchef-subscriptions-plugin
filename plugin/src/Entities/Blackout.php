@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Entities;
 
+use FuelChef\Subscriptions\Concerns\Has_Id;
 use FuelChef\Subscriptions\Concerns\Has_Timestamps;
 use FuelChef\Subscriptions\Contracts\Entity;
 use FuelChef\Subscriptions\Contracts\Timestamped;
@@ -21,12 +22,8 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Blackout implements Entity, Timestamped {
 
+	use Has_Id;
 	use Has_Timestamps;
-
-	/**
-	 * Row ID, or null before it has been persisted.
-	 */
-	private ?int $id = null;
 
 	/**
 	 * The schedule this blackout applies to, or null for store-wide.
@@ -54,24 +51,6 @@ final class Blackout implements Entity, Timestamped {
 		$this->schedule_id = $schedule_id;
 		$this->date        = $date;
 		$this->reason      = $reason;
-	}
-
-	/**
-	 * Row ID, or null before it has been persisted.
-	 */
-	public function id(): ?int {
-		return $this->id;
-	}
-
-	/**
-	 * Sets the row ID. Called by the repository after an insert.
-	 *
-	 * @param int $id Row ID.
-	 */
-	public function set_id( int $id ): static {
-		$this->id = $id;
-
-		return $this;
 	}
 
 	/**

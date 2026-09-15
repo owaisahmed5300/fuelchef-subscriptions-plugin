@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Admin\Controllers;
 
+use FuelChef\Subscriptions\Admin\Concerns\Presents_Blackouts;
 use FuelChef\Subscriptions\Admin\Concerns\Verifies_Ajax_Request;
 use FuelChef\Subscriptions\Admin\Menu;
-use FuelChef\Subscriptions\Entities\Blackout;
 use FuelChef\Subscriptions\Entities\Schedule;
 use FuelChef\Subscriptions\Entities\Schedule_Destination;
 use FuelChef\Subscriptions\Entities\Schedule_Weekday;
@@ -37,6 +37,7 @@ defined( 'ABSPATH' ) || exit;
 final class Schedules_Controller {
 
 
+	use Presents_Blackouts;
 	use Verifies_Ajax_Request;
 
 	/**
@@ -152,25 +153,6 @@ final class Schedules_Controller {
 			'start_time'  => $weekday->start_time(),
 			'end_time'    => $weekday->end_time(),
 		];
-	}
-
-	/**
-	 * Shapes a list of blackouts for the calendar script.
-	 *
-	 * @param list<Blackout> $blackouts Blackouts to shape.
-	 *
-	 * @return list<array{id: int|null, date: string, label: string, reason: string|null}> The shaped blackouts.
-	 */
-	private function blackouts_for_js( array $blackouts ): array {
-		return array_map(
-			static fn ( Blackout $blackout ): array => [
-				'id'     => $blackout->id(),
-				'date'   => $blackout->date(),
-				'label'  => gmdate( 'M d, Y', (int) strtotime( $blackout->date() ) ),
-				'reason' => $blackout->reason(),
-			],
-			$blackouts
-		);
 	}
 
 	/**
