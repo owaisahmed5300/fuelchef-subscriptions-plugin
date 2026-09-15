@@ -100,13 +100,8 @@ final class Chosen_Shipping_Destination {
 
 	/**
 	 * The customer's first shipping package, or null when none is calculated yet.
-	 *
-	 * Classic checkout's own page render and AJAX handler both calculate shipping
-	 * earlier in the same request, before this is ever reached. Nothing guarantees that
-	 * for every caller - a bare REST route has nothing upstream to do it at all, and it
-	 * was not reliably true for block checkout's own field validation either, both
-	 * confirmed against the real site - so this calculates it itself whenever
-	 * `WC_Shipping` is not already holding a package to read.
+	 * Calculates it itself when `WC_Shipping` has nothing to read yet, since not every
+	 * caller (a bare REST route, for instance) has already triggered that upstream.
 	 *
 	 * @return array<string, mixed>|null The package, shaped as WooCommerce builds it.
 	 */

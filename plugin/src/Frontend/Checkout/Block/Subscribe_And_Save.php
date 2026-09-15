@@ -18,33 +18,16 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Registers the "Subscribe & Save" checkbox for the Checkout block, and applies the same
- * discount the classic checkout checkbox unlocks.
+ * discount the classic checkout checkbox unlocks. Only offered to a logged-in customer,
+ * same as classic checkout's own field.
  *
- * Two separate mechanisms apply the discount, for two separate moments:
- *
- * - While the customer is still filling out checkout, `assets/checkout/js/block-subscribe-
- *   and-save.js` reports the checkbox's value through the Store API's own documented
- *   `extensionCartUpdate()` mechanism, read here by `register_update_callback()`'s
- *   registered callback and stored in the session (`Classic_Subscribe_And_Save::
- *   set_session_checked()`). `WC_Cart`'s own recalculations - already firing on every
- *   address or shipping change to keep totals live - read that session value through the
- *   classic checkout class's shared `maybe_apply_discount()`, so the discount appears in
- *   the order summary immediately, the same way shipping and tax already do.
- * - At place-order, `apply_discount()` (below) applies the same discount directly to the
- *   order instead, via `woocommerce_store_api_checkout_update_order_from_request` -
- *   verified against the installed source to fire only after `order`-location fields are
- *   actually persisted onto the order (`CheckoutTrait::update_order_from_request()` calls
- *   `persist_additional_fields_for_order()` immediately before firing it). The sibling hook
- *   `woocommerce_store_api_checkout_update_order_meta` looked like the obvious choice and is
- *   even named for this - but it fires earlier, before that persistence, so the checkbox's
- *   value is not readable from the order yet at that point; confirmed by testing both end
- *   to end against the real site before settling on this one. This is the one that
- *   actually decides the order's price: WooCommerce Blocks defers creating the checkout's
- *   draft order until the customer places it, and - verified against the installed source
- *   - the one and only `calculate_totals()` call in the place-order request runs *before*
- *   that draft order exists, so nothing in that specific request could read an
- *   `order`-location field's value off a `WC_Cart` fee callback even if one were added
- *   there too.
+ * Two mechanisms apply the discount: a live cart-total preview, reported by
+ * `assets/checkout/js/block-subscribe-and-save.js` through the Store API's
+ * `extensionCartUpdate()` into the session (`Classic_Subscribe_And_Save::
+ * set_session_checked()`), read by `WC_Cart`'s own recalculations; and `apply_discount()`
+ * below, which applies the real discount directly to the order at place-order, since
+ * WooCommerce Blocks defers creating the order until then and no cart fee callback runs
+ * after that.
  */
 final class Subscribe_And_Save {
 
@@ -90,11 +73,11 @@ final class Subscribe_And_Save {
 	}
 
 	/**
-	 * Registers the field with the Checkout block, once WooCommerce Blocks itself is
-	 * ready for it.
+	 * Registers the field with the Checkout block for a logged-in customer, once
+	 * WooCommerce Blocks itself is ready for it.
 	 */
 	public function register_field(): void {
-		if ( ! function_exists( 'woocommerce_register_additional_checkout_field' ) ) {
+		if ( ! function_exists( 'woocommerce_register_additional_checkout_field' ) || ! is_user_logged_in() ) {
 			return;
 		}
 
@@ -117,10 +100,7 @@ final class Subscribe_And_Save {
 	/**
 	 * Registers the Store API update callback the checkbox's own enhancement script calls
 	 * through `extensionCartUpdate()`, so the checkbox's value reaches
-	 * `Classic_Subscribe_And_Save::set_session_checked()` without needing `$_POST` -
-	 * WooCommerce's own documented mechanism for a client-side action to change something
-	 * on the server and have the cart reflect it immediately, no different from how a
-	 * "subscribe to our newsletter for 10% off" checkbox is documented to apply a coupon.
+	 * `Classic_Subscribe_And_Save::set_session_checked()` without needing `$_POST`.
 	 */
 	public function register_update_callback(): void {
 		if ( ! function_exists( 'woocommerce_store_api_register_update_callback' ) ) {
@@ -141,15 +121,12 @@ final class Subscribe_And_Save {
 
 	/**
 	 * Adds or removes the discount fee on the order to match the checkbox's current
-	 * value. Fires on the place-order request, and the rare failed-payment retry that
-	 * reuses a pending order from the customer's session - never on an in-progress
-	 * draft, which this field's value never reaches. Idempotent: safe to run more than
-	 * once for the same order.
+	 * value. Idempotent: safe to run more than once for the same order.
 	 */
 	public function apply_discount( WC_Order $order ): void {
 		$this->remove_existing_fee( $order );
 
-		if ( $this->is_checked( $order ) ) {
+		if ( is_user_logged_in() && $this->is_checked( $order ) ) {
 			$amount = $this->discount_service->discount_amount( (float) $order->get_subtotal(), $this->settings->get() );
 
 			if ( $amount > 0.0 ) {
@@ -176,8 +153,7 @@ final class Subscribe_And_Save {
 
 	/**
 	 * Removes this plugin's own discount fee line from the order, if a previous call
-	 * already added one - so re-running this always leaves at most one, matching the
-	 * checkbox's latest value rather than accumulating a fee per update.
+	 * already added one.
 	 */
 	private function remove_existing_fee( WC_Order $order ): void {
 		foreach ( $order->get_items( 'fee' ) as $item_id => $item ) {

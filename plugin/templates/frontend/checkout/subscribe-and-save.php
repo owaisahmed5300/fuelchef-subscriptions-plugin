@@ -2,11 +2,8 @@
 /**
  * Classic checkout subscribe-and-save checkbox.
  *
- * Rendered by Frontend\Checkout\Subscribe_And_Save::render(), alongside the other
- * checkout fields via `woocommerce_form_field()` so it looks and behaves like a native
- * WooCommerce field. $data carries `checked` (bool), `label` (string) and `description`
- * (string, empty for none - both store-configured, with the {percent} placeholder already
- * resolved).
+ * $data carries `checked` (bool), `label` (string) and `description` (string, empty for
+ * none).
  */
 
 declare(strict_types=1);

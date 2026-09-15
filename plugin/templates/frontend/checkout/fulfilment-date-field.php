@@ -2,21 +2,13 @@
 /**
  * Classic checkout fulfilment date field.
  *
- * Rendered by Frontend\Checkout\Fulfilment_Date_Field::render() on
- * `woocommerce_review_order_after_shipping`, inside WooCommerce's own order review
- * `<table>` - a `<tr>`, not `woocommerce_form_field()`'s own `<p class="form-row">`
- * markup, since only `<tr>` is valid directly inside the `<tfoot>` this hook fires in.
+ * A `<tr>`, not `woocommerce_form_field()`'s own `<p>` markup - only `<tr>` is valid
+ * directly inside the `<tfoot>` this renders in.
  *
  * $data carries `eligible_dates` (list<string>, `Y-m-d`), `windows`
  * (array<string, array{start: string, end: string}>, keyed by date), `label` (string),
- * `description` (string, empty for none - both store-configured), `selected_date`
- * (string|null - the customer's own previous selection, restored only once still
- * eligible) and `selected_window` (array{start: string, end: string}|null, for
- * `selected_date`).
- *
- * The date picker is (re-)initialized by fulfilment-date-field.js on every
- * `updated_checkout` event, since this row's markup - like the rest of the order review
- * table - is fully replaced on every `update_order_review` AJAX refresh.
+ * `description` (string, empty for none), `selected_date` (string|null) and
+ * `selected_window` (array{start: string, end: string}|null).
  */
 
 declare(strict_types=1);
