@@ -9,6 +9,7 @@ namespace FuelChef\Subscriptions\Admin;
 
 use FuelChef\Subscriptions\Admin\Controllers\Schedules_Controller;
 use FuelChef\Subscriptions\Admin\Controllers\Settings_Controller;
+use FuelChef\Subscriptions\Utils\Narrow;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -57,7 +58,7 @@ final class Menu {
 			self::CAPABILITY,
 			self::SETTINGS_SLUG,
 			[ $this->settings_controller, 'render' ],
-			'dashicons-calendar-alt'
+			$this->icon_url()
 		);
 
 		add_submenu_page(
@@ -77,5 +78,15 @@ final class Menu {
 			self::SCHEDULES_SLUG,
 			[ $this->schedules_controller, 'render' ]
 		);
+	}
+
+	/**
+	 * The top-level menu's icon, base64-encoded per `add_menu_page()`'s own convention
+	 * for a custom SVG.
+	 */
+	private function icon_url(): string {
+		$svg = Narrow::string( file_get_contents( FUELCHEF_SUBSCRIPTIONS_DIR . 'assets/images/favicon.svg' ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+
+		return 'data:image/svg+xml;base64,' . base64_encode( $svg ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 	}
 }
