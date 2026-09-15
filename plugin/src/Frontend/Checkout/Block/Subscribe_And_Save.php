@@ -11,6 +11,7 @@ use Automattic\WooCommerce\Blocks\Domain\Services\CheckoutFields;
 use Automattic\WooCommerce\Blocks\Package;
 use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save as Classic_Subscribe_And_Save;
 use FuelChef\Subscriptions\Services\Settings_Store;
+use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
 use WC_Order;
 use WC_Order_Item_Fee;
 
@@ -72,7 +73,8 @@ final class Subscribe_And_Save {
 	 */
 	public function __construct(
 		private Settings_Store $settings,
-		private Classic_Subscribe_And_Save $discount
+		private Classic_Subscribe_And_Save $classic,
+		private Subscribe_Discount_Service $discount_service
 	) {
 	}
 
@@ -128,7 +130,7 @@ final class Subscribe_And_Save {
 			[
 				'namespace' => self::UPDATE_CALLBACK_NAMESPACE,
 				'callback'  => function ( array $data ): void {
-					$this->discount->set_session_checked(
+					$this->classic->set_session_checked(
 						isset( $data['checked'] ) && filter_var( $data['checked'], FILTER_VALIDATE_BOOLEAN )
 					);
 				},
@@ -147,7 +149,7 @@ final class Subscribe_And_Save {
 		$this->remove_existing_fee( $order );
 
 		if ( $this->is_checked( $order ) ) {
-			$amount = $this->discount->discount_amount( (float) $order->get_subtotal(), $this->settings->get() );
+			$amount = $this->discount_service->discount_amount( (float) $order->get_subtotal(), $this->settings->get() );
 
 			if ( $amount > 0.0 ) {
 				$this->add_fee( $order, $amount );

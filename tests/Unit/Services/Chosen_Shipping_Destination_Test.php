@@ -5,17 +5,17 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\WooCommerce;
+namespace FuelChef\Subscriptions\Tests\Unit\Services;
 
+use FuelChef\Subscriptions\Services\Chosen_Shipping_Destination;
+use FuelChef\Subscriptions\Services\Destination_Catalog;
 use FuelChef\Subscriptions\Tests\TestCase;
 use FuelChef\Subscriptions\Values\Destination_Type;
-use FuelChef\Subscriptions\WooCommerce\Chosen_Shipping_Destination;
-use FuelChef\Subscriptions\WooCommerce\Destination_Catalog;
 use WC_Shipping_Zone;
 use WC_Shipping_Zones;
 
 /**
- * @covers \FuelChef\Subscriptions\WooCommerce\Chosen_Shipping_Destination
+ * @covers \FuelChef\Subscriptions\Services\Chosen_Shipping_Destination
  */
 final class Chosen_Shipping_Destination_Test extends TestCase {
 

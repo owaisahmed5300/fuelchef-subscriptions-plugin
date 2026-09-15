@@ -17,7 +17,6 @@ use FuelChef\Subscriptions\Repositories\Provider as Repositories_Provider;
 use FuelChef\Subscriptions\Services\Provider as Services_Provider;
 use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Utils\Renderer;
-use FuelChef\Subscriptions\WooCommerce\Destination_Catalog;
 use wpdb;
 
 defined( 'ABSPATH' ) || exit;
@@ -62,7 +61,6 @@ final class Container {
 				}
 			);
 			$container->singleton( Clock::class );
-			$container->singleton( Destination_Catalog::class );
 			$container
 				->singleton( Renderer::class )
 				->addParameter( FUELCHEF_SUBSCRIPTIONS_DIR . 'templates' );

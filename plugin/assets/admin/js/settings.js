@@ -17,9 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
         cutoff_time: `${document.getElementById('cutoffTime').value}:00`,
         subscribe_discount_percent: document.getElementById('subscribeDiscountPercent').value,
         subscribe_applicability: document.getElementById('subscribeApplicability').value,
-        max_delivery_window_days: document.getElementById('maxDeliveryWindowDays').value,
-        delivery_date_label: document.getElementById('deliveryDateLabel').value,
-        delivery_date_description: document.getElementById('deliveryDateDescription').value,
+        max_fulfilment_window_days: document.getElementById('maxFulfilmentWindowDays').value,
+        fulfilment_date_label: document.getElementById('fulfilmentDateLabel').value,
+        fulfilment_date_description: document.getElementById('fulfilmentDateDescription').value,
         subscribe_save_label: document.getElementById('subscribeSaveLabel').value,
         subscribe_save_description: document.getElementById('subscribeSaveDescription').value
       }).done((response) => {

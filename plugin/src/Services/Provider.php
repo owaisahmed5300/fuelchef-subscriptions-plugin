@@ -24,8 +24,9 @@ final class Provider implements ServiceProvider {
 
 
 	/**
-	 * Registers the schedule, blackout and availability services, and the settings
-	 * store, as singletons wired to their repository dependencies.
+	 * Registers the schedule, blackout, availability and subscribe-discount services, the
+	 * settings store, the destination catalog and resolver, and the fulfilment window
+	 * resolver, as singletons wired to their dependencies.
 	 */
 	public function register( Base_Container $container ): void {
 		$container
@@ -49,6 +50,21 @@ final class Provider implements ServiceProvider {
 			->addParameter( Clock::class, true )
 			->addParameter( Schedule_Destination_Repository::class, true )
 			->addParameter( Schedule_Repository::class, true );
+
+		$container->singleton( Subscribe_Discount_Service::class );
+
+		$container->singleton( Destination_Catalog::class );
+
+		$container
+			->singleton( Chosen_Shipping_Destination::class )
+			->addParameter( Destination_Catalog::class, true );
+
+		$container
+			->singleton( Current_Fulfilment_Window::class )
+			->addParameter( Chosen_Shipping_Destination::class, true )
+			->addParameter( Availability_Service::class, true )
+			->addParameter( Settings_Store::class, true )
+			->addParameter( Clock::class, true );
 	}
 
 	/**

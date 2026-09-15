@@ -17,7 +17,7 @@ use InvalidArgumentException;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * One day of a schedule's weekly fulfillment hours.
+ * One day of a schedule's weekly fulfilment hours.
  */
 final class Schedule_Weekday implements Entity, Timestamped {
 
@@ -35,17 +35,17 @@ final class Schedule_Weekday implements Entity, Timestamped {
 	private int $day_of_week;
 
 	/**
-	 * Whether fulfillment happens on this day.
+	 * Whether fulfilment happens on this day.
 	 */
 	private bool $enabled;
 
 	/**
-	 * Earliest fulfillment time on this day, in `H:i:s` form.
+	 * Earliest fulfilment time on this day, in `H:i:s` form.
 	 */
 	private string $start_time;
 
 	/**
-	 * Latest fulfillment time on this day, in `H:i:s` form.
+	 * Latest fulfilment time on this day, in `H:i:s` form.
 	 */
 	private string $end_time;
 
@@ -54,9 +54,9 @@ final class Schedule_Weekday implements Entity, Timestamped {
 	 *
 	 * @param int    $schedule_id Schedule ID.
 	 * @param int    $day_of_week Day of week, 0 (Sunday) through 6 (Saturday).
-	 * @param bool   $enabled Whether fulfillment happens on this day.
-	 * @param string $start_time Earliest fulfillment time, in `H:i:s` form.
-	 * @param string $end_time Latest fulfillment time, in `H:i:s` form.
+	 * @param bool   $enabled Whether fulfilment happens on this day.
+	 * @param string $start_time Earliest fulfilment time, in `H:i:s` form.
+	 * @param string $end_time Latest fulfilment time, in `H:i:s` form.
 	 */
 	public function __construct(
 		int $schedule_id,
@@ -93,16 +93,16 @@ final class Schedule_Weekday implements Entity, Timestamped {
 	}
 
 	/**
-	 * Whether fulfillment happens on this day.
+	 * Whether fulfilment happens on this day.
 	 */
 	public function enabled(): bool {
 		return $this->enabled;
 	}
 
 	/**
-	 * Sets whether fulfillment happens on this day.
+	 * Sets whether fulfilment happens on this day.
 	 *
-	 * @param bool $enabled Whether fulfillment happens on this day.
+	 * @param bool $enabled Whether fulfilment happens on this day.
 	 */
 	public function set_enabled( bool $enabled ): static {
 		$this->enabled = $enabled;
@@ -111,14 +111,14 @@ final class Schedule_Weekday implements Entity, Timestamped {
 	}
 
 	/**
-	 * Earliest fulfillment time on this day, in `H:i:s` form.
+	 * Earliest fulfilment time on this day, in `H:i:s` form.
 	 */
 	public function start_time(): string {
 		return $this->start_time;
 	}
 
 	/**
-	 * Sets the earliest fulfillment time on this day.
+	 * Sets the earliest fulfilment time on this day.
 	 *
 	 * @param string $start_time Time of day, in `H:i:s` form.
 	 */
@@ -129,14 +129,14 @@ final class Schedule_Weekday implements Entity, Timestamped {
 	}
 
 	/**
-	 * Latest fulfillment time on this day, in `H:i:s` form.
+	 * Latest fulfilment time on this day, in `H:i:s` form.
 	 */
 	public function end_time(): string {
 		return $this->end_time;
 	}
 
 	/**
-	 * Sets the latest fulfillment time on this day.
+	 * Sets the latest fulfilment time on this day.
 	 *
 	 * @param string $end_time Time of day, in `H:i:s` form.
 	 */

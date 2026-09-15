@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return (response.data && response.data.message) ? response.data.message : fallback;
   }
 
-  // Weekly fulfillment days
+  // Weekly fulfilment days
   const DOWN_ARROW_ICON = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v9M4 8.5 8 12.5 12 8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   function renderDays() {

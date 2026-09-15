@@ -187,7 +187,7 @@ final class Availability_Service_Test extends Repository_TestCase {
 		$this->assertNull( $service->cutoff_deadline( $schedule, '2026-09-14' ) );
 	}
 
-	public function test_cutoff_deadline_is_the_configured_time_on_the_day_before_delivery(): void {
+	public function test_cutoff_deadline_is_the_configured_time_on_the_day_before_fulfilment(): void {
 		// 2026-09-18 is a Friday (day_of_week 5); its 1-day cutoff deadline is Thursday.
 		$service  = $this->service( [ $this->weekday_row( 4, 5, true ) ], [], 1, '23:30:00' );
 		$schedule = ( new Schedule( 'Test' ) )->set_id( 4 );
@@ -209,7 +209,7 @@ final class Availability_Service_Test extends Repository_TestCase {
 		$this->assertSame( '2026-09-12 09:00:00', $deadline->in_wp_timezone()->to_database() );
 	}
 
-	public function test_cutoff_deadline_with_zero_cutoff_days_falls_on_the_delivery_date_itself(): void {
+	public function test_cutoff_deadline_with_zero_cutoff_days_falls_on_the_fulfilment_date_itself(): void {
 		$service  = $this->service( [ $this->weekday_row( 4, 1, true ) ], [], 0, '09:00:00' );
 		$schedule = ( new Schedule( 'Test' ) )->set_id( 4 );
 

@@ -2,7 +2,7 @@
  * Block checkout - shared "Order information" section styling.
  *
  * `.wp-block-woocommerce-checkout-additional-information-block` is the Checkout block's
- * own wrapper around every field registered at the `order` location - both the delivery
+ * own wrapper around every field registered at the `order` location - both the fulfilment
  * date field and the subscribe-and-save checkbox render inside it. WooCommerce renders
  * this block last by default (after payment, just before the terms/place-order step),
  * so a highlighted, clearly-labelled box keeps both fields easy to notice wherever the

@@ -26,7 +26,7 @@ business logic.
    Concerns\Has_Timestamps`) if it has `date_created`/`date_updated` columns, which every
    table here does so far.
 3. Add a repository under `Repositories\` extending
-   `Repositories\Abstracts\Abstract_Repository<TheEntity>`. It supplies `$table`,
+   `Repositories\Abstract_Repository<TheEntity>`. It supplies `$table`,
    `$cache_group`, `hydrate()` and `dehydrate()`; `find()`/`insert()`/`update()`/
    `delete()` come from the base, and fire the actions described in "Hooks" below with no
    extra work. Register it in `Repositories\Provider`.
@@ -61,11 +61,15 @@ rather than trusting it — a filter can hand back anything.
 
 ## Services
 
-A service holds business logic and orchestrates repositories; it never touches `$wpdb`
-directly. Add one only when there is an actual business rule or cross-repository
-operation to hold - a single repository call with no validation belongs directly in the
-controller instead (see `Schedule_Destination_Repository::replace_for_schedule()`, called
-straight from the controller for exactly this reason).
+A service holds business logic; it never touches `$wpdb` directly. Most orchestrate this
+plugin's own repositories, but a service's job is "hold the business logic for a
+concern," not narrowly "sit in front of a repository" - `Destination_Catalog` and
+`Chosen_Shipping_Destination` are services that interpret WooCommerce's own data (shipping
+zones, pickup locations, the customer's chosen rate) into this plugin's domain vocabulary,
+with no repository underneath them at all. Add one only when there is an actual business
+rule or cross-repository operation to hold - a single repository call with no validation
+belongs directly in the controller instead (see `Schedule_Destination_Repository::
+replace_for_schedule()`, called straight from the controller for exactly this reason).
 
 - **Validation failures** are `Services\Exceptions\Validation_Exception` - one class,
   reused for every business-rule rejection (invalid date, duplicate date, blank name,
@@ -116,11 +120,27 @@ thing plausibly will. `Utils\Renderer` (template rendering) and `Values\Settings
 respectively - single-class directories that existed only because "settings" and
 "templating" sound like they should be namespaces, not because a second file was ever
 going to join either. Folded into the directories that already fit what each class *is*:
-`Renderer` is a small stateless utility, alongside `Clock`/`Input`/`Row_Caster`/`Str`;
+`Renderer` is a small stateless utility, alongside `Clock`/`Narrow`/`Str`;
 `Settings` is a value object, alongside `Destination_Option`/`DateTime`;
 `Settings_Store` is a service, alongside `Availability_Service`/`Schedule_Service` - and
 was already registered in `Services\Provider`, so the move just made the namespace match
 where it already lived operationally.
+
+The same reasoning retired the top-level `WooCommerce\` namespace: this whole plugin is a
+WooCommerce plugin, so "the parts that talk to WooCommerce" was never a real boundary
+distinct from "business logic" - `Destination_Catalog` and `Chosen_Shipping_Destination`
+are services (see "Services" above) and live in `Services\` like every other one. It also
+moved `Current_Delivery_Window` out of `Frontend\Checkout\` into `Services\` as
+`Current_Fulfilment_Window`, and `Subscribe_And_Save::discount_amount()` into its own
+`Services\Subscribe_Discount_Service` - both held real business logic that had been
+sitting in the `Frontend\` controller layer instead of `Services\`, which is what
+"Frontend checkout" below now describes. And `Utils\Input` and `Utils\Row_Caster` merged
+into one `Utils\Narrow`: both narrowed a `mixed` value from an untyped source (a
+superglobal, a `$wpdb` row) to a known PHP type with the identical method set - two
+classes doing the same job for two different callers, not two different jobs.
+`Repositories\Abstracts\Abstract_Repository` lost its single-class `Abstracts\`
+subdirectory for the same reason `Templating\`/`Settings\` did, and now sits directly in
+`Repositories\` the way `Database\Abstract_Installer` already sat directly in `Database\`.
 
 ## Admin
 
@@ -133,7 +153,7 @@ asset registration around it.
   table, the destination list) goes through `wp_localize_script()` instead of an inline
   `<script>` block with embedded PHP - simpler, and avoids fighting WPCS's rules on PHP
   tags mixed into HTML.
-- `Utils\Input::string()` narrows a `$_POST`/`$_GET` value before it reaches `absint()`/
+- `Utils\Narrow::string()` narrows a `$_POST`/`$_GET` value before it reaches `absint()`/
   `sanitize_text_field()` - PHPStan's strict rules reject passing a superglobal's `mixed`
   value to either directly.
 - **Match an admin screen on `$_GET['page']`, not `$hook_suffix`.** A submenu's hook
@@ -150,15 +170,17 @@ asset registration around it.
 ## Frontend checkout
 
 `plugin/src/Frontend/` is the storefront counterpart to `Admin\` - both checkout
-surfaces' delivery date field and subscribe-and-save discount live here, registered by
-`Frontend\Provider`. `Frontend\Checkout\Current_Delivery_Window` (schedule + eligible
-dates for whatever destination the customer currently has chosen) and `Frontend\Checkout\
-Subscribe_And_Save::discount_amount()` (the discount's own business rule) are shared by
-classic and block checkout's own field classes rather than duplicated - see "Block
-checkout" below for the block-specific pieces (`Frontend\Checkout\Block\*`) that consume
-them.
+surfaces' fulfilment date field and subscribe-and-save checkbox live here, registered by
+`Frontend\Provider`. Both are controller-shaped: they ask a `Services\` class what to
+show, and render, validate and persist strictly within what that already decided. The
+business logic behind them - `Services\Current_Fulfilment_Window` (schedule + eligible
+dates for whatever destination the customer currently has chosen) and `Services\
+Subscribe_Discount_Service::discount_amount()` (the discount's own business rule) - is
+registered by `Services\Provider` instead, and shared by classic and block checkout's own
+field classes rather than duplicated - see "Block checkout" below for the block-specific
+pieces (`Frontend\Checkout\Block\*`) that consume them.
 
-- `WooCommerce\Chosen_Shipping_Destination` turns whatever shipping rate the customer has
+- `Services\Chosen_Shipping_Destination` turns whatever shipping rate the customer has
   currently chosen into the `(type, key)` pair `Destination_Catalog` and
   `Availability_Service` already understand. A pickup rate (`pickup_location:2`) carries
   its own key; any other rate belongs to whichever zone matches the package's destination
@@ -173,23 +195,23 @@ them.
   that is not true of every context a resolver this general ends up called from (a bare
   custom REST route has nothing upstream to do it at all) - confirmed the hard way, see
   "Block checkout" below.
-- `Frontend\Checkout\Delivery_Date_Field` is the controller-shaped piece: it asks
-  `Current_Delivery_Window` what schedule and dates apply, and renders, validates and
+- `Frontend\Checkout\Fulfilment_Date_Field` is the controller-shaped piece: it asks
+  `Current_Fulfilment_Window` what schedule and dates apply, and renders, validates and
   persists strictly within what that already decided. Not unit-tested for the same reason
   `Admin\Controllers\*` are not - see "Testing" below.
 - **Why it hooks `woocommerce_checkout_after_customer_details`, not a custom fragment.**
   This field renders once, on the initial page load, alongside the other checkout fields -
   it is *not* part of the order review table, so it is never replaced by WooCommerce's own
   `update_order_review` AJAX refresh (`.woocommerce-checkout-review-order-table`). Instead
-  `assets/checkout/js/delivery-date-field.js` listens for the same `updated_checkout` event
-  that refresh fires and re-fetches eligible dates itself, from this plugin's own read-only
-  REST route (shared with block checkout, see "Block checkout" below), showing or hiding
-  the field as the customer's shipping destination changes.
+  `assets/checkout/js/fulfilment-date-field.js` listens for the same `updated_checkout`
+  event that refresh fires and re-fetches eligible dates itself, from this plugin's own
+  read-only REST route (shared with block checkout, see "Block checkout" below), showing
+  or hiding the field as the customer's shipping destination changes.
 - **Why eligibility is re-checked against a live REST fetch, not read back from the DOM.**
   The field is rendered once and never re-rendered server-side, so nothing about its own
   markup can tell it whether a shipping/address change invalidated the customer's earlier
-  selection. `Delivery_Date_Field::validate()` re-checks the posted date against
-  `Current_Delivery_Window::is_eligible_date()` at submission time regardless of what the
+  selection. `Fulfilment_Date_Field::validate()` re-checks the posted date against
+  `Current_Fulfilment_Window::is_eligible_date()` at submission time regardless of what the
   client-side script last displayed, so a selection made valid, then invalidated by a later
   change the customer never noticed, is still rejected server-side.
 - The calendar widget is [flatpickr](https://flatpickr.js.org/), vendored under
@@ -205,9 +227,10 @@ them.
   or leaks a stale one onto the cart page after an abandoned checkout. Reading `$_POST`
   fresh on every use makes a plain page load (no relevant `$_POST` at all) unchecked by
   construction, with nothing to reset.
-- Its `discount_amount()` is the one piece of this feature with a real business rule (the
-  `Subscribe_Applicability::RENEWAL_ONLY` gate) and is unit-tested; `maybe_apply_discount()`
-  around it is the thin, untested glue that reads the request and calls `WC_Cart::add_fee()`.
+- `Services\Subscribe_Discount_Service::discount_amount()` is the one piece of this
+  feature with a real business rule (the `Subscribe_Applicability::RENEWAL_ONLY` gate) and
+  is unit-tested; `Subscribe_And_Save::maybe_apply_discount()` around it is the thin,
+  untested glue that reads the request and calls `WC_Cart::add_fee()`.
 - **`WC_Cart::get_subtotal()` returns a numeric string, not the `float` its own PHPStan
   stub and docblock claim.** Caught at runtime, not by static analysis - `declare(strict_types=1)`
   on a method with a `float` parameter throws a `TypeError` rather than silently
@@ -220,17 +243,20 @@ them.
 
 ### Block checkout
 
-`Frontend\Checkout\Block\*` is the Checkout block's own delivery date field and
+`Frontend\Checkout\Block\*` is the Checkout block's own fulfilment date field and
 subscribe-and-save discount, registered via `woocommerce_register_additional_checkout_
-field()`. It shares `Current_Delivery_Window` and `Subscribe_And_Save::discount_amount()`
-with classic checkout, but the two checkout surfaces need genuinely different integration
-code around them - confirmed by reading the installed WooCommerce Blocks source directly,
-not assumed from its own docs (`docs/woocommerce-reference/` describes a `date` field
-type this installed version does not actually have - only `text`, `select` and
-`checkbox` exist in the real `CheckoutFields::$supported_field_types`).
+field()`. It shares `Services\Current_Fulfilment_Window` and `Services\
+Subscribe_Discount_Service::discount_amount()` with classic checkout, but the two checkout
+surfaces need genuinely different integration code around them - confirmed by reading the
+installed WooCommerce Blocks source directly, not assumed from its own docs
+(`docs/woocommerce-reference/` describes a `date` field type that, as of the installed
+11.1.0 - well past this plugin's own 9.8 floor - still does not exist: only `text`,
+`select` and `checkbox` exist in the real `CheckoutFields::$supported_field_types`, and
+even WooCommerce's own docs for the type describe only a continuous `min`/`max` range,
+never per-date exclusion, which this field needs for closed weekdays and blackout dates).
 
 - **The date field is `type: 'text'`, not `date`**, enhanced client-side with flatpickr
-  by `assets/checkout/js/block-delivery-date-field.js` - the same widget as classic
+  by `assets/checkout/js/block-fulfilment-date-field.js` - the same widget as classic
   checkout, applied differently since the Checkout block re-renders via React rather than
   a jQuery fragment swap. The script uses a `MutationObserver` on `document.body` to catch
   the field's input appearing (there is no `updated_checkout`-equivalent event to hook),
@@ -243,8 +269,8 @@ type this installed version does not actually have - only `text`, `select` and
   dates list the way classic checkout's server-rendered fragment does. The route has
   nothing upstream to load the cart or calculate shipping for it (a bare REST request is
   its own, otherwise-empty request), so it calls `wc_load_cart()` itself before asking
-  `Current_Delivery_Window` anything - `Chosen_Shipping_Destination` handles the shipping
-  calculation part of that itself, per the note above.
+  `Current_Fulfilment_Window` anything - `Chosen_Shipping_Destination` handles the
+  shipping calculation part of that itself, per the note above.
 - **The discount cannot use `WC_Cart`'s fee pipeline at all**, not even at final
   placement. WooCommerce Blocks defers creating the checkout's draft order until the
   customer actually places it (a 10.8.0 change), and the *only* `calculate_totals()` call
@@ -267,10 +293,11 @@ type this installed version does not actually have - only `text`, `select` and
 
 ## Row values are `mixed` — narrow them explicitly
 
-`$wpdb` returns every column as `string` or `null`; `Utils\Row_Caster` has the narrowing
+`$wpdb` returns every column as `string` or `null`; `Utils\Narrow` has the narrowing
 helpers (`string()`, `nullable_string()`, `int()`, `nullable_int()`, `bool()`) a
 `hydrate()` uses instead of casting a `mixed` value directly, which PHPStan's strict
-rules (level 10) reject.
+rules (level 10) reject. The same class narrows a `$_POST`/`$_GET` superglobal entry for
+the same reason - see "Admin" above.
 
 ## Testing
 

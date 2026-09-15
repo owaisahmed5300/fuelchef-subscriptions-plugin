@@ -5,9 +5,9 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\WooCommerce;
+namespace FuelChef\Subscriptions\Services;
 
-use FuelChef\Subscriptions\Utils\Row_Caster;
+use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Utils\Str;
 use FuelChef\Subscriptions\Values\Destination_Option;
 use FuelChef\Subscriptions\Values\Destination_Type;
@@ -137,9 +137,9 @@ final class Destination_Catalog {
 
 			$options[] = new Destination_Option(
 				Destination_Type::SHIPPING_ZONE,
-				(string) Row_Caster::int( $zone['zone_id'] ?? null ),
-				Row_Caster::string( $zone['zone_name'] ?? null ),
-				$this->blank_to_null( Row_Caster::string( $zone['formatted_zone_location'] ?? null ) )
+				(string) Narrow::int( $zone['zone_id'] ?? null ),
+				Narrow::string( $zone['zone_name'] ?? null ),
+				Str::blank_to_null( Narrow::string( $zone['formatted_zone_location'] ?? null ) )
 			);
 		}
 
@@ -182,7 +182,7 @@ final class Destination_Catalog {
 				continue;
 			}
 
-			$name = Row_Caster::string( $location['name'] ?? null );
+			$name = Narrow::string( $location['name'] ?? null );
 
 			if ( Str::is_blank( $name ) ) {
 				continue;
@@ -213,7 +213,7 @@ final class Destination_Catalog {
 			return false;
 		}
 
-		return 'yes' === Row_Caster::string( $settings['enabled'] ?? null );
+		return 'yes' === Narrow::string( $settings['enabled'] ?? null );
 	}
 
 	/**
@@ -229,7 +229,7 @@ final class Destination_Catalog {
 		$parts = [];
 
 		foreach ( [ 'address_1', 'city', 'state', 'postcode', 'country' ] as $part ) {
-			$value = Row_Caster::string( $address[ $part ] ?? null );
+			$value = Narrow::string( $address[ $part ] ?? null );
 
 			if ( Str::is_blank( $value ) ) {
 				continue;
@@ -239,15 +239,5 @@ final class Destination_Catalog {
 		}
 
 		return [] === $parts ? null : implode( ', ', $parts );
-	}
-
-	/**
-	 * Turns a blank string into null.
-	 *
-	 * `Row_Caster::string()` narrows a missing value to `''`; a zone with no formatted
-	 * location should read as "no description" rather than an empty one.
-	 */
-	private function blank_to_null( string $value ): ?string {
-		return Str::is_blank( $value ) ? null : $value;
 	}
 }

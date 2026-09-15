@@ -1,15 +1,15 @@
 <?php
 /**
- * Block checkout delivery date field.
+ * Block checkout fulfilment date field.
  */
 
 declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend\Checkout\Block;
 
-use FuelChef\Subscriptions\Frontend\Checkout\Current_Delivery_Window;
+use FuelChef\Subscriptions\Services\Current_Fulfilment_Window;
 use FuelChef\Subscriptions\Services\Settings_Store;
-use FuelChef\Subscriptions\Utils\Input;
+use FuelChef\Subscriptions\Utils\Narrow;
 use WP_Error;
 use WP_REST_Response;
 use WP_REST_Server;
@@ -17,21 +17,24 @@ use WP_REST_Server;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Registers the delivery date field for the Checkout block's "Order information" section.
+ * Registers the fulfilment date field for the Checkout block's "Order information"
+ * section.
  *
  * Flatpickr, not the Additional Checkout Fields API's native `date` type, by choice on
  * investigation, not by default:
  *
- * - It does not exist yet on the WooCommerce version this plugin targets - verified
- *   against the installed source (`CheckoutFields::$supported_field_types`), which lists
- *   only `text`, `select` and `checkbox`.
- * - Where it does exist (newer WooCommerce), its only configuration is a `min`/`max`
+ * - It still does not exist as of WooCommerce 11.1.0 (well past this plugin's own 9.8
+ *   floor) - verified against the installed source
+ *   (`CheckoutFields::$supported_field_types`), which lists only `text`, `select` and
+ *   `checkbox`.
+ * - Even where WooCommerce's own docs describe it, its only configuration is a `min`/`max`
  *   date range - there is no option to exclude individual dates within that range, which
  *   is exactly what this field needs for closed weekdays and blackout dates. A plain
- *   range cannot express that, so it would not replace Flatpickr even once available.
+ *   range can never express that, so a native `date` field could not replace Flatpickr
+ *   even if WooCommerce shipped it.
  *
  * So this registers a plain `text` field and leaves the calendar widget to
- * `assets/checkout/js/block-delivery-date-field.js`, which enhances it with flatpickr
+ * `assets/checkout/js/block-fulfilment-date-field.js`, which enhances it with flatpickr
  * client-side the same way the classic checkout field is enhanced.
  *
  * Unlike classic checkout, a block checkout field's value is not available to read back
@@ -39,19 +42,19 @@ defined( 'ABSPATH' ) || exit;
  * hands the posted value directly, so validating and rejecting an ineligible date needs
  * nothing extra.
  */
-final class Delivery_Date_Field {
+final class Fulfilment_Date_Field {
 
 
 	/**
 	 * This field's registered ID. Namespaced per the Additional Checkout Fields API's
 	 * own requirement.
 	 */
-	public const FIELD_ID = 'fuelchef-subscriptions/delivery-date';
+	public const FIELD_ID = 'fuelchef-subscriptions/fulfilment-date';
 
 	/**
 	 * The data attribute the enhancement script looks for on the rendered input.
 	 */
-	public const DATA_ATTRIBUTE = 'data-fcs-block-delivery-date';
+	public const DATA_ATTRIBUTE = 'data-fcs-block-fulfilment-date';
 
 	/**
 	 * The REST namespace and route the enhancement script fetches eligible dates from.
@@ -63,7 +66,7 @@ final class Delivery_Date_Field {
 	 * Creates the field handler.
 	 */
 	public function __construct(
-		private Current_Delivery_Window $window,
+		private Current_Fulfilment_Window $window,
 		private Settings_Store $settings
 	) {
 	}
@@ -92,7 +95,7 @@ final class Delivery_Date_Field {
 				// Not esc_html__(): the Checkout block renders this as a plain React text
 				// node, not raw HTML, so an HTML-escaped string shows its literal entities
 				// (e.g. "&amp;") instead of being decoded.
-				'label'      => $this->settings->get()->delivery_date_label(),
+				'label'      => $this->settings->get()->fulfilment_date_label(),
 				'location'   => 'order',
 				'type'       => 'text',
 				'required'   => false,
@@ -124,21 +127,21 @@ final class Delivery_Date_Field {
 			return;
 		}
 
-		$posted = Input::string( $field_value );
+		$posted = Narrow::string( $field_value );
 
 		if ( $this->window->is_eligible_date( $schedule, $posted ) ) {
 			return;
 		}
 
 		$errors->add(
-			'fcs_delivery_date',
-			esc_html__( 'Please choose a delivery date.', 'fuelchef-subscriptions' )
+			'fcs_fulfilment_date',
+			esc_html__( 'Please choose a fulfilment date.', 'fuelchef-subscriptions' )
 		);
 	}
 
 	/**
 	 * Registers the read-only route the enhancement script polls for the currently
-	 * eligible delivery dates, since a registered field's own options are fixed at
+	 * eligible fulfilment dates, since a registered field's own options are fixed at
 	 * registration time and cannot carry a live, per-request date list.
 	 */
 	public function register_rest_route(): void {
@@ -164,7 +167,7 @@ final class Delivery_Date_Field {
 	 * route (and the cart-loading workaround below) twice.
 	 *
 	 * Classic checkout's own page render and AJAX handler both load the cart earlier in
-	 * the same request, before `Current_Delivery_Window` is ever asked to resolve
+	 * the same request, before `Current_Fulfilment_Window` is ever asked to resolve
 	 * anything - confirmed by reading both code paths. A bare REST request has none of
 	 * that: `WC()->cart` is null here until `wc_load_cart()` is called.
 	 * `Chosen_Shipping_Destination` calculates shipping itself once the cart exists, so

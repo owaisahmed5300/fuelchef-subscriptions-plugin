@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend;
 
-use FuelChef\Subscriptions\Frontend\Checkout\Block\Delivery_Date_Field as Block_Delivery_Date_Field;
+use FuelChef\Subscriptions\Frontend\Checkout\Block\Fulfilment_Date_Field as Block_Fulfilment_Date_Field;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Locale;
 
@@ -65,15 +65,15 @@ final class Assets {
 		);
 
 		wp_enqueue_style(
-			'fcs-checkout',
-			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/css/delivery-date-field.css',
+			'fcs-fulfilment-date',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/css/fulfilment-date-field.css',
 			[ 'fcs-flatpickr' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION
 		);
 
 		wp_enqueue_style(
-			'fcs-block-checkout',
-			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/css/block-delivery-date-field.css',
+			'fcs-block-fulfilment-date',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/css/block-fulfilment-date-field.css',
 			[ 'fcs-flatpickr' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION
 		);
@@ -101,17 +101,17 @@ final class Assets {
 		);
 
 		wp_enqueue_script(
-			'fcs-checkout',
-			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/delivery-date-field.js',
+			'fcs-fulfilment-date',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/fulfilment-date-field.js',
 			[ 'jquery', 'fcs-flatpickr', 'fcs-checkout-shared' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION,
 			true
 		);
 
 		wp_enqueue_script(
-			'fcs-block-checkout',
-			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/block-delivery-date-field.js',
-			[ 'jquery', 'fcs-checkout', 'fcs-checkout-shared' ],
+			'fcs-block-fulfilment-date',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/block-fulfilment-date-field.js',
+			[ 'jquery', 'fcs-fulfilment-date', 'fcs-checkout-shared' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION,
 			true
 		);
@@ -119,7 +119,7 @@ final class Assets {
 		wp_enqueue_script(
 			'fcs-block-checkout-subscribe',
 			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/block-subscribe-and-save.js',
-			[ 'jquery', 'fcs-checkout' ],
+			[ 'jquery', 'fcs-fulfilment-date' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION,
 			true
 		);
@@ -127,14 +127,14 @@ final class Assets {
 		$settings = $this->settings->get();
 
 		wp_localize_script(
-			'fcs-checkout',
+			'fcs-fulfilment-date',
 			'fcsCheckout',
 			[
-				'startOfWeek'              => $this->start_of_week(),
-				'eligibleDatesUrl'         => rest_url( Block_Delivery_Date_Field::REST_NAMESPACE . Block_Delivery_Date_Field::REST_ROUTE ),
-				'deliveryDateDescription'  => $settings->delivery_date_description(),
-				'subscribeSaveDescription' => $settings->subscribe_save_description_resolved(),
-				'i18n'                     => $this->strings(),
+				'startOfWeek'               => $this->start_of_week(),
+				'eligibleDatesUrl'          => rest_url( Block_Fulfilment_Date_Field::REST_NAMESPACE . Block_Fulfilment_Date_Field::REST_ROUTE ),
+				'fulfilmentDateDescription' => $settings->fulfilment_date_description(),
+				'subscribeSaveDescription'  => $settings->subscribe_save_description_resolved(),
+				'i18n'                      => $this->strings(),
 			]
 		);
 	}
@@ -158,13 +158,13 @@ final class Assets {
 	 */
 	private function strings(): array {
 		return [
-			'chooseDate'      => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
+			'chooseDate'       => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
 			/* translators: %1$s: opening time, %2$s: closing time. Resolved client-side. */
-			'deliveryWindow'  => esc_html__( 'Delivery available between %1$s and %2$s.', 'fuelchef-subscriptions' ),
-			'monthNames'      => array_values( Locale::current()->month ),
-			'monthNamesShort' => array_values( Locale::current()->month_abbrev ),
-			'dayNames'        => array_values( Locale::current()->weekday ),
-			'dayNamesShort'   => array_values( Locale::current()->weekday_abbrev ),
+			'fulfilmentWindow' => esc_html__( 'Fulfilment available between %1$s and %2$s.', 'fuelchef-subscriptions' ),
+			'monthNames'       => array_values( Locale::current()->month ),
+			'monthNamesShort'  => array_values( Locale::current()->month_abbrev ),
+			'dayNames'         => array_values( Locale::current()->weekday ),
+			'dayNamesShort'    => array_values( Locale::current()->weekday_abbrev ),
 		];
 	}
 }

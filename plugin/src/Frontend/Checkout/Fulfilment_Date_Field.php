@@ -1,14 +1,15 @@
 <?php
 /**
- * Checkout delivery date field.
+ * Checkout fulfilment date field.
  */
 
 declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend\Checkout;
 
+use FuelChef\Subscriptions\Services\Current_Fulfilment_Window;
 use FuelChef\Subscriptions\Services\Settings_Store;
-use FuelChef\Subscriptions\Utils\Input;
+use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Utils\Renderer;
 use WC_Order;
 use WP_Error;
@@ -16,37 +17,37 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Adds a delivery date field to classic checkout, alongside the other checkout fields.
+ * Adds a fulfilment date field to classic checkout, alongside the other checkout fields.
  *
  * Rendered once, on the initial page load - unlike the order review table, this part of
  * checkout is not replaced by WooCommerce's own `update_order_review` AJAX refresh, so
- * `assets/checkout/js/delivery-date-field.js` re-fetches eligible dates itself (the same
+ * `assets/checkout/js/fulfilment-date-field.js` re-fetches eligible dates itself (the same
  * REST route the block checkout field already uses) whenever the customer's shipping
  * destination might have changed, and shows or hides the field accordingly.
  *
- * Reads and writes nothing of its own: it asks `Current_Delivery_Window` what schedule
+ * Reads and writes nothing of its own: it asks `Current_Fulfilment_Window` what schedule
  * and dates apply to whatever the customer picked, and renders, validates and persists
  * strictly within what that already decided.
  */
-final class Delivery_Date_Field {
+final class Fulfilment_Date_Field {
 
 
 	/**
 	 * The checkout field's name, used both in the posted form data and the order meta
 	 * key's un-prefixed form.
 	 */
-	public const FIELD_NAME = 'fcs_delivery_date';
+	public const FIELD_NAME = 'fcs_fulfilment_date';
 
 	/**
 	 * The order meta key the chosen date is saved under.
 	 */
-	public const META_KEY = '_fcs_delivery_date';
+	public const META_KEY = '_fcs_fulfilment_date';
 
 	/**
 	 * Creates the field handler.
 	 */
 	public function __construct(
-		private Current_Delivery_Window $window,
+		private Current_Fulfilment_Window $window,
 		private Settings_Store $settings,
 		private Renderer $renderer
 	) {
@@ -74,13 +75,13 @@ final class Delivery_Date_Field {
 		$settings       = $this->settings->get();
 
 		$html = $this->renderer->render(
-			'frontend/checkout/delivery-date-field',
+			'frontend/checkout/fulfilment-date-field',
 			[
 				'has_schedule'   => null !== $schedule,
 				'eligible_dates' => $eligible_dates,
 				'windows'        => null !== $schedule ? $this->window->windows_for_dates( $schedule, $eligible_dates ) : [],
-				'label'          => $settings->delivery_date_label(),
-				'description'    => $settings->delivery_date_description(),
+				'label'          => $settings->fulfilment_date_label(),
+				'description'    => $settings->fulfilment_date_description(),
 			]
 		);
 
@@ -101,15 +102,15 @@ final class Delivery_Date_Field {
 			return;
 		}
 
-		$posted = Input::string( $data[ self::FIELD_NAME ] ?? null );
+		$posted = Narrow::string( $data[ self::FIELD_NAME ] ?? null );
 
 		if ( $this->window->is_eligible_date( $schedule, $posted ) ) {
 			return;
 		}
 
 		$errors->add(
-			'fcs_delivery_date',
-			esc_html__( 'Please choose a delivery date.', 'fuelchef-subscriptions' )
+			'fcs_fulfilment_date',
+			esc_html__( 'Please choose a fulfilment date.', 'fuelchef-subscriptions' )
 		);
 	}
 
@@ -125,6 +126,6 @@ final class Delivery_Date_Field {
 			return;
 		}
 
-		$order->update_meta_data( self::META_KEY, Input::string( $data[ self::FIELD_NAME ] ?? null ) );
+		$order->update_meta_data( self::META_KEY, Narrow::string( $data[ self::FIELD_NAME ] ?? null ) );
 	}
 }

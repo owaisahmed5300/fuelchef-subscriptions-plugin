@@ -33,17 +33,17 @@ final class Settings {
 	/**
 	 * Creates the settings value object.
 	 *
-	 * @param int    $cutoff_days How many days before the delivery date an order locks.
+	 * @param int    $cutoff_days How many days before the fulfilment date an order locks.
 	 * @param string $cutoff_time The time of day an order locks, in `H:i:s` form.
 	 * @param int    $subscribe_discount_percent Discount applied when a customer
 	 *                                            subscribes, 0-100.
 	 * @param string $subscribe_applicability One of the `Subscribe_Applicability`
 	 *                                        constants.
-	 * @param int    $max_delivery_window_days How many days into the future a customer
-	 *                                         can choose a delivery date.
-	 * @param string $delivery_date_label Checkout field label for the delivery date.
-	 * @param string $delivery_date_description Checkout help text for the delivery date,
-	 *                                          or an empty string to show none.
+	 * @param int    $max_fulfilment_window_days How many days into the future a customer
+	 *                                           can choose a fulfilment date.
+	 * @param string $fulfilment_date_label Checkout field label for the fulfilment date.
+	 * @param string $fulfilment_date_description Checkout help text for the fulfilment
+	 *                                            date, or an empty string to show none.
 	 * @param string $subscribe_save_label Checkout checkbox label for the subscribe
 	 *                                     discount. May contain the placeholder
 	 *                                     `{percent}`, replaced with the current discount.
@@ -56,9 +56,9 @@ final class Settings {
 		private string $cutoff_time,
 		private int $subscribe_discount_percent,
 		private string $subscribe_applicability,
-		private int $max_delivery_window_days,
-		private string $delivery_date_label,
-		private string $delivery_date_description,
+		private int $max_fulfilment_window_days,
+		private string $fulfilment_date_label,
+		private string $fulfilment_date_description,
 		private string $subscribe_save_label,
 		private string $subscribe_save_description
 	) {
@@ -80,9 +80,9 @@ final class Settings {
 			throw new InvalidArgumentException( esc_html__( 'Invalid subscribe applicability.', 'fuelchef-subscriptions' ) );
 		}
 
-		if ( $max_delivery_window_days < 1 ) {
+		if ( $max_fulfilment_window_days < 1 ) {
 			throw new InvalidArgumentException(
-				esc_html__( 'Maximum delivery window must be at least 1 day.', 'fuelchef-subscriptions' )
+				esc_html__( 'Maximum fulfilment window must be at least 1 day.', 'fuelchef-subscriptions' )
 			);
 		}
 
@@ -92,21 +92,21 @@ final class Settings {
 	}
 
 	/**
-	 * Rejects a blank or over-length delivery date or subscribe-and-save label, or an
+	 * Rejects a blank or over-length fulfilment date or subscribe-and-save label, or an
 	 * over-length description. A description may be blank - that means the store shows
 	 * none.
 	 */
 	private function validate_checkout_copy(): void {
-		if ( '' === trim( $this->delivery_date_label ) ) {
-			throw new InvalidArgumentException( esc_html__( 'Delivery date label cannot be blank.', 'fuelchef-subscriptions' ) );
+		if ( '' === trim( $this->fulfilment_date_label ) ) {
+			throw new InvalidArgumentException( esc_html__( 'Fulfilment date label cannot be blank.', 'fuelchef-subscriptions' ) );
 		}
 
-		if ( strlen( $this->delivery_date_label ) > self::MAX_LABEL_LENGTH ) {
-			throw new InvalidArgumentException( esc_html__( 'Delivery date label is too long.', 'fuelchef-subscriptions' ) );
+		if ( strlen( $this->fulfilment_date_label ) > self::MAX_LABEL_LENGTH ) {
+			throw new InvalidArgumentException( esc_html__( 'Fulfilment date label is too long.', 'fuelchef-subscriptions' ) );
 		}
 
-		if ( strlen( $this->delivery_date_description ) > self::MAX_DESCRIPTION_LENGTH ) {
-			throw new InvalidArgumentException( esc_html__( 'Delivery date description is too long.', 'fuelchef-subscriptions' ) );
+		if ( strlen( $this->fulfilment_date_description ) > self::MAX_DESCRIPTION_LENGTH ) {
+			throw new InvalidArgumentException( esc_html__( 'Fulfilment date description is too long.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( '' === trim( $this->subscribe_save_label ) ) {
@@ -123,7 +123,7 @@ final class Settings {
 	}
 
 	/**
-	 * How many days before the delivery date an order locks.
+	 * How many days before the fulfilment date an order locks.
 	 */
 	public function cutoff_days(): int {
 		return $this->cutoff_days;
@@ -152,24 +152,24 @@ final class Settings {
 	}
 
 	/**
-	 * How many days into the future a customer can choose a delivery date.
+	 * How many days into the future a customer can choose a fulfilment date.
 	 */
-	public function max_delivery_window_days(): int {
-		return $this->max_delivery_window_days;
+	public function max_fulfilment_window_days(): int {
+		return $this->max_fulfilment_window_days;
 	}
 
 	/**
-	 * Checkout field label for the delivery date.
+	 * Checkout field label for the fulfilment date.
 	 */
-	public function delivery_date_label(): string {
-		return $this->delivery_date_label;
+	public function fulfilment_date_label(): string {
+		return $this->fulfilment_date_label;
 	}
 
 	/**
-	 * Checkout help text for the delivery date, empty when the store shows none.
+	 * Checkout help text for the fulfilment date, empty when the store shows none.
 	 */
-	public function delivery_date_description(): string {
-		return $this->delivery_date_description;
+	public function fulfilment_date_description(): string {
+		return $this->fulfilment_date_description;
 	}
 
 	/**

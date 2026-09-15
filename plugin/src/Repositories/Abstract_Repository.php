@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Repositories\Abstracts;
+namespace FuelChef\Subscriptions\Repositories;
 
 use FuelChef\Subscriptions\Contracts\Entity;
 use FuelChef\Subscriptions\Contracts\Timestamped;

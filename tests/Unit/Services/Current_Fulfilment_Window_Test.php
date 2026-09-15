@@ -1,31 +1,31 @@
 <?php
 /**
- * Unit tests for the current checkout delivery window resolver.
+ * Unit tests for the current checkout fulfilment window resolver.
  */
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\Frontend\Checkout;
+namespace FuelChef\Subscriptions\Tests\Unit\Services;
 
 use Brain\Monkey\Functions;
 use DateTimeImmutable;
 use DateTimeZone;
 use FuelChef\Subscriptions\Entities\Schedule;
-use FuelChef\Subscriptions\Frontend\Checkout\Current_Delivery_Window;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
 use FuelChef\Subscriptions\Services\Availability_Service;
+use FuelChef\Subscriptions\Services\Chosen_Shipping_Destination;
+use FuelChef\Subscriptions\Services\Current_Fulfilment_Window;
+use FuelChef\Subscriptions\Services\Destination_Catalog;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Tests\Unit\Repositories\Repository_TestCase;
-use FuelChef\Subscriptions\WooCommerce\Chosen_Shipping_Destination;
-use FuelChef\Subscriptions\WooCommerce\Destination_Catalog;
 
 /**
- * @covers \FuelChef\Subscriptions\Frontend\Checkout\Current_Delivery_Window
+ * @covers \FuelChef\Subscriptions\Services\Current_Fulfilment_Window
  */
-final class Current_Delivery_Window_Test extends Repository_TestCase {
+final class Current_Fulfilment_Window_Test extends Repository_TestCase {
 
 
 	protected function setUp(): void {
@@ -41,7 +41,7 @@ final class Current_Delivery_Window_Test extends Repository_TestCase {
 	/**
 	 * @param list<array<string, mixed>> $weekday_rows
 	 */
-	private function window( array $weekday_rows ): Current_Delivery_Window {
+	private function window( array $weekday_rows ): Current_Fulfilment_Window {
 		$weekday_wpdb = $this->wpdb();
 		$weekday_wpdb->shouldReceive( 'get_results' )->andReturn( $weekday_rows );
 
@@ -54,7 +54,7 @@ final class Current_Delivery_Window_Test extends Repository_TestCase {
 			new Schedule_Repository( $this->wpdb(), $this->clock() )
 		);
 
-		return new Current_Delivery_Window(
+		return new Current_Fulfilment_Window(
 			new Chosen_Shipping_Destination( new Destination_Catalog() ),
 			$availability,
 			new Settings_Store(),
@@ -112,14 +112,14 @@ final class Current_Delivery_Window_Test extends Repository_TestCase {
 		$this->assertSame( [], $window->windows_for_dates( $schedule, [] ) );
 	}
 
-	public function test_eligible_dates_is_bounded_by_the_configured_max_delivery_window(): void {
+	public function test_eligible_dates_is_bounded_by_the_configured_max_fulfilment_window(): void {
 		Functions\when( 'get_option' )->alias(
 			static fn ( string $key, mixed $default = false ): mixed => match ( $key ) {
 				'time_format' => 'g:i a',
 				default => [
-					'max_delivery_window_days' => 2,
-					'cutoff_days'               => 0,
-					'cutoff_time'               => '00:00:00',
+					'max_fulfilment_window_days' => 2,
+					'cutoff_days'                => 0,
+					'cutoff_time'                => '00:00:00',
 				],
 			}
 		);
@@ -141,7 +141,7 @@ final class Current_Delivery_Window_Test extends Repository_TestCase {
 			new Schedule_Repository( $this->wpdb(), $this->clock() )
 		);
 
-		$window = new Current_Delivery_Window(
+		$window = new Current_Fulfilment_Window(
 			new Chosen_Shipping_Destination( new Destination_Catalog() ),
 			$availability,
 			new Settings_Store(),
@@ -165,9 +165,9 @@ final class Current_Delivery_Window_Test extends Repository_TestCase {
 			static fn ( string $key, mixed $default = false ): mixed => match ( $key ) {
 				'time_format' => 'g:i a',
 				default => [
-					'max_delivery_window_days' => 2,
-					'cutoff_days'               => 0,
-					'cutoff_time'               => '00:00:00',
+					'max_fulfilment_window_days' => 2,
+					'cutoff_days'                => 0,
+					'cutoff_time'                => '00:00:00',
 				],
 			}
 		);
@@ -189,7 +189,7 @@ final class Current_Delivery_Window_Test extends Repository_TestCase {
 			new Schedule_Repository( $this->wpdb(), $this->clock() )
 		);
 
-		$window = new Current_Delivery_Window(
+		$window = new Current_Fulfilment_Window(
 			new Chosen_Shipping_Destination( new Destination_Catalog() ),
 			$availability,
 			new Settings_Store(),

@@ -33,7 +33,7 @@ final class Settings_Store {
 	private const DEFAULT_CUTOFF_TIME                = '17:00:00';
 	private const DEFAULT_SUBSCRIBE_DISCOUNT_PERCENT = 5;
 	private const DEFAULT_SUBSCRIBE_APPLICABILITY    = Subscribe_Applicability::INITIAL_AND_RENEWALS;
-	private const DEFAULT_MAX_DELIVERY_WINDOW_DAYS   = 60;
+	private const DEFAULT_MAX_FULFILMENT_WINDOW_DAYS = 60;
 
 	/**
 	 * The current settings, falling back to defaults for anything missing or invalid.
@@ -49,9 +49,9 @@ final class Settings_Store {
 			$this->cutoff_time( $this->raw( $stored, 'cutoff_time' ) ),
 			$this->discount_percent( $this->raw( $stored, 'subscribe_discount_percent' ) ),
 			$this->applicability( $this->raw( $stored, 'subscribe_applicability' ) ),
-			$this->max_delivery_window_days( $this->raw( $stored, 'max_delivery_window_days' ) ),
-			$this->label( $this->raw( $stored, 'delivery_date_label' ), $this->default_delivery_date_label() ),
-			$this->description( $this->raw( $stored, 'delivery_date_description' ) ),
+			$this->max_fulfilment_window_days( $this->raw( $stored, 'max_fulfilment_window_days' ) ),
+			$this->label( $this->raw( $stored, 'fulfilment_date_label' ), $this->default_fulfilment_date_label() ),
+			$this->description( $this->raw( $stored, 'fulfilment_date_description' ) ),
 			$this->label( $this->raw( $stored, 'subscribe_save_label' ), $this->default_subscribe_save_label() ),
 			$this->description( $this->raw( $stored, 'subscribe_save_description' ) )
 		);
@@ -73,15 +73,15 @@ final class Settings_Store {
 		update_option(
 			self::OPTION_KEY,
 			[
-				'cutoff_days'                => $settings->cutoff_days(),
-				'cutoff_time'                => $settings->cutoff_time(),
-				'subscribe_discount_percent' => $settings->subscribe_discount_percent(),
-				'subscribe_applicability'    => $settings->subscribe_applicability(),
-				'max_delivery_window_days'   => $settings->max_delivery_window_days(),
-				'delivery_date_label'        => $settings->delivery_date_label(),
-				'delivery_date_description'  => $settings->delivery_date_description(),
-				'subscribe_save_label'       => $settings->subscribe_save_label(),
-				'subscribe_save_description' => $settings->subscribe_save_description(),
+				'cutoff_days'                 => $settings->cutoff_days(),
+				'cutoff_time'                 => $settings->cutoff_time(),
+				'subscribe_discount_percent'  => $settings->subscribe_discount_percent(),
+				'subscribe_applicability'     => $settings->subscribe_applicability(),
+				'max_fulfilment_window_days'  => $settings->max_fulfilment_window_days(),
+				'fulfilment_date_label'       => $settings->fulfilment_date_label(),
+				'fulfilment_date_description' => $settings->fulfilment_date_description(),
+				'subscribe_save_label'        => $settings->subscribe_save_label(),
+				'subscribe_save_description'  => $settings->subscribe_save_description(),
 			]
 		);
 
@@ -94,11 +94,11 @@ final class Settings_Store {
 	}
 
 	/**
-	 * The default delivery date checkout field label, translated once here rather than
+	 * The default fulfilment date checkout field label, translated once here rather than
 	 * hardcoded in `Settings`, which has no access to WordPress i18n context at call time.
 	 */
-	private function default_delivery_date_label(): string {
-		return esc_html__( 'Delivery date', 'fuelchef-subscriptions' );
+	private function default_fulfilment_date_label(): string {
+		return esc_html__( 'Fulfilment date', 'fuelchef-subscriptions' );
 	}
 
 	/**
@@ -164,19 +164,19 @@ final class Settings_Store {
 	}
 
 	/**
-	 * Narrows a stored maximum delivery window, falling back to the default when it is
+	 * Narrows a stored maximum fulfilment window, falling back to the default when it is
 	 * missing or not a positive number of days.
 	 *
 	 * @param mixed $value Raw stored value.
 	 */
-	private function max_delivery_window_days( mixed $value ): int {
+	private function max_fulfilment_window_days( mixed $value ): int {
 		if ( ! is_numeric( $value ) ) {
-			return self::DEFAULT_MAX_DELIVERY_WINDOW_DAYS;
+			return self::DEFAULT_MAX_FULFILMENT_WINDOW_DAYS;
 		}
 
 		$days = (int) $value;
 
-		return $days >= 1 ? $days : self::DEFAULT_MAX_DELIVERY_WINDOW_DAYS;
+		return $days >= 1 ? $days : self::DEFAULT_MAX_FULFILMENT_WINDOW_DAYS;
 	}
 
 	/**
