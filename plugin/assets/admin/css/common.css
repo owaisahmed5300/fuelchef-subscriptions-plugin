@@ -90,17 +90,6 @@ body {
   gap: 10px;
 }
 
-.fcs-badge-plugin {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  background: var(--fcs-wp-theme-tint);
-  color: var(--fcs-wp-theme);
-  border-radius: var(--fcs-radius-full);
-  border: 1px solid rgba(34, 113, 177, 0.15);
-  letter-spacing: 0.02em;
-}
-
 .fcs-page-subtitle {
   color: var(--fcs-color-text-muted);
   font-size: 13px;

@@ -37,3 +37,16 @@
 .fcs-inline-field .fcs-input--number {
   width: 90px;
 }
+
+/* A single input followed by short trailing text, already under its own .fcs-field
+   label - just alignment, none of .fcs-inline-field's boxed treatment. */
+.fcs-inline-value {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fcs-inline-value span {
+  color: var(--fcs-color-text-muted);
+  font-size: 13px;
+}

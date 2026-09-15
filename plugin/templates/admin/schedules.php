@@ -3,8 +3,9 @@
  * Schedules admin screen.
  *
  * Rendered by Schedules_Controller::render(). $data carries `schedules`
- * (list<Entities\Schedule>) and `selected` (Entities\Schedule|null). The weekday table,
- * blackout calendar and destination list all read their own data from the
+ * (list<Entities\Schedule>), `selected` (Entities\Schedule|null) and
+ * `destination_counts` (array<int, int>, keyed by schedule id, for the sidebar list). The
+ * weekday table, blackout calendar and destination list all read their own data from the
  * `fcsSchedulesData` script localization instead - see the controller.
  */
 
@@ -21,7 +22,7 @@ $selected = $data['selected'];
 	<header class="fcs-page-header">
 		<h1 class="fcs-page-title">
 			<?php esc_html_e( 'FuelChef Subscriptions', 'fuelchef-subscriptions' ); ?>
-			<span class="fcs-badge-plugin"><?php esc_html_e( 'Schedules', 'fuelchef-subscriptions' ); ?></span>
+			&rsaquo; <?php esc_html_e( 'Schedules', 'fuelchef-subscriptions' ); ?>
 		</h1>
 		<p class="fcs-page-subtitle">
 			<?php esc_html_e( 'Configure operating fulfilment days, fulfilment hours, localized closures, and destination zones.', 'fuelchef-subscriptions' ); ?>
@@ -37,12 +38,26 @@ $selected = $data['selected'];
 				<div class="fcs-card__body fcs-card__body--tight">
 					<ul class="fcs-schedule-nav">
 						<?php foreach ( $data['schedules'] as $schedule ) : ?>
+							<?php $destination_count = $data['destination_counts'][ (int) $schedule->id() ] ?? 0; ?>
 							<li>
 								<a
 									class="fcs-schedule-nav__link<?php echo $selected && $selected->id() === $schedule->id() ? ' fcs-schedule-nav__link--active' : ''; ?>"
 									href="<?php echo esc_url( $base_url . '&schedule_id=' . $schedule->id() ); ?>"
 								>
-									<div class="fcs-schedule-nav__title"><?php echo esc_html( $schedule->name() ); ?></div>
+									<div>
+										<div class="fcs-schedule-nav__title"><?php echo esc_html( $schedule->name() ); ?></div>
+										<div class="fcs-schedule-nav__meta">
+											<?php
+											echo esc_html(
+												sprintf(
+													/* translators: %d: number of destinations assigned to the schedule. */
+													_n( '%d destination', '%d destinations', $destination_count, 'fuelchef-subscriptions' ),
+													$destination_count
+												)
+											);
+											?>
+										</div>
+									</div>
 									<svg class="fcs-schedule-nav__chev" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
 								</a>
 							</li>
@@ -101,7 +116,7 @@ $selected = $data['selected'];
 
 					<div class="fcs-card">
 						<div class="fcs-card__header">
-							<h2 class="fcs-card__title"><?php esc_html_e( 'Local Unavailable Dates', 'fuelchef-subscriptions' ); ?></h2>
+							<h2 class="fcs-card__title"><?php esc_html_e( 'Local Closures', 'fuelchef-subscriptions' ); ?></h2>
 						</div>
 						<div class="fcs-card__body">
 							<p class="fcs-card__intro">
@@ -177,7 +192,7 @@ $selected = $data['selected'];
 		<div class="fcs-modal">
 			<h3 class="fcs-modal__title"><?php esc_html_e( 'Delete this schedule?', 'fuelchef-subscriptions' ); ?></h3>
 			<p class="fcs-modal__body">
-				<?php esc_html_e( 'Its weekdays, local blackout dates and destination assignments are removed with it. This cannot be undone.', 'fuelchef-subscriptions' ); ?>
+				<?php esc_html_e( 'Its weekdays, local closure dates and destination assignments are removed with it. This cannot be undone.', 'fuelchef-subscriptions' ); ?>
 			</p>
 			<div class="fcs-modal__actions">
 				<button type="button" class="fcs-btn" id="cancelDeleteBtn"><?php esc_html_e( 'Cancel', 'fuelchef-subscriptions' ); ?></button>

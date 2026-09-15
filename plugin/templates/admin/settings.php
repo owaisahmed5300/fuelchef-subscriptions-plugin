@@ -23,13 +23,13 @@ $settings = $data['settings'];
 			&rsaquo; <?php esc_html_e( 'Settings', 'fuelchef-subscriptions' ); ?>
 		</h1>
 		<p class="fcs-page-subtitle">
-			<?php esc_html_e( 'Configure store-wide recurring rules, global blackout dates, and lock cutoff windows.', 'fuelchef-subscriptions' ); ?>
+			<?php esc_html_e( 'Configure store-wide recurring rules, global closure dates, and lock cutoff windows.', 'fuelchef-subscriptions' ); ?>
 		</p>
 	</div>
 
 	<nav class="fcs-nav-tabs" aria-label="<?php esc_attr_e( 'Settings Tabs', 'fuelchef-subscriptions' ); ?>">
 		<button type="button" class="fcs-nav-tab fcs-nav-tab--active" data-tab="tab-blackouts">
-			<?php esc_html_e( 'Global Blackouts', 'fuelchef-subscriptions' ); ?>
+			<?php esc_html_e( 'Global Closures', 'fuelchef-subscriptions' ); ?>
 		</button>
 		<button type="button" class="fcs-nav-tab" data-tab="tab-cutoff">
 			<?php esc_html_e( 'Order Cutoff', 'fuelchef-subscriptions' ); ?>
@@ -146,7 +146,7 @@ $settings = $data['settings'];
 
 					<div class="fcs-field">
 						<label for="maxFulfilmentWindowDays"><?php esc_html_e( 'Maximum fulfilment window', 'fuelchef-subscriptions' ); ?></label>
-						<div class="fcs-inline-field">
+						<div class="fcs-inline-value">
 							<input
 								class="fcs-input fcs-input--number"
 								id="maxFulfilmentWindowDays"
@@ -156,7 +156,7 @@ $settings = $data['settings'];
 							>
 							<span><?php esc_html_e( 'days into the future', 'fuelchef-subscriptions' ); ?></span>
 						</div>
-						<p class="fcs-field__hint"><?php esc_html_e( 'How far ahead customers can choose a fulfilment date, still subject to schedules, blackout dates and the order cutoff.', 'fuelchef-subscriptions' ); ?></p>
+						<p class="fcs-field__hint"><?php esc_html_e( 'How far ahead customers can choose a fulfilment date, still subject to schedules, closure dates and the order cutoff.', 'fuelchef-subscriptions' ); ?></p>
 					</div>
 				</div>
 			</div>

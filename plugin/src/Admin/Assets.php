@@ -100,7 +100,7 @@ final class Assets {
 		return [
 			'unsavedChanges'           => esc_html__( 'Unsaved changes', 'fuelchef-subscriptions' ),
 			'allChangesSaved'          => esc_html__( 'All changes saved', 'fuelchef-subscriptions' ),
-			'dateMarkedUnavailable'    => esc_html__( 'Date marked unavailable', 'fuelchef-subscriptions' ),
+			'dateMarkedUnavailable'    => esc_html__( 'Date closed', 'fuelchef-subscriptions' ),
 			'dateRemoved'              => esc_html__( 'Date removed', 'fuelchef-subscriptions' ),
 			'noteSaved'                => esc_html__( 'Note saved', 'fuelchef-subscriptions' ),
 			'couldNotAddDate'          => esc_html__( 'Could not add that date.', 'fuelchef-subscriptions' ),
@@ -118,7 +118,7 @@ final class Assets {
 			'couldNotSaveDestination'  => esc_html__( 'Could not save that destination.', 'fuelchef-subscriptions' ),
 			'destinationAdded'         => esc_html__( 'Destination added', 'fuelchef-subscriptions' ),
 			'promptNewScheduleName'    => esc_html__( 'Name the new schedule:', 'fuelchef-subscriptions' ),
-			'noGlobalClosures'         => esc_html__( 'No global closures scheduled. Orders can be delivered on all standard active days.', 'fuelchef-subscriptions' ),
+			'noGlobalClosures'         => esc_html__( 'No global closures scheduled. Orders can be fulfilled on all standard active days.', 'fuelchef-subscriptions' ),
 			'noLocalClosures'          => esc_html__( 'No localized closure dates set for this schedule.', 'fuelchef-subscriptions' ),
 			'dayActive'                => esc_html__( 'Active', 'fuelchef-subscriptions' ),
 			'dayClosed'                => esc_html__( 'Closed', 'fuelchef-subscriptions' ),
