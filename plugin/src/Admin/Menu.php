@@ -78,6 +78,20 @@ final class Menu {
 			self::SCHEDULES_SLUG,
 			[ $this->schedules_controller, 'render' ]
 		);
+
+		add_action( 'admin_head', [ $this, 'print_icon_size' ] );
+	}
+
+	/**
+	 * Shrinks the menu icon from WordPress's own 20px default to 16px - it looks
+	 * oversized at 20px. Runs on every admin screen, not just this plugin's own: the
+	 * sidebar itself is global, and `Admin\Assets` only enqueues on these two screens.
+	 */
+	public function print_icon_size(): void {
+		printf(
+			'<style>#%s div.wp-menu-image.svg{background-size:16px auto}</style>',
+			esc_attr( 'toplevel_page_' . self::SETTINGS_SLUG )
+		);
 	}
 
 	/**

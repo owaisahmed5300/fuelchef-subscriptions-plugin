@@ -353,6 +353,10 @@ never per-date exclusion, which this field needs for closed weekdays and blackou
   `required` concept - there is no such gap on that side, confirmed by the same order
   placement test attempted there instead (correctly blocked, "Please choose a fulfilment
   date.").
+- **`register_field()` also sets `optionalLabel` to the same text as `label`.** Left at
+  its default, WooCommerce appends "(optional)" to a non-required field's label - true for
+  a destination with no schedule, but misleading everywhere else, since `validate_order()`
+  above still rejects the order without a date whenever a schedule does apply.
 - **`Frontend\Checkout\Block\Concerns\Reads_Persisted_Field`** is a small shared trait,
   not a `Services\` class: reading one of this plugin's own registered fields back off an
   order through `CheckoutFields::get_field_from_object()` is Blocks-integration

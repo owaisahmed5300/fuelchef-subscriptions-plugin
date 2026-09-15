@@ -98,8 +98,9 @@ final class Schedules_Controller {
 		$html = $this->renderer->render(
 			'admin/schedules',
 			[
-				'schedules' => $all,
-				'selected'  => $selected,
+				'schedules'          => $all,
+				'selected'           => $selected,
+				'destination_counts' => $this->destination_counts( $all ),
 			]
 		);
 
@@ -339,5 +340,22 @@ final class Schedules_Controller {
 		}
 
 		return $all[0] ?? null;
+	}
+
+	/**
+	 * How many destinations each schedule has assigned, for the sidebar list.
+	 *
+	 * @param list<Schedule> $all Every schedule.
+	 *
+	 * @return array<int, int> Destination counts, keyed by schedule id.
+	 */
+	private function destination_counts( array $all ): array {
+		$counts = [];
+
+		foreach ( $all as $schedule ) {
+			$counts[ (int) $schedule->id() ] = count( $this->destinations->find_by_schedule( (int) $schedule->id() ) );
+		}
+
+		return $counts;
 	}
 }

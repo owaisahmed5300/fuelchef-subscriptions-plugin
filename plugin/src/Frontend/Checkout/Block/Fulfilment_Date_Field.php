@@ -96,19 +96,26 @@ final class Fulfilment_Date_Field {
 			return;
 		}
 
+		$label = $this->settings->get()->fulfilment_date_label();
+
 		woocommerce_register_additional_checkout_field(
 			[
-				'id'          => self::FIELD_ID,
+				'id'            => self::FIELD_ID,
 				// Not esc_html__(): the Checkout block renders this as a plain React text
 				// node, not raw HTML, so an HTML-escaped string shows its literal entities
 				// (e.g. "&amp;") instead of being decoded.
-				'label'       => $this->settings->get()->fulfilment_date_label(),
-				'location'    => 'order',
-				'type'        => 'select',
-				'required'    => false,
-				'placeholder' => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
-				'options'     => $this->window_options(),
-				'attributes'  => [
+				'label'         => $label,
+				// WooCommerce appends "(optional)" to a non-required field's label by
+				// default - misleading here, since a schedule can still make this field
+				// effectively required (see the class docblock); this field is only ever
+				// truly optional when no schedule applies at all.
+				'optionalLabel' => $label,
+				'location'      => 'order',
+				'type'          => 'select',
+				'required'      => false,
+				'placeholder'   => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
+				'options'       => $this->window_options(),
+				'attributes'    => [
 					self::DATA_ATTRIBUTE => '1',
 				],
 			]
