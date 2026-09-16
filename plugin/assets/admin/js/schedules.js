@@ -157,14 +157,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function saveName(onSuccess) {
+  function saveName(onSuccess, trigger = null) {
+    FCS.setBusy(trigger, true);
     FCS.post('fcs_save_schedule', { schedule_id: data.selectedId, name: titleInput.value }).done((response) => {
       if (!response.success) {
         FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveScheduleName));
         return;
       }
       if (onSuccess) onSuccess();
-    });
+    }).always(() => FCS.setBusy(trigger, false));
   }
 
   if (titleInput) {
@@ -174,11 +175,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
   }
 
-  document.getElementById('saveScheduleBtn')?.addEventListener('click', () => {
+  document.getElementById('saveScheduleBtn')?.addEventListener('click', (event) => {
     saveName(() => {
       FCS.State.markClean();
       FCS.toast(window.fcsAdmin.i18n.scheduleSaved);
-    });
+    }, event.currentTarget);
   });
 
   // Add a schedule
@@ -360,3 +361,4 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCatalogOptions();
   renderDestinations();
 });
+

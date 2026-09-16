@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (saveBtn) {
     saveBtn.addEventListener('click', (e) => {
       e.preventDefault();
+      FCS.setBusy(saveBtn, true);
 
       FCS.post('fcs_save_settings', {
         cutoff_days: document.getElementById('cutoffDays').value,
@@ -29,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         FCS.State.markClean();
         FCS.toast(window.fcsAdmin.i18n.settingsSaved);
-      });
+      }).always(() => FCS.setBusy(saveBtn, false));
     });
   }
 
@@ -65,3 +66,4 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('change', () => FCS.State.markDirty());
   });
 });
+

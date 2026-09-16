@@ -4,6 +4,25 @@
 
 window.FCS = window.FCS || {};
 
+// Shared control state helper. Mirrors WordPress/Gutenberg loading semantics
+// without requiring the React component runtime.
+FCS.setBusy = function (el, busy) {
+  if (!el) return;
+  el.disabled = !!busy;
+  el.setAttribute('aria-busy', busy ? 'true' : 'false');
+  el.classList.toggle('fcs-is-loading', !!busy);
+};
+
+FCS.closeTransientUI = function () {
+  document.querySelectorAll('.fcs-overlay--show, .fcs-popover--show').forEach((el) => {
+    el.classList.remove('fcs-overlay--show', 'fcs-popover--show');
+  });
+};
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') FCS.closeTransientUI();
+});
+
 // Helper: Escape HTML
 FCS.escapeHtml = function (str) {
   return String(str).replace(/[&<>'"]/g, tag => ({
@@ -371,3 +390,4 @@ FCS.createCalendar = function (options) {
 
   return { render };
 };
+

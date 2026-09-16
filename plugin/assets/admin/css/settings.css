@@ -1,52 +1,18 @@
 /**
- * FuelChef Subscriptions - Settings
+ * FuelChef Subscriptions — Settings composition
+ * WordPress / Gutenberg design-system treatment.
  */
 
-.fcs-inline-field {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 14px;
-  font-size: 13px;
-  color: var(--fcs-color-text-body);
-  background: var(--fcs-color-surface-subtle);
-  border: 1px solid var(--fcs-color-border-subtle);
-  border-radius: var(--fcs-radius-lg);
-  padding: 16px 18px;
-}
+.fcs-admin #settingsForm { max-width: 920px; }
+.fcs-admin #settingsForm .fcs-card { max-width: 920px; }
+.fcs-admin #settingsForm .fcs-calendar { max-width: 760px; }
+.fcs-admin #settingsForm .fcs-inline-field { max-width: 760px; }
 
-.fcs-inline-field + .fcs-inline-field {
-  margin-top: 14px;
-}
+/* Keep settings content calm: labels and descriptions carry hierarchy. */
+.fcs-admin #tab-checkout-fields .fcs-field + .fcs-field,
+.fcs-admin #tab-subscribe .fcs-field + .fcs-field { margin-top: 24px; }
 
-.fcs-inline-field label {
-  font-weight: 600;
-  color: var(--fcs-color-text-main);
-  min-width: 90px;
-}
-
-.fcs-inline-field span {
-  color: var(--fcs-color-text-muted);
-}
-
-.fcs-inline-field .fcs-select {
-  flex: 1 1 220px;
-  max-width: 340px;
-}
-
-.fcs-inline-field .fcs-input--number {
-  width: 90px;
-}
-
-/* A single input followed by short trailing text, already under its own .fcs-field
-   label - just alignment, none of .fcs-inline-field's boxed treatment. */
-.fcs-inline-value {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.fcs-inline-value span {
-  color: var(--fcs-color-text-muted);
-  font-size: 13px;
+@media (max-width: 782px) {
+  .fcs-admin #settingsForm .fcs-inline-field { align-items: flex-start; }
+  .fcs-admin #settingsForm .fcs-inline-field label { width: 100%; }
 }
