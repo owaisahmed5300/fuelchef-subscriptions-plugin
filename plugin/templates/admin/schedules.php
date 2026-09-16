@@ -338,76 +338,76 @@ $selected = $data['selected'];
 				?>
 			</main>
 		</div>
-	</div>
 
-	<?php
-	if ( null !== $selected ) :
-		?>
-		<div class="fcs-overlay" id="deleteModalOverlay">
-			<div class="fcs-modal">
-				<h3 class="fcs-modal__title">
-				<?php
-					esc_html_e( 'Delete this schedule?', 'fuelchef-subscriptions' );
-				?>
-				</h3>
-				<p class="fcs-modal__body">
+		<?php
+		if ( null !== $selected ) :
+			?>
+			<div class="fcs-overlay" id="deleteModalOverlay">
+				<div class="fcs-modal">
+					<h3 class="fcs-modal__title">
 					<?php
-					esc_html_e(
-						'Its weekdays, local closure dates and destination assignments are removed with it. This cannot be undone.',
-						'fuelchef-subscriptions'
-					);
+						esc_html_e( 'Delete this schedule?', 'fuelchef-subscriptions' );
 					?>
-				</p>
-				<div class="fcs-modal__actions">
-					<button type="button" class="fcs-btn" id="cancelDeleteBtn">
+					</h3>
+					<p class="fcs-modal__body">
+						<?php
+						esc_html_e(
+							'Its weekdays, local closure dates and destination assignments are removed with it. This cannot be undone.',
+							'fuelchef-subscriptions'
+						);
+						?>
+					</p>
+					<div class="fcs-modal__actions">
+						<button type="button" class="fcs-btn" id="cancelDeleteBtn">
+						<?php
+							esc_html_e( 'Cancel', 'fuelchef-subscriptions' );
+						?>
+						</button>
+						<button type="button" class="fcs-btn fcs-btn--danger" id="confirmDeleteBtn">
+						<?php
+							esc_html_e( 'Delete Permanently', 'fuelchef-subscriptions' );
+						?>
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="fcs-popover" id="datePopover">
+				<div class="fcs-popover__title" data-pop-title></div>
+				<div class="fcs-popover__subtitle">
+				<?php
+					esc_html_e( 'Local Closure', 'fuelchef-subscriptions' );
+				?>
+				</div>
+				<label class="fcs-popover__label">
+				<?php
+					esc_html_e( 'Closure reason (optional)', 'fuelchef-subscriptions' );
+				?>
+				</label>
+				<textarea class="fcs-textarea" data-pop-reason maxlength="255" placeholder="
+				<?php
+				esc_attr_e( 'e.g. Local Road Closure or Renovation', 'fuelchef-subscriptions' );
+				?>
+				"></textarea>
+				<div class="fcs-popover__count"><span data-pop-count>0</span> / 255</div>
+				<div class="fcs-popover__actions">
+					<button type="button" class="fcs-btn fcs-btn--danger" data-pop-remove>
 					<?php
-						esc_html_e( 'Cancel', 'fuelchef-subscriptions' );
+						esc_html_e( 'Remove date', 'fuelchef-subscriptions' );
 					?>
 					</button>
-					<button type="button" class="fcs-btn fcs-btn--danger" id="confirmDeleteBtn">
+					<button type="button" class="fcs-btn fcs-btn--primary" data-pop-save>
 					<?php
-						esc_html_e( 'Delete Permanently', 'fuelchef-subscriptions' );
+						esc_html_e( 'Save note', 'fuelchef-subscriptions' );
 					?>
 					</button>
 				</div>
 			</div>
-		</div>
+			<?php
+		endif;
+		?>
 
-		<div class="fcs-popover" id="datePopover">
-			<div class="fcs-popover__title" data-pop-title></div>
-			<div class="fcs-popover__subtitle">
-			<?php
-				esc_html_e( 'Local Closure', 'fuelchef-subscriptions' );
-			?>
-			</div>
-			<label class="fcs-popover__label">
-			<?php
-				esc_html_e( 'Closure reason (optional)', 'fuelchef-subscriptions' );
-			?>
-			</label>
-			<textarea class="fcs-textarea" data-pop-reason maxlength="255" placeholder="
-			<?php
-			esc_attr_e( 'e.g. Local Road Closure or Renovation', 'fuelchef-subscriptions' );
-			?>
-			"></textarea>
-			<div class="fcs-popover__count"><span data-pop-count>0</span> / 255</div>
-			<div class="fcs-popover__actions">
-				<button type="button" class="fcs-btn fcs-btn--danger" data-pop-remove>
-				<?php
-					esc_html_e( 'Remove date', 'fuelchef-subscriptions' );
-				?>
-				</button>
-				<button type="button" class="fcs-btn fcs-btn--primary" data-pop-save>
-				<?php
-					esc_html_e( 'Save note', 'fuelchef-subscriptions' );
-				?>
-				</button>
-			</div>
-		</div>
-		<?php
-	endif;
-	?>
-
-	<div class="fcs-toast" id="fcsToast" role="status" aria-live="polite"></div>
+		<div class="fcs-toast" id="fcsToast" role="status" aria-live="polite"></div>
+	</div>
 
 </div>

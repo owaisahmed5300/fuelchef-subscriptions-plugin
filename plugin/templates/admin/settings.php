@@ -479,39 +479,39 @@ $settings = $data['settings'];
 			</span>
 			</div>
 		</form>
-	</div>
 
-	<div class="fcs-popover" id="datePopover">
-		<div class="fcs-popover__title" data-pop-title></div>
-		<div class="fcs-popover__subtitle">
-		<?php
-			esc_html_e( 'Global Store Closure', 'fuelchef-subscriptions' );
-		?>
-		</div>
-		<label class="fcs-popover__label">
-		<?php
-			esc_html_e( 'Closure note (optional)', 'fuelchef-subscriptions' );
-		?>
-		</label>
-		<textarea class="fcs-textarea" data-pop-reason maxlength="255" placeholder="
-		<?php
-		esc_attr_e( 'e.g. National Holiday', 'fuelchef-subscriptions' );
-		?>
-		"></textarea>
-		<div class="fcs-popover__count"><span data-pop-count>0</span> / 255</div>
-		<div class="fcs-popover__actions">
-			<button type="button" class="fcs-btn fcs-btn--danger" data-pop-remove>
+		<div class="fcs-popover" id="datePopover">
+			<div class="fcs-popover__title" data-pop-title></div>
+			<div class="fcs-popover__subtitle">
 			<?php
-				esc_html_e( 'Remove date', 'fuelchef-subscriptions' );
+				esc_html_e( 'Global Store Closure', 'fuelchef-subscriptions' );
 			?>
-			</button>
-			<button type="button" class="fcs-btn fcs-btn--primary" data-pop-save>
+			</div>
+			<label class="fcs-popover__label">
 			<?php
-				esc_html_e( 'Save note', 'fuelchef-subscriptions' );
+				esc_html_e( 'Closure note (optional)', 'fuelchef-subscriptions' );
 			?>
-			</button>
+			</label>
+			<textarea class="fcs-textarea" data-pop-reason maxlength="255" placeholder="
+			<?php
+			esc_attr_e( 'e.g. National Holiday', 'fuelchef-subscriptions' );
+			?>
+			"></textarea>
+			<div class="fcs-popover__count"><span data-pop-count>0</span> / 255</div>
+			<div class="fcs-popover__actions">
+				<button type="button" class="fcs-btn fcs-btn--danger" data-pop-remove>
+				<?php
+					esc_html_e( 'Remove date', 'fuelchef-subscriptions' );
+				?>
+				</button>
+				<button type="button" class="fcs-btn fcs-btn--primary" data-pop-save>
+				<?php
+					esc_html_e( 'Save note', 'fuelchef-subscriptions' );
+				?>
+				</button>
+			</div>
 		</div>
-	</div>
 
-	<div class="fcs-toast" id="fcsToast" role="status" aria-live="polite"></div>
+		<div class="fcs-toast" id="fcsToast" role="status" aria-live="polite"></div>
+	</div>
 </div>
