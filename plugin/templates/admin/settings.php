@@ -59,11 +59,6 @@ $settings = $data['settings'];
 				esc_html_e( 'Checkout Fields', 'fuelchef-subscriptions' );
 				?>
 			</button>
-			<button type="button" class="fcs-nav-tab" data-tab="tab-subscribe">
-				<?php
-				esc_html_e( 'Subscribe & Save', 'fuelchef-subscriptions' );
-				?>
-			</button>
 		</nav>
 
 		<form id="settingsForm" onsubmit="return false;">
@@ -316,9 +311,7 @@ $settings = $data['settings'];
 						</div>
 					</div>
 				</div>
-			</section>
 
-			<section class="fcs-tab-panel" id="tab-subscribe">
 				<div class="fcs-card">
 					<div class="fcs-card__header">
 						<h2 class="fcs-card__title">
