@@ -481,11 +481,25 @@ $settings = $data['settings'];
 		</form>
 
 		<div class="fcs-popover" id="datePopover">
-			<div class="fcs-popover__title" data-pop-title></div>
-			<div class="fcs-popover__subtitle">
-			<?php
-				esc_html_e( 'Global Store Closure', 'fuelchef-subscriptions' );
-			?>
+			<div class="fcs-popover__arrow"></div>
+			<div class="fcs-popover__header">
+				<div>
+					<div class="fcs-popover__title" data-pop-title></div>
+					<div class="fcs-popover__subtitle">
+					<?php
+						esc_html_e( 'Global Store Closure', 'fuelchef-subscriptions' );
+					?>
+					</div>
+				</div>
+				<button type="button" class="fcs-popover__close" data-pop-close aria-label="
+				<?php
+				esc_attr_e( 'Close', 'fuelchef-subscriptions' );
+				?>
+				">
+					<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+						<path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+					</svg>
+				</button>
 			</div>
 			<label class="fcs-popover__label">
 			<?php

@@ -879,6 +879,38 @@
     display: block;
 }
 
+.fcs-admin .fcs-popover__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.fcs-admin .fcs-popover__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    margin: -4px -4px 0 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--fcs-control-radius);
+    background: transparent;
+    color: var(--fcs-color-text-tertiary);
+}
+
+.fcs-admin .fcs-popover__close:hover {
+    background: var(--fcs-color-surface-hover);
+    color: var(--fcs-color-text);
+}
+
+.fcs-admin .fcs-popover__close:focus-visible {
+    outline: none;
+    box-shadow: var(--fcs-focus);
+}
+
 .fcs-admin .fcs-popover__title {
     color: var(--fcs-color-text);
     font-size: 13px;
@@ -911,6 +943,41 @@
     justify-content: space-between;
     gap: 8px;
     margin-top: 12px;
+}
+
+/* Arrow: two stacked CSS triangles so the border shows through, like a Gutenberg Popover. */
+.fcs-admin .fcs-popover__arrow,
+.fcs-admin .fcs-popover__arrow::before {
+    position: absolute;
+    left: var(--fcs-popover-arrow-offset, 24px);
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+}
+
+.fcs-admin .fcs-popover__arrow::before {
+    content: "";
+    left: -8px;
+}
+
+.fcs-admin .fcs-popover--arrow-up .fcs-popover__arrow {
+    top: -8px;
+    border-bottom-color: var(--fcs-color-border);
+}
+
+.fcs-admin .fcs-popover--arrow-up .fcs-popover__arrow::before {
+    top: 1px;
+    border-bottom-color: var(--fcs-color-surface);
+}
+
+.fcs-admin .fcs-popover--arrow-down .fcs-popover__arrow {
+    bottom: -8px;
+    border-top-color: var(--fcs-color-border);
+}
+
+.fcs-admin .fcs-popover--arrow-down .fcs-popover__arrow::before {
+    top: -1px;
+    border-top-color: var(--fcs-color-surface);
 }
 
 /* Toast: WordPress notice-like, not a dark SaaS snackbar. */
