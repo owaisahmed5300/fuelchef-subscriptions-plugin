@@ -177,7 +177,7 @@ $settings = $data['settings'];
 							?>
 							</span>
 							<input
-								class="fcs-input"
+								class="fcs-input fcs-input--time"
 								id="cutoffTime"
 								type="time"
 								value="

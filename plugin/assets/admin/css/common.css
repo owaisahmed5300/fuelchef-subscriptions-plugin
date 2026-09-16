@@ -274,6 +274,11 @@
     text-align: center;
 }
 
+.fcs-admin .fcs-input--time {
+    width: 130px;
+    flex: 0 0 auto;
+}
+
 .fcs-admin .fcs-field {
     margin-top: 24px;
 }
