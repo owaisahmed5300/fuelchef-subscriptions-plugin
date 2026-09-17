@@ -1,11 +1,12 @@
 /**
  * FuelChef Subscriptions - Checkout shared helpers
  *
- * Small, DOM-independent helpers reused by both the classic and block checkout
- * enhancement scripts. There is no JS build step for this plugin's assets (see the root
- * package.json), so this is a plain script, enqueued as a dependency of both, exposing
- * itself as window.fcsCheckoutShared the same way window.fcsCheckout already carries this
- * plugin's localized data.
+ * Every checkout enhancement script depends on this one, since it is also where
+ * window.fcsCheckout's localized data is attached (see Frontend\Assets) - the one handle
+ * guaranteed to load before any of them, whether or not a given script calls a helper
+ * below. Currently only fulfilment-date-field.js's Flatpickr locale does. There is no JS
+ * build step for this plugin's assets (see the root package.json), so this is a plain
+ * script, exposing itself as window.fcsCheckoutShared.
  */
 
 window.fcsCheckoutShared = (function () {

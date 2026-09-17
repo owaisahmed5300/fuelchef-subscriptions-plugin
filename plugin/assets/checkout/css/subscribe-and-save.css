@@ -1,13 +1,22 @@
 /**
  * FuelChef Subscriptions - Subscribe & Save checkout field
  *
- * Rendered via woocommerce_form_field() as a native `form-row` checkbox field, so this
- * only adds the small amount of styling WooCommerce's own checkout CSS doesn't already
- * cover - it deliberately does not re-style the row, label or checkbox themselves.
+ * Classic checkout renders this via woocommerce_form_field() as a native `form-row`
+ * checkbox field, so its rule below only adds the small amount of styling WooCommerce's
+ * own checkout CSS doesn't already cover - it deliberately does not re-style the row,
+ * label or checkbox themselves. Block checkout's own description paragraph gets its own
+ * rule, since block-subscribe-and-save.js inserts it as a plain sibling rather than
+ * through woocommerce_form_field().
  */
 
 .fcs-subscribe-and-save-row .description {
 	display: block;
+	margin: 0.4em 0 0;
+	font-size: 0.9em;
+	color: #646970;
+}
+
+.fcs-subscribe-and-save-description {
 	margin: 0.4em 0 0;
 	font-size: 0.9em;
 	color: #646970;
