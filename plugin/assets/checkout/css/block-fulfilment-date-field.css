@@ -13,3 +13,10 @@
 [data-fcs-block-fulfilment-date] option:disabled {
 	font-style: italic;
 }
+
+/* .fcs-fulfilment-date-window's own margin-top (fulfilment-date-field.css) is tuned for
+   classic checkout's table row; block checkout's field wrapper sits closer to it, so this
+   overrides just the top value for the block context specifically. */
+[data-fcs-block-fulfilment-date] + .fcs-fulfilment-date-window {
+	margin-top: 5px;
+}

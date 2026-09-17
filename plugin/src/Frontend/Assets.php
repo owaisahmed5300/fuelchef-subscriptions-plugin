@@ -128,6 +128,14 @@ final class Assets {
 			true
 		);
 
+		wp_enqueue_script(
+			'fcs-recurring-day-notice',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/recurring-day-notice.js',
+			[ 'jquery', 'fcs-checkout-shared' ],
+			FUELCHEF_SUBSCRIPTIONS_VERSION,
+			true
+		);
+
 		$settings = $this->settings->get();
 
 		// Localized on fcs-checkout-shared, not fcs-fulfilment-date: every checkout script
@@ -168,13 +176,15 @@ final class Assets {
 	 */
 	private function strings(): array {
 		return [
-			'chooseDate'       => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
+			'chooseDate'         => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
 			/* translators: %1$s: opening time, %2$s: closing time. Resolved client-side. */
-			'fulfilmentWindow' => esc_html__( 'Fulfilment available between %1$s and %2$s.', 'fuelchef-subscriptions' ),
-			'monthNames'       => array_values( Locale::current()->month ),
-			'monthNamesShort'  => array_values( Locale::current()->month_abbrev ),
-			'dayNames'         => array_values( Locale::current()->weekday ),
-			'dayNamesShort'    => array_values( Locale::current()->weekday_abbrev ),
+			'fulfilmentWindow'   => esc_html__( 'Fulfilment available between %1$s and %2$s.', 'fuelchef-subscriptions' ),
+			/* translators: %s: weekday name, e.g. "Thursday". Resolved client-side. */
+			'recurringDayNotice' => esc_html__( 'Your subscription will renew every %s.', 'fuelchef-subscriptions' ),
+			'monthNames'         => array_values( Locale::current()->month ),
+			'monthNamesShort'    => array_values( Locale::current()->month_abbrev ),
+			'dayNames'           => array_values( Locale::current()->weekday ),
+			'dayNamesShort'      => array_values( Locale::current()->weekday_abbrev ),
 		];
 	}
 }

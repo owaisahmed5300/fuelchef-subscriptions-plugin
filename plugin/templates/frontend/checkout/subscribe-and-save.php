@@ -42,3 +42,5 @@ woocommerce_form_field(
 	],
 	$checked ? '1' : ''
 );
+?>
+<p id="fcsRecurringDayNotice" class="fcs-recurring-day-notice" aria-live="polite" hidden></p>

@@ -18,6 +18,9 @@
  *   the cart total and item count are already there on every store update.
  *   `Block\Subscribe_And_Save::apply_discount()` is the authoritative gate; this is only
  *   a live preview of the same rule.
+ * - Tells the customer which weekday future renewals will fall on, once both this
+ *   checkbox and the fulfilment date field (block-fulfilment-date-field.js) have a
+ *   value - the two fields are otherwise unaware of each other.
  */
 
 jQuery(function ($) {
@@ -133,6 +136,49 @@ jQuery(function ($) {
     }
   }
 
+  function recurringDayNoticeElement($checkbox) {
+    const $anchor = ineligibleMessageElement($checkbox);
+    let $notice = $anchor.siblings('.fcs-recurring-day-notice');
+
+    if ($notice.length) {
+      return $notice;
+    }
+
+    $notice = $('<p class="fcs-recurring-day-notice" aria-live="polite" hidden></p>');
+    $anchor.after($notice);
+
+    return $notice;
+  }
+
+  // Writes only when the notice's own text or visibility actually needs to change: this
+  // runs on every bind() call, which itself runs on every MutationObserver tick, and an
+  // unconditional .text() write is itself a childList mutation - one that would retrigger
+  // the very observer that called this, looping forever. Confirmed the hard way, a real
+  // browser tab crash once a date and the checkbox were both set.
+  function updateRecurringDayNotice($checkbox) {
+    if (typeof window.fcsCheckoutShared === 'undefined') {
+      return;
+    }
+
+    const $notice = recurringDayNoticeElement($checkbox);
+    const $dateField = $('[data-fcs-block-fulfilment-date]');
+    const date = $dateField.length ? $dateField.val() : '';
+
+    if (!date || !$checkbox.is(':checked')) {
+      if (!$notice.prop('hidden')) {
+        $notice.prop('hidden', true);
+      }
+      return;
+    }
+
+    const weekday = window.fcsCheckoutShared.weekdayNameForDate(date, window.fcsCheckout.i18n.dayNames);
+    const message = window.fcsCheckout.i18n.recurringDayNotice.replace('%s', weekday);
+
+    if ($notice.prop('hidden') || $notice.text() !== message) {
+      $notice.text(message).prop('hidden', false);
+    }
+  }
+
   function bind($checkbox) {
     addDescription($checkbox);
 
@@ -148,6 +194,7 @@ jQuery(function ($) {
 
     lastEligible = isCartEligible();
     applyEligibility($checkbox, lastEligible);
+    updateRecurringDayNotice($checkbox);
 
     if ($checkbox.data('fcsBound')) {
       return;
@@ -155,6 +202,13 @@ jQuery(function ($) {
 
     $checkbox.data('fcsBound', true).on('change', function () {
       syncChecked(this.checked);
+      updateRecurringDayNotice($checkbox);
+    });
+
+    // The fulfilment date field mounts and changes independently of this one; a
+    // delegated listener catches it whether it appears before or after this checkbox.
+    $(document.body).on('change', '[data-fcs-block-fulfilment-date]', function () {
+      updateRecurringDayNotice($checkbox);
     });
   }
 
