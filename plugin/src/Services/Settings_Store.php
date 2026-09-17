@@ -45,15 +45,15 @@ final class Settings_Store {
 		$stored = is_array( $raw ) ? $raw : [];
 
 		return new Settings(
-			$this->cutoff_days( $this->raw( $stored, 'cutoff_days' ) ),
-			$this->cutoff_time( $this->raw( $stored, 'cutoff_time' ) ),
-			$this->discount_percent( $this->raw( $stored, 'subscribe_discount_percent' ) ),
-			$this->applicability( $this->raw( $stored, 'subscribe_applicability' ) ),
-			$this->max_fulfilment_window_days( $this->raw( $stored, 'max_fulfilment_window_days' ) ),
-			$this->label( $this->raw( $stored, 'fulfilment_date_label' ), $this->default_fulfilment_date_label() ),
-			$this->description( $this->raw( $stored, 'fulfilment_date_description' ) ),
-			$this->label( $this->raw( $stored, 'subscribe_save_label' ), $this->default_subscribe_save_label() ),
-			$this->description( $this->raw( $stored, 'subscribe_save_description' ) )
+			cutoff_days: $this->cutoff_days( $this->raw( $stored, 'cutoff_days' ) ),
+			cutoff_time: $this->cutoff_time( $this->raw( $stored, 'cutoff_time' ) ),
+			subscribe_discount_percent: $this->discount_percent( $this->raw( $stored, 'subscribe_discount_percent' ) ),
+			subscribe_applicability: $this->applicability( $this->raw( $stored, 'subscribe_applicability' ) ),
+			max_fulfilment_window_days: $this->max_fulfilment_window_days( $this->raw( $stored, 'max_fulfilment_window_days' ) ),
+			fulfilment_date_label: $this->label( $this->raw( $stored, 'fulfilment_date_label' ), $this->default_fulfilment_date_label() ),
+			fulfilment_date_description: $this->description( $this->raw( $stored, 'fulfilment_date_description' ) ),
+			subscribe_save_label: $this->label( $this->raw( $stored, 'subscribe_save_label' ), $this->default_subscribe_save_label() ),
+			subscribe_save_description: $this->description( $this->raw( $stored, 'subscribe_save_description' ) )
 		);
 	}
 
