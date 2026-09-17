@@ -215,18 +215,17 @@ $applicabilities = $data['applicabilities'];
 							<label for="fulfilmentDateDescription">
 								<?php esc_html_e( 'Help text (optional)', 'fuelchef-subscriptions' ); ?>
 							</label>
+							<?php
+							$fulfilment_date_description_placeholder = __(
+								'e.g. Choose the day you\'d like this order fulfilled.',
+								'fuelchef-subscriptions'
+							);
+							?>
 							<textarea
 								class="fcs-textarea"
 								id="fulfilmentDateDescription"
 								maxlength="300"
-								placeholder="
-								<?php
-								esc_attr_e(
-									'e.g. Choose the day you\'d like this order fulfilled.',
-									'fuelchef-subscriptions'
-								);
-								?>
-								"
+								placeholder="<?php echo esc_attr( $fulfilment_date_description_placeholder ); ?>"
 							><?php echo esc_textarea( $settings->fulfilment_date_description() ); ?></textarea>
 							<p class="fcs-field__hint">
 								<?php
@@ -359,18 +358,17 @@ $applicabilities = $data['applicabilities'];
 							<label for="subscribeSaveDescription">
 								<?php esc_html_e( 'Help text (optional)', 'fuelchef-subscriptions' ); ?>
 							</label>
+							<?php
+							$subscribe_save_description_placeholder = __(
+								'e.g. Get {percent}% off this order and every renewal.',
+								'fuelchef-subscriptions'
+							);
+							?>
 							<textarea
 								class="fcs-textarea"
 								id="subscribeSaveDescription"
 								maxlength="300"
-								placeholder="
-								<?php
-								esc_attr_e(
-									'e.g. Get {percent}% off this order and every renewal.',
-									'fuelchef-subscriptions'
-								);
-								?>
-								"
+								placeholder="<?php echo esc_attr( $subscribe_save_description_placeholder ); ?>"
 							><?php echo esc_textarea( $settings->subscribe_save_description() ); ?></textarea>
 							<p class="fcs-field__hint">
 								<?php
