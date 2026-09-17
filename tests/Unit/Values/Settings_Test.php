@@ -120,6 +120,24 @@ final class Settings_Test extends TestCase {
 		new Settings( ...$args );
 	}
 
+	public function test_rejects_a_max_fulfilment_window_beyond_the_ceiling(): void {
+		$args    = $this->valid_args();
+		$args[4] = Settings::MAX_FULFILMENT_WINDOW_DAYS + 1;
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
+	public function test_accepts_a_max_fulfilment_window_at_exactly_the_ceiling(): void {
+		$args    = $this->valid_args();
+		$args[4] = Settings::MAX_FULFILMENT_WINDOW_DAYS;
+
+		$settings = new Settings( ...$args );
+
+		$this->assertSame( Settings::MAX_FULFILMENT_WINDOW_DAYS, $settings->max_fulfilment_window_days() );
+	}
+
 	public function test_rejects_a_blank_fulfilment_date_label(): void {
 		$args    = $this->valid_args();
 		$args[5] = '   ';

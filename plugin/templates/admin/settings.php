@@ -10,6 +10,7 @@
 
 declare(strict_types=1);
 
+use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
 defined( 'ABSPATH' ) || exit;
@@ -243,6 +244,7 @@ $settings = $data['settings'];
 									id="maxFulfilmentWindowDays"
 									type="number"
 									min="1"
+									max="<?php echo esc_attr( (string) Settings::MAX_FULFILMENT_WINDOW_DAYS ); ?>"
 									value="<?php echo esc_attr( (string) $settings->max_fulfilment_window_days() ); ?>"
 								>
 								<span>
