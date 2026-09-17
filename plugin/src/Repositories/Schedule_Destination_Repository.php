@@ -56,13 +56,7 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 			ARRAY_A
 		);
 
-		$destinations = [];
-
-		if ( is_array( $rows ) ) {
-			foreach ( $rows as $row ) {
-				$destinations[] = $this->hydrate( $row );
-			}
-		}
+		$destinations = $this->hydrate_all( $rows );
 
 		wp_cache_set( $cache_key, $destinations, self::$cache_group );
 
@@ -101,13 +95,7 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 			ARRAY_A
 		);
 
-		$destinations = [];
-
-		if ( is_array( $rows ) ) {
-			foreach ( $rows as $row ) {
-				$destinations[] = $this->hydrate( $row );
-			}
-		}
+		$destinations = $this->hydrate_all( $rows );
 
 		wp_cache_set( $cache_key, $destinations, self::$cache_group );
 

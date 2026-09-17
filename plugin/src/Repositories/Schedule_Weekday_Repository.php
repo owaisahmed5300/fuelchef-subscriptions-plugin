@@ -56,13 +56,7 @@ final class Schedule_Weekday_Repository extends Abstract_Repository {
 			ARRAY_A
 		);
 
-		$weekdays = [];
-
-		if ( is_array( $rows ) ) {
-			foreach ( $rows as $row ) {
-				$weekdays[] = $this->hydrate( $row );
-			}
-		}
+		$weekdays = $this->hydrate_all( $rows );
 
 		wp_cache_set( $cache_key, $weekdays, self::$cache_group );
 

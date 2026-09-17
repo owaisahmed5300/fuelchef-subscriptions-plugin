@@ -55,13 +55,7 @@ final class Schedule_Repository extends Abstract_Repository {
 			ARRAY_A
 		);
 
-		$schedules = [];
-
-		if ( is_array( $rows ) ) {
-			foreach ( $rows as $row ) {
-				$schedules[] = $this->hydrate( $row );
-			}
-		}
+		$schedules = $this->hydrate_all( $rows );
 
 		wp_cache_set( self::ALL_CACHE_KEY, $schedules, self::$cache_group );
 
