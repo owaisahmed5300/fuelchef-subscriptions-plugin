@@ -4,9 +4,8 @@
  * Every checkout enhancement script depends on this one, since it is also where
  * window.fcsCheckout's localized data is attached (see Frontend\Assets) - the one handle
  * guaranteed to load before any of them, whether or not a given script calls a helper
- * below. Currently only fulfilment-date-field.js's Flatpickr locale does. There is no JS
- * build step for this plugin's assets (see the root package.json), so this is a plain
- * script, exposing itself as window.fcsCheckoutShared.
+ * below. There is no JS build step for this plugin's assets (see the root package.json),
+ * so this is a plain script, exposing itself as window.fcsCheckoutShared.
  */
 
 window.fcsCheckoutShared = (function () {
@@ -30,7 +29,20 @@ window.fcsCheckoutShared = (function () {
     };
   }
 
+  /**
+   * The full weekday name a `Y-m-d` date string falls on, using the site's translated
+   * day names. Parses the parts directly rather than through `Date.parse()`, which reads
+   * a bare `Y-m-d` string as UTC midnight and can land on the wrong local day.
+   */
+  function weekdayNameForDate(dateStr, dayNames) {
+    const parts = dateStr.split('-').map(Number);
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+
+    return dayNames[date.getDay()];
+  }
+
   return {
-    buildFlatpickrLocale: buildFlatpickrLocale
+    buildFlatpickrLocale: buildFlatpickrLocale,
+    weekdayNameForDate: weekdayNameForDate
   };
 })();

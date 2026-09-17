@@ -78,7 +78,13 @@ jQuery(function ($) {
       enable: dates,
       locale,
       disableMobile: true,
-      onChange: (selectedDates, dateStr) => updateWindowCaption(dateStr)
+      // Flatpickr manages this input's value itself and never dispatches a native
+      // `change` event on it, so recurring-day-notice.js - which needs to know the
+      // moment the date changes - listens for this custom event instead of one.
+      onChange: (selectedDates, dateStr) => {
+        updateWindowCaption(dateStr);
+        $(document.body).trigger('fcs:fulfilment-date-changed', [dateStr]);
+      }
     });
 
     instance.altInput.setAttribute('placeholder', i18n.chooseDate);
@@ -90,6 +96,7 @@ jQuery(function ($) {
     $input.removeAttr('id');
 
     updateWindowCaption($input.val());
+    $(document.body).trigger('fcs:fulfilment-date-changed', [$input.val()]);
   }
 
   $(document.body).on('init_checkout updated_checkout', initDatePicker);
