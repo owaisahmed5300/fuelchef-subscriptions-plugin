@@ -168,11 +168,7 @@ final class Destination_Catalog {
 	 * @return list<Destination_Option> The configured pickup locations.
 	 */
 	private function pickup_locations(): array {
-		$locations = get_option( self::PICKUP_LOCATIONS_OPTION, [] );
-
-		if ( ! is_array( $locations ) ) {
-			return [];
-		}
+		$locations = Narrow::array( get_option( self::PICKUP_LOCATIONS_OPTION, [] ) );
 
 		$pickup_enabled = $this->pickup_enabled();
 		$options        = [];
@@ -207,11 +203,7 @@ final class Destination_Catalog {
 	 * case no customer can reach any of them.
 	 */
 	private function pickup_enabled(): bool {
-		$settings = get_option( self::PICKUP_SETTINGS_OPTION, [] );
-
-		if ( ! is_array( $settings ) ) {
-			return false;
-		}
+		$settings = Narrow::array( get_option( self::PICKUP_SETTINGS_OPTION, [] ) );
 
 		return 'yes' === Narrow::string( $settings['enabled'] ?? null );
 	}
