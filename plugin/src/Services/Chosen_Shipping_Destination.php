@@ -14,12 +14,10 @@ use WC_Shipping_Zones;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Resolves the destination the customer has currently chosen at checkout.
+ * Resolves the destination the customer's currently chosen shipping rate maps to.
  *
- * WooCommerce tracks a chosen shipping rate per package, not a destination. This turns
- * that rate into the `(type, key)` pair `Destination_Catalog` and `Availability_Service`
- * already understand, so a schedule can be looked up without the checkout layer knowing
- * anything about zones or pickup locations itself.
+ * Returns it as the `(type, key)` pair `Destination_Catalog` and `Availability_Service`
+ * use.
  */
 final class Chosen_Shipping_Destination {
 

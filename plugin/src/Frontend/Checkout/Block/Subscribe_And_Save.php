@@ -21,13 +21,12 @@ defined( 'ABSPATH' ) || exit;
  * discount the classic checkout checkbox unlocks. Only offered to a logged-in customer,
  * same as classic checkout's own field.
  *
- * Two mechanisms apply the discount: a live cart-total preview, reported by
- * `assets/checkout/js/block-subscribe-and-save.js` through the Store API's
- * `extensionCartUpdate()` into the session (`Classic_Subscribe_And_Save::
- * set_session_checked()`), read by `WC_Cart`'s own recalculations; and `apply_discount()`
- * below, which applies the real discount directly to the order at place-order, since
- * WooCommerce Blocks defers creating the order until then and no cart fee callback runs
- * after that.
+ * Two mechanisms apply the discount. `assets/checkout/js/block-subscribe-and-save.js`
+ * reports a live cart-total preview through the Store API's `extensionCartUpdate()`,
+ * stored in the session via `Classic_Subscribe_And_Save::set_session_checked()` and read
+ * by `WC_Cart`'s own recalculations. `apply_discount()` below applies the real discount
+ * directly to the order at place-order, since WooCommerce Blocks defers creating the
+ * order until then and no cart fee callback runs after that.
  */
 final class Subscribe_And_Save {
 

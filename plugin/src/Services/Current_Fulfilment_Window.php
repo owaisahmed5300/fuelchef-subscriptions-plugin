@@ -16,10 +16,6 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Resolves the schedule and eligible fulfilment dates for whatever destination the
  * customer currently has chosen at checkout.
- *
- * Shared between classic and block checkout's own fulfilment date field, since both ask
- * exactly this question the same way - only how each reads and renders the answer
- * differs.
  */
 final class Current_Fulfilment_Window {
 

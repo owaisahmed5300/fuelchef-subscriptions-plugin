@@ -20,16 +20,8 @@ defined( 'ABSPATH' ) || exit;
  * Reads the destinations WooCommerce currently offers, so a schedule can be assigned to
  * one.
  *
- * This is the only place that knows where a destination comes from: shipping zones from
- * `WC_Shipping_Zones`, pickup locations from the `pickup_location_pickup_locations`
- * option WooCommerce's local pickup settings write. It is deliberately read-only and
- * holds no repository - it answers "what could be assigned", never "what is assigned",
- * which is `Repositories\Schedule_Destination_Repository`'s job. An admin controller
- * joins the two to render them together.
- *
- * Results are memoised for the request, since both sources are already cached by
- * WordPress (an autoloaded option, and the shipping zone data store's own cache) - this
- * only avoids re-shaping the same rows more than once while rendering one screen.
+ * Zones and pickup locations only; `Repositories\Schedule_Destination_Repository` holds
+ * what's actually assigned.
  */
 final class Destination_Catalog {
 
