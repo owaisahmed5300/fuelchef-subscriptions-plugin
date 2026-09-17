@@ -17,6 +17,7 @@ use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Values\DateTime;
 use WC_Order;
 use WP_Error;
+use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
 
@@ -195,7 +196,7 @@ final class Fulfilment_Date_Field {
 
 		$errors->add(
 			'fcs_fulfilment_date',
-			esc_html__( 'Please choose a fulfilment date.', 'fuelchef-subscriptions' )
+			esc_html__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' )
 		);
 	}
 
@@ -220,7 +221,7 @@ final class Fulfilment_Date_Field {
 
 		throw new RouteException(
 			'fcs_fulfilment_date_required',
-			esc_html__( 'Please choose a fulfilment date.', 'fuelchef-subscriptions' ),
+			esc_html__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' ),
 			400
 		);
 	}
@@ -237,28 +238,47 @@ final class Fulfilment_Date_Field {
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => [ $this, 'rest_eligible_dates' ],
 				'permission_callback' => '__return_true',
+				'args'                => [
+					'rate_id' => [
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
 			]
 		);
 	}
 
 	/**
-	 * The dates the customer's currently chosen destination is eligible for, empty when
-	 * nothing chosen yet resolves to a schedule.
+	 * The dates the customer's currently chosen destination is eligible for.
+	 *
+	 * `destinationChosen` and `hasSchedule` are deliberately separate: the enhancement
+	 * script needs to tell "nothing chosen yet" (stay hidden) apart from "chosen, but
+	 * nothing can fulfil it" (say so) - both would otherwise collapse into the same
+	 * `hasSchedule: false`.
+	 *
+	 * `rate_id`: the enhancement script already knows the shipping rate the customer's
+	 * cart store shows as selected, and passes it explicitly rather than this route
+	 * resolving it from WooCommerce's own session - that session write is a separate
+	 * request the script's own re-fetch could otherwise race ahead of.
 	 *
 	 * `wc_load_cart()` is needed because a bare REST request has no cart loaded yet,
 	 * unlike classic checkout's own page render and AJAX handler.
 	 */
-	public function rest_eligible_dates(): WP_REST_Response {
+	public function rest_eligible_dates( WP_REST_Request $request ): WP_REST_Response {
 		wc_load_cart();
 
-		$schedule = $this->window->schedule();
+		$rate_id            = Narrow::nullable_string( $request->get_param( 'rate_id' ) );
+		$destination_chosen = $this->window->destination_chosen( $rate_id );
+		$schedule           = $this->window->schedule( $rate_id );
 
 		if ( null === $schedule ) {
 			return new WP_REST_Response(
 				[
-					'hasSchedule' => false,
-					'dates'       => [],
-					'windows'     => [],
+					'destinationChosen' => $destination_chosen,
+					'hasSchedule'       => false,
+					'dates'             => [],
+					'windows'           => [],
 				]
 			);
 		}
@@ -267,9 +287,10 @@ final class Fulfilment_Date_Field {
 
 		return new WP_REST_Response(
 			[
-				'hasSchedule' => true,
-				'dates'       => $dates,
-				'windows'     => $this->window->windows_for_dates( $schedule, $dates ),
+				'destinationChosen' => $destination_chosen,
+				'hasSchedule'       => true,
+				'dates'             => $dates,
+				'windows'           => $this->window->windows_for_dates( $schedule, $dates ),
 			]
 		);
 	}

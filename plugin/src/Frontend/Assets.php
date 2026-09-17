@@ -176,15 +176,16 @@ final class Assets {
 	 */
 	private function strings(): array {
 		return [
-			'chooseDate'         => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
+			'chooseDate'            => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
+			'noFulfilmentDateMatch' => esc_html__( 'No fulfilment dates are available for this location.', 'fuelchef-subscriptions' ),
 			/* translators: %1$s: opening time, %2$s: closing time. Resolved client-side. */
-			'fulfilmentWindow'   => esc_html__( 'Fulfilment available between %1$s and %2$s.', 'fuelchef-subscriptions' ),
+			'fulfilmentWindow'      => esc_html__( 'Fulfilment available between %1$s and %2$s.', 'fuelchef-subscriptions' ),
 			/* translators: %s: weekday name, e.g. "Thursday". Resolved client-side. */
-			'recurringDayNotice' => esc_html__( 'Your subscription will renew every %s.', 'fuelchef-subscriptions' ),
-			'monthNames'         => array_values( Locale::current()->month ),
-			'monthNamesShort'    => array_values( Locale::current()->month_abbrev ),
-			'dayNames'           => array_values( Locale::current()->weekday ),
-			'dayNamesShort'      => array_values( Locale::current()->weekday_abbrev ),
+			'recurringDayNotice'    => esc_html__( 'Your subscription will renew every %s.', 'fuelchef-subscriptions' ),
+			'monthNames'            => array_values( Locale::current()->month ),
+			'monthNamesShort'       => array_values( Locale::current()->month_abbrev ),
+			'dayNames'              => array_values( Locale::current()->weekday ),
+			'dayNamesShort'         => array_values( Locale::current()->weekday_abbrev ),
 		];
 	}
 }

@@ -42,15 +42,20 @@ final class Chosen_Shipping_Destination {
 	 * Null when no rate is chosen yet, or the destination it names is no longer one a
 	 * customer can reach - a pickup location that was disabled after being cached in the
 	 * session, for instance.
+	 *
+	 * @param string|null $explicit_rate_id A rate ID to resolve against instead of the
+	 *                                      one WooCommerce's session has chosen - lets a
+	 *                                      caller avoid racing that session write, which
+	 *                                      happens as its own separate request.
 	 */
-	public function resolve(): ?Destination_Option {
+	public function resolve( ?string $explicit_rate_id = null ): ?Destination_Option {
 		$package = $this->current_package();
 
 		if ( null === $package ) {
 			return null;
 		}
 
-		$rate_id = $this->chosen_rate_id( $package );
+		$rate_id = $explicit_rate_id ?? $this->chosen_rate_id( $package );
 
 		if ( null === $rate_id ) {
 			return null;
