@@ -65,6 +65,32 @@ final class Schedule_Weekday_Repository_Test extends Repository_TestCase {
 		$repository->find_by_schedule( 5 );
 	}
 
+	public function test_updating_a_weekday_invalidates_its_schedules_cached_list(): void {
+		$row = [
+			'id'           => '1',
+			'schedule_id'  => '4',
+			'day_of_week'  => '1',
+			'enabled'      => '0',
+			'start_time'   => '12:00:00',
+			'end_time'     => '17:00:00',
+			'date_created' => '2026-01-01 00:00:00',
+			'date_updated' => '2026-01-01 00:00:00',
+		];
+
+		$wpdb = $this->wpdb();
+		// Once for the cache-priming call, once more after update() invalidates it.
+		$wpdb->shouldReceive( 'get_results' )->twice()->andReturn( [ $row ] );
+		$wpdb->shouldReceive( 'update' )->once()->andReturn( 1 );
+
+		$repository = new Schedule_Weekday_Repository( $wpdb, $this->clock() );
+
+		$weekday = $repository->find_by_schedule( 4 )[0];
+		$weekday->set_enabled( true );
+		$repository->update( $weekday );
+
+		$repository->find_by_schedule( 4 );
+	}
+
 	public function test_delete_by_schedule_removes_every_row_for_that_schedule(): void {
 		$wpdb = $this->wpdb();
 		$wpdb->shouldReceive( 'get_results' )->once()->andReturn(
