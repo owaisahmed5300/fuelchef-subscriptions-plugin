@@ -4,6 +4,25 @@
 
 window.FCS = window.FCS || {};
 
+// Shared control state helper. Mirrors WordPress/Gutenberg loading semantics
+// without requiring the React component runtime.
+FCS.setBusy = function (el, busy) {
+  if (!el) return;
+  el.disabled = !!busy;
+  el.setAttribute('aria-busy', busy ? 'true' : 'false');
+  el.classList.toggle('fcs-is-loading', !!busy);
+};
+
+FCS.closeTransientUI = function () {
+  document.querySelectorAll('.fcs-overlay--show, .fcs-popover--show').forEach((el) => {
+    el.classList.remove('fcs-overlay--show', 'fcs-popover--show');
+  });
+};
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') FCS.closeTransientUI();
+});
+
 // Helper: Escape HTML
 FCS.escapeHtml = function (str) {
   return String(str).replace(/[&<>'"]/g, tag => ({
@@ -290,12 +309,26 @@ FCS.createCalendar = function (options) {
   function positionPopover(anchor) {
     if (!popoverEl || !anchor) return;
     const rect = anchor.getBoundingClientRect();
+    const anchorCenter = rect.left + (rect.width / 2);
     let left = rect.left;
     let top = rect.bottom + 6;
+    let arrowUp = true;
     if (left + 300 > window.innerWidth - 12) left = window.innerWidth - 312;
-    if (top + 260 > window.innerHeight) top = rect.top - 268;
-    popoverEl.style.left = `${Math.max(12, left)}px`;
-    popoverEl.style.top = `${Math.max(12, top)}px`;
+    if (top + 260 > window.innerHeight) {
+      top = rect.top - 268;
+      arrowUp = false;
+    }
+    left = Math.max(12, left);
+    top = Math.max(12, top);
+
+    popoverEl.style.left = `${left}px`;
+    popoverEl.style.top = `${top}px`;
+    popoverEl.classList.toggle('fcs-popover--arrow-up', arrowUp);
+    popoverEl.classList.toggle('fcs-popover--arrow-down', !arrowUp);
+    popoverEl.style.setProperty(
+      '--fcs-popover-arrow-offset',
+      `${Math.min(296, Math.max(24, anchorCenter - left))}px`
+    );
   }
 
   function openPopover(item, anchor) {
@@ -328,9 +361,14 @@ FCS.createCalendar = function (options) {
     const countEl = popoverEl.querySelector('[data-pop-count]');
     const saveBtn = popoverEl.querySelector('[data-pop-save]');
     const removeBtn = popoverEl.querySelector('[data-pop-remove]');
+    const closeBtn = popoverEl.querySelector('[data-pop-close]');
 
     if (reasonInput && countEl) {
       reasonInput.oninput = (e) => countEl.textContent = e.target.value.length;
+    }
+
+    if (closeBtn) {
+      closeBtn.onclick = () => closePopover();
     }
 
     if (saveBtn) {
@@ -371,3 +409,4 @@ FCS.createCalendar = function (options) {
 
   return { render };
 };
+

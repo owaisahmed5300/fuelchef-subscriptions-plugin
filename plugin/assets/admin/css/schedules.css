@@ -1,384 +1,124 @@
 /**
- * FuelChef Subscriptions - Schedules Modern Layout
+ * FuelChef Subscriptions — Schedules composition
+ * WordPress / Gutenberg design-system treatment.
  */
 
-.fcs-schedules-layout {
+.fcs-admin .fcs-schedules-layout {
   display: grid;
-  grid-template-columns: 290px minmax(0, 1fr);
-  gap: 22px;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 24px;
   align-items: start;
 }
 
-/* Left schedules card navigator */
-.fcs-schedule-nav {
+/* Sidebar intentionally reads like a WordPress editor/navigation panel. */
+.fcs-admin .fcs-schedules-layout > aside {
+  position: sticky;
+  top: 32px;
+}
+.fcs-admin .fcs-schedule-nav {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
-
-.fcs-schedule-nav__link {
+.fcs-admin .fcs-schedule-nav li + li { margin-top: 2px; }
+.fcs-admin .fcs-schedule-nav__link {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   width: 100%;
-  text-align: left;
+  min-height: 44px;
+  padding: 7px 10px;
   border: 1px solid transparent;
+  border-radius: var(--fcs-control-radius);
   background: transparent;
-  padding: 10px 12px;
-  border-radius: var(--fcs-radius-md);
-  cursor: pointer;
-  transition: all 0.15s ease;
+  color: var(--fcs-color-text);
+  text-decoration: none;
+}
+.fcs-admin .fcs-schedule-nav__link:hover { background: #f6f7f7; color: var(--fcs-color-text); }
+.fcs-admin .fcs-schedule-nav__link:focus-visible { outline: none; box-shadow: var(--fcs-focus); }
+.fcs-admin .fcs-schedule-nav__link--active,
+.fcs-admin .fcs-schedule-nav__link--active:hover {
+  border-color: transparent;
+  background: var(--fcs-color-primary-soft);
+  color: var(--fcs-color-text);
+}
+.fcs-admin .fcs-schedule-nav__title { font-size: 13px; font-weight: 600; line-height: 1.35; }
+.fcs-admin .fcs-schedule-nav__meta { margin-top: 2px; color: var(--fcs-color-text-secondary); font-size: 11px; }
+.fcs-admin .fcs-schedule-nav__chev { flex: 0 0 auto; color: var(--fcs-color-text-tertiary); }
+.fcs-admin .fcs-schedule-nav__link:hover .fcs-schedule-nav__chev,
+.fcs-admin .fcs-schedule-nav__link--active .fcs-schedule-nav__chev { color: var(--fcs-color-primary); }
+.fcs-admin .fcs-sidebar-action { width: 100%; margin-top: 12px; }
+
+.fcs-admin .fcs-title-wrap { margin: 0 0 20px; }
+.fcs-admin .fcs-title-input {
+  max-width: 620px !important;
+  min-height: 48px;
+  padding: 0 12px;
+  font-size: 20px;
+  font-weight: 400;
 }
 
-.fcs-schedule-nav__link:hover {
-  background: var(--fcs-color-surface-hover);
-}
-
-.fcs-schedule-nav__link:hover .fcs-schedule-nav__chev {
-  color: var(--fcs-wp-theme);
-}
-
-.fcs-schedule-nav__chev {
-  color: var(--fcs-color-text-subtle);
-  flex-shrink: 0;
-}
-
-.fcs-schedule-nav__link--active {
-  background: var(--fcs-wp-theme-tint);
-  border-color: rgba(34, 113, 177, 0.25);
-}
-
-.fcs-schedule-nav__title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--fcs-color-text-main);
-  margin-bottom: 2px;
-}
-
-.fcs-schedule-nav__meta {
-  font-size: 11px;
-  color: var(--fcs-color-text-muted);
-}
-
-.fcs-sidebar-action {
-  margin-top: 14px;
-  width: 100%;
-  justify-content: center;
-  padding: 8px 12px;
-}
-
-/* Title Input */
-.fcs-title-wrap {
-  margin-bottom: 16px;
-}
-
-.fcs-title-input {
-  font-size: 18px;
-  font-weight: 600;
-  padding: 6px 12px;
-  width: 100%;
-  max-width: 520px;
-  border-radius: var(--fcs-radius-md);
-}
-
-/* Modern Accessible Weekday Table */
-.fcs-weekday-table {
+.fcs-admin .fcs-weekday-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   border: 1px solid var(--fcs-color-border-subtle);
-  border-radius: var(--fcs-radius-lg);
+  border-radius: var(--fcs-control-radius);
   overflow: hidden;
 }
+.fcs-admin .fcs-weekday-row { transition: background-color 100ms ease; }
+.fcs-admin .fcs-weekday-row + .fcs-weekday-row td { border-top: 1px solid var(--fcs-color-border-subtle); }
+.fcs-admin .fcs-weekday-row:hover { background: #f6f7f7; }
+.fcs-admin .fcs-weekday-row td { padding: 14px 16px; vertical-align: middle; }
+.fcs-admin .fcs-weekday-toggle { width: 190px; }
 
-.fcs-weekday-row {
-  border-bottom: 1px solid var(--fcs-color-border-subtle);
-  transition: background 0.15s;
+/* Gutenberg-like toggle: compact, high-contrast, keyboard visible. */
+.fcs-admin .fcs-switch-wrap { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+.fcs-admin .fcs-switch { position: relative; display: inline-block; width: 36px; height: 20px; flex: 0 0 auto; }
+.fcs-admin .fcs-switch input { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.fcs-admin .fcs-switch-slider { position: absolute; inset: 0; border: 1px solid var(--fcs-color-border-strong); border-radius: 999px; background: #fff; transition: background-color 100ms ease, border-color 100ms ease; }
+.fcs-admin .fcs-switch-slider::before { content: ""; position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--fcs-color-border-strong); transition: transform 100ms ease, background-color 100ms ease; }
+.fcs-admin .fcs-switch input:focus-visible + .fcs-switch-slider { box-shadow: var(--fcs-focus); }
+.fcs-admin .fcs-switch input:checked + .fcs-switch-slider { border-color: var(--fcs-color-primary); background: var(--fcs-color-primary); }
+.fcs-admin .fcs-switch input:checked + .fcs-switch-slider::before { transform: translateX(16px); background: #fff; }
+.fcs-admin .fcs-switch input:disabled + .fcs-switch-slider { opacity: .55; }
+.fcs-admin .fcs-weekday-name { color: var(--fcs-color-text); font-size: 13px; font-weight: 600; }
+.fcs-admin .fcs-weekday-status { width: 120px; }
+.fcs-admin .fcs-weekday-time-ctrl { display: flex; align-items: flex-end; gap: 8px; }
+.fcs-admin .fcs-weekday-time-field { display: flex; flex-direction: column; gap: 4px; }
+.fcs-admin .fcs-weekday-time-field label { color: var(--fcs-color-text-secondary); font-size: 11px; }
+.fcs-admin .fcs-weekday-time-field .fcs-input { width: 130px; }
+.fcs-admin .fcs-weekday-time-sep { padding-bottom: 10px; color: var(--fcs-color-text-tertiary); }
+.fcs-admin .fcs-copy-down-btn { margin-bottom: 0; color: var(--fcs-color-text-secondary); }
+.fcs-admin .fcs-copy-down-btn:hover { color: var(--fcs-color-primary); }
+.fcs-admin .fcs-input--error { border-color: var(--fcs-color-danger) !important; }
+.fcs-admin .fcs-input--error:focus { box-shadow: var(--fcs-focus-danger) !important; }
+.fcs-admin .fcs-weekday-time-error { margin: 6px 0 0; color: var(--fcs-color-danger); font-size: 12px; }
+.fcs-admin .fcs-weekday-row--copied { background: var(--fcs-color-primary-soft); }
+
+/* Destinations are rows, not cards inside cards. */
+.fcs-admin .fcs-dest-list { display: flex; flex-direction: column; gap: 24px; }
+.fcs-admin .fcs-dest-group__title { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--fcs-color-text-secondary); font-size: 12px; font-weight: 600; }
+.fcs-admin .fcs-dest-group__count { min-width: 20px; padding: 1px 6px; border: 1px solid var(--fcs-color-border-subtle); border-radius: 999px; background: #f6f7f7; color: var(--fcs-color-text-secondary); font-size: 11px; text-align: center; }
+.fcs-admin .fcs-dest-group__items { border-top: 1px solid var(--fcs-color-border-subtle); }
+.fcs-admin .fcs-dest-item { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 0; border-bottom: 1px solid var(--fcs-color-border-subtle); }
+.fcs-admin .fcs-dest-item__info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fcs-admin .fcs-dest-item__name { color: var(--fcs-color-text); font-weight: 600; }
+.fcs-admin .fcs-dest-item__desc { overflow: hidden; color: var(--fcs-color-text-secondary); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.fcs-admin .fcs-dest-item__actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex: 0 0 auto; }
+.fcs-admin .fcs-dest-add { display: flex; align-items: center; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--fcs-color-border-subtle); }
+.fcs-admin .fcs-dest-add .fcs-select { flex: 1 1 auto; min-width: 0; }
+
+@media (max-width: 900px) {
+  .fcs-admin .fcs-schedules-layout { grid-template-columns: 1fr; }
+  .fcs-admin .fcs-schedules-layout > aside { position: static; }
 }
 
-.fcs-weekday-row:last-child {
-  border-bottom: none;
-}
-
-.fcs-weekday-row:hover {
-  background: var(--fcs-color-surface-subtle);
-}
-
-.fcs-weekday-row td {
-  padding: 12px 14px;
-  vertical-align: middle;
-}
-
-.fcs-weekday-toggle {
-  width: 180px;
-}
-
-/* Toggle Switch */
-.fcs-switch-wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.fcs-switch {
-  position: relative;
-  display: inline-block;
-  width: 38px;
-  height: 20px;
-}
-
-.fcs-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.fcs-switch-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #c3c4c7;
-  transition: 0.2s;
-  border-radius: 20px;
-}
-
-.fcs-switch-slider:before {
-  position: absolute;
-  content: "";
-  height: 14px;
-  width: 14px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: 0.2s;
-  border-radius: 50%;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
-.fcs-switch input:checked + .fcs-switch-slider {
-  background-color: var(--fcs-wp-theme);
-}
-
-.fcs-switch input:checked + .fcs-switch-slider:before {
-  transform: translateX(18px);
-}
-
-.fcs-weekday-name {
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--fcs-color-text-main);
-}
-
-.fcs-weekday-status {
-  width: 130px;
-}
-
-.fcs-weekday-time-ctrl {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-}
-
-.fcs-weekday-time-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.fcs-weekday-time-field label {
-  color: var(--fcs-color-text-muted);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.fcs-weekday-time-sep {
-  color: var(--fcs-color-text-subtle);
-  padding-bottom: 8px;
-}
-
-.fcs-copy-down-btn {
-  margin-left: 4px;
-  margin-bottom: 1px;
-  color: var(--fcs-color-text-muted);
-}
-
-.fcs-copy-down-btn:hover {
-  color: var(--fcs-wp-theme);
-  background: var(--fcs-wp-theme-tint);
-  border-color: rgba(34, 113, 177, 0.25);
-}
-
-.fcs-input--error {
-  border-color: var(--fcs-color-danger) !important;
-}
-
-.fcs-input--error:focus {
-  box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px var(--fcs-color-danger) !important;
-}
-
-.fcs-weekday-time-error {
-  margin: 6px 0 0;
-  font-size: 12px;
-  color: var(--fcs-color-danger);
-}
-
-.fcs-weekday-row--copied {
-  background: var(--fcs-wp-theme-tint);
-}
-
-/* Destinations list, grouped by type (shipping zones, pickup locations) */
-.fcs-dest-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.fcs-dest-group__title {
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--fcs-color-text-muted);
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.fcs-dest-group__count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: var(--fcs-radius-full);
-  background: var(--fcs-color-surface-hover);
-  color: var(--fcs-color-text-muted);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.fcs-dest-group__items {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.fcs-dest-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 10px 14px;
-  background: var(--fcs-color-surface-subtle);
-  border: 1px solid transparent;
-  border-radius: var(--fcs-radius-md);
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.fcs-dest-item:hover {
-  background: var(--fcs-color-surface);
-  border-color: var(--fcs-color-border-subtle);
-}
-
-.fcs-dest-item__info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.fcs-dest-item__name {
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--fcs-color-text-main);
-}
-
-.fcs-dest-item__desc {
-  font-size: 12px;
-  color: var(--fcs-color-text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fcs-dest-item__actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-/* "Add a destination" row */
-.fcs-dest-add {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--fcs-color-border-subtle);
-}
-
-.fcs-dest-add .fcs-select {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-/* Modal */
-.fcs-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(17, 24, 39, 0.45);
-  backdrop-filter: blur(1px);
-  z-index: 10000;
-  align-items: center;
-  justify-content: center;
-}
-
-.fcs-overlay--show {
-  display: flex;
-}
-
-.fcs-modal {
-  background: #ffffff;
-  width: 420px;
-  border-radius: var(--fcs-radius-lg);
-  padding: 20px;
-  box-shadow: var(--fcs-shadow-popover);
-}
-
-.fcs-modal__title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 8px;
-  color: var(--fcs-color-text-main);
-}
-
-.fcs-modal__body {
-  color: var(--fcs-color-text-muted);
-  font-size: 13px;
-  margin: 0 0 20px;
-  line-height: 1.5;
-}
-
-.fcs-modal__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-@media (max-width: 820px) {
-  .fcs-schedules-layout {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 620px) {
+  .fcs-admin .fcs-weekday-row td { padding: 12px; }
+  .fcs-admin .fcs-weekday-status { display: none; }
+  .fcs-admin .fcs-weekday-time-ctrl { align-items: stretch; flex-wrap: wrap; }
+  .fcs-admin .fcs-weekday-time-field .fcs-input { width: 120px; }
+  .fcs-admin .fcs-dest-add { align-items: stretch; flex-direction: column; }
 }

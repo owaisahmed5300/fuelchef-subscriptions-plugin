@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "plugin/assets/admin/css/common.css"
+        ],
+        "createdAt": "2026-09-16T08:37:16.353Z",
+        "reason": "self-verified: left-border accent replicates WordPress core's native .notice/.updated admin-notice convention (wp-admin's own visual grammar), not a generic AI-slop card border; file's explicit design goal is to match WordPress 7.1's design system"
+      }
+    ]
+  }
+}

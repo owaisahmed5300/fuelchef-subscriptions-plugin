@@ -1,789 +1,1063 @@
 /**
- * FuelChef Subscriptions (FCS)
- * Modernized WordPress Admin Design System
+ * FuelChef Subscriptions — WordPress / Gutenberg admin design layer
+ *
+ * This file intentionally follows the visual grammar of WordPress 7.1's
+ * design system and block editor UI rather than introducing a separate
+ * product-design language.
+ *
+ * The --wpds-* variables are the WordPress 7.1 design-token layer. Every
+ * token has a WordPress-admin fallback so the UI remains usable on older
+ * WordPress versions.
  */
 
-:root {
-  /* WordPress Core CSS variable integration with rock-solid fallbacks */
-  --fcs-wp-theme: var(--wp-admin-theme-color, #2271b1);
-  --fcs-wp-theme-hover: var(--wp-admin-theme-color-darker-10, #135e96);
-  --fcs-wp-theme-active: var(--wp-admin-theme-color-darker-20, #0a4b78);
-  --fcs-wp-theme-tint: rgba(34, 113, 177, 0.08);
-
-  /* Modern Surface & Border Palette */
-  --fcs-color-bg: #f0f0f1;
-  --fcs-color-surface: #ffffff;
-  --fcs-color-surface-subtle: #f9fafb;
-  --fcs-color-surface-hover: #f0f2f5;
-  --fcs-color-border: #d0d4d9;
-  --fcs-color-border-subtle: #e5e7eb;
-
-  /* Typography Colors */
-  --fcs-color-text-main: #1d2327;
-  --fcs-color-text-body: #3c434a;
-  --fcs-color-text-muted: #646970;
-  --fcs-color-text-subtle: #8c8f94;
-
-  /* State Accents */
-  --fcs-color-success: #007a3d;
-  --fcs-color-success-bg: #edf8f2;
-  --fcs-color-success-border: #bfe7d0;
-
-  --fcs-color-danger: #d63638;
-  --fcs-color-danger-hover: #b32d2e;
-  --fcs-color-danger-bg: #fcf0f1;
-  --fcs-color-danger-border: #f8c9cb;
-
-  --fcs-color-warning: #966800;
-  --fcs-color-warning-bg: #fef3d9;
-  --fcs-color-warning-border: #f2ddb0;
-
-  /* Modernized Radii */
-  --fcs-radius-sm: 4px;
-  --fcs-radius-md: 6px;
-  --fcs-radius-lg: 8px;
-  --fcs-radius-xl: 12px;
-  --fcs-radius-full: 9999px;
-
-  /* Refined Elevation */
-  --fcs-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --fcs-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --fcs-shadow-popover: 0 12px 28px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.04);
-
-  --fcs-focus-ring: 0 0 0 1px #ffffff, 0 0 0 3px var(--fcs-wp-theme);
-}
-
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background-color: var(--fcs-color-bg);
-  color: var(--fcs-color-text-body);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-  font-size: 13px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Container */
-.fcs-wrap {
-  max-width: 1120px;
-  margin: 24px auto 60px;
-  padding: 0 20px;
+.fcs-admin {
+    /* Color — WordPress 7.1 design tokens first, wp-admin second. */
+    --fcs-color-primary: var(--wpds-color-accent-primary, var(--wp-admin-theme-color, #2271b1));
+    --fcs-color-primary-hover: var(--wpds-color-accent-primary-hover, var(--wp-admin-theme-color-darker-10, #135e96));
+    --fcs-color-primary-active: var(--wpds-color-accent-primary-active, var(--wp-admin-theme-color-darker-20, #0a4b78));
+    --fcs-color-primary-soft: var(--wpds-color-background-accent, rgba(34, 113, 177, .08));
+
+    --fcs-color-background: var(--wpds-color-background, #f0f0f1);
+    --fcs-color-surface: var(--wpds-color-background-surface-neutral, #fff);
+    --fcs-color-surface-strong: var(--wpds-color-background-surface-neutral-strong, #fff);
+    --fcs-color-surface-hover: var(--wpds-color-background-surface-neutral-hover, #f6f7f7);
+    --fcs-color-surface-active: var(--wpds-color-background-surface-neutral-active, #f0f0f1);
+
+    --fcs-color-text: var(--wpds-color-foreground-content-neutral, #1e1e1e);
+    --fcs-color-text-secondary: var(--wpds-color-foreground-content-neutral-secondary, #50575e);
+    --fcs-color-text-tertiary: var(--wpds-color-foreground-content-neutral-tertiary, #646970);
+    --fcs-color-text-on-primary: #fff;
+
+    --fcs-color-border: var(--wpds-color-stroke-surface-neutral, #c3c4c7);
+    --fcs-color-border-subtle: var(--wpds-color-stroke-surface-neutral-weak, #dcdcde);
+    --fcs-color-border-strong: var(--wpds-color-stroke-surface-neutral-strong, #8c8f94);
+
+    --fcs-color-success: var(--wpds-color-foreground-content-success, #008a20);
+    --fcs-color-success-bg: var(--wpds-color-background-success, #edfaef);
+    --fcs-color-success-border: var(--wpds-color-stroke-success, #68de7c);
+    --fcs-color-warning: var(--wpds-color-foreground-content-warning, #8a5b00);
+    --fcs-color-warning-bg: var(--wpds-color-background-warning, #fff8e5);
+    --fcs-color-warning-border: var(--wpds-color-stroke-warning, #f0c33c);
+    --fcs-color-danger: var(--wpds-color-foreground-content-error, #cc1818);
+    --fcs-color-danger-hover: var(--wpds-color-foreground-content-error-hover, #a00);
+    --fcs-color-danger-bg: var(--wpds-color-background-error, #fcf0f1);
+    --fcs-color-danger-border: var(--wpds-color-stroke-error, #f0a0a0);
+    --fcs-color-info: var(--wpds-color-foreground-content-info, #3858e9);
+    --fcs-color-info-bg: var(--wpds-color-background-info, #eef0ff);
+    --fcs-color-info-border: var(--wpds-color-stroke-info, #9da9ff);
+
+    /* WordPress 7.1's default design-system controls are 40px. */
+    --fcs-control-height: 40px;
+    --fcs-control-height-small: 32px;
+    --fcs-control-radius: var(--wpds-border-radius-sm, 2px);
+    --fcs-card-radius: var(--wpds-border-radius-lg, 4px);
+    --fcs-radius-full: 999px;
+
+    --fcs-space-1: 4px;
+    --fcs-space-2: 8px;
+    --fcs-space-3: 12px;
+    --fcs-space-4: 16px;
+    --fcs-space-5: 20px;
+    --fcs-space-6: 24px;
+    --fcs-space-7: 32px;
+    --fcs-space-8: 40px;
+
+    --fcs-shadow-popover: var(--wpds-shadow-popover, 0 6px 24px rgba(0, 0, 0, .16));
+    --fcs-focus: 0 0 0 1px var(--fcs-color-surface), 0 0 0 3px var(--fcs-color-primary);
+    --fcs-focus-danger: 0 0 0 1px var(--fcs-color-surface), 0 0 0 3px var(--fcs-color-danger);
+
+    color: var(--fcs-color-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.fcs-admin,
+.fcs-admin *,
+.fcs-admin *::before,
+.fcs-admin *::after {
+    box-sizing: border-box;
+}
+
+.fcs-admin button,
+.fcs-admin input,
+.fcs-admin select,
+.fcs-admin textarea {
+    font: inherit;
+}
+
+.fcs-admin button,
+.fcs-admin input,
+.fcs-admin select,
+.fcs-admin textarea {
+    margin: 0;
+}
+
+.fcs-admin button {
+    cursor: pointer;
+}
+
+.fcs-admin button:disabled,
+.fcs-admin input:disabled,
+.fcs-admin select:disabled,
+.fcs-admin textarea:disabled {
+    cursor: not-allowed;
+}
+
+/* Page shell: deliberately close to wp-admin's content canvas. */
+.fcs-admin.fcs-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.fcs-admin .fcs-page-header {
+    margin: 0 0 24px;
+}
+
+.fcs-admin .fcs-page-title {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 4px;
+    color: var(--fcs-color-text);
+    font-size: 23px;
+    font-weight: 400;
+    line-height: 1.3;
+}
+
+.fcs-admin .fcs-page-subtitle {
+    margin: 0;
+    max-width: 760px;
+    color: var(--fcs-color-text-secondary);
+    font-size: 13px;
+}
+
+/* Gutenberg-like tabs: text + underline, no pill navigation. */
+.fcs-admin .fcs-nav-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin: 0 0 24px;
+    border-bottom: 1px solid var(--fcs-color-border-subtle);
+}
+
+.fcs-admin .fcs-nav-tab {
+    min-height: 42px;
+    margin: 0 4px -1px 0;
+    padding: 0 12px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--fcs-color-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 40px;
+}
+
+.fcs-admin .fcs-nav-tab:hover {
+    color: var(--fcs-color-text);
+    background: transparent;
+}
+
+.fcs-admin .fcs-nav-tab:focus-visible {
+    outline: none;
+    box-shadow: var(--fcs-focus);
+}
+
+.fcs-admin .fcs-nav-tab--active,
+.fcs-admin .fcs-nav-tab--active:hover {
+    border-bottom-color: var(--fcs-color-primary);
+    color: var(--fcs-color-text);
+    font-weight: 600;
+}
+
+.fcs-admin .fcs-tab-panel {
+    display: none;
+}
+
+.fcs-admin .fcs-tab-panel--active {
+    display: block;
+}
+
+/* Cards are restrained WordPress panels, not floating SaaS surfaces. */
+.fcs-admin .fcs-card {
+    margin: 0 0 20px;
+    overflow: hidden;
+    border: 1px solid var(--fcs-color-border-subtle);
+    border-radius: var(--fcs-card-radius);
+    background: var(--fcs-color-surface);
+    box-shadow: none;
+}
+
+.fcs-admin .fcs-card__header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--fcs-color-border-subtle);
+    background: var(--fcs-color-surface);
+}
+
+.fcs-admin .fcs-card__title {
+    margin: 0;
+    color: var(--fcs-color-text);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.fcs-admin .fcs-card__body {
+    padding: 20px;
+}
+
+.fcs-admin .fcs-card__body--tight {
+    padding: 8px;
+}
+
+.fcs-admin .fcs-card__intro {
+    margin: 0 0 20px;
+    color: var(--fcs-color-text-secondary);
+}
+
+/* Fields — aligned with Gutenberg/WordPress 40px controls. */
+.fcs-admin .fcs-input,
+.fcs-admin .fcs-select,
+.fcs-admin .fcs-textarea {
+    width: 100%;
+    min-height: var(--fcs-control-height);
+    padding: 0 12px;
+    border: 1px solid var(--fcs-color-border);
+    border-radius: var(--fcs-control-radius);
+    background: var(--fcs-color-surface);
+    color: var(--fcs-color-text);
+    box-shadow: none;
+    outline: 0;
+    text-align: start;
+    text-align: left;
+    transition: border-color 100ms ease, box-shadow 100ms ease, background-color 100ms ease;
+}
+
+.fcs-admin .fcs-textarea {
+    min-height: 96px;
+    padding: 10px 12px;
+    resize: vertical;
+}
+
+.fcs-admin .fcs-input:hover,
+.fcs-admin .fcs-select:hover,
+.fcs-admin .fcs-textarea:hover {
+    border-color: var(--fcs-color-border-strong);
+}
+
+.fcs-admin .fcs-input:focus,
+.fcs-admin .fcs-select:focus,
+.fcs-admin .fcs-textarea:focus {
+    border-color: var(--fcs-color-primary);
+    box-shadow: var(--fcs-focus);
+}
+
+.fcs-admin .fcs-input::placeholder,
+.fcs-admin .fcs-textarea::placeholder {
+    color: var(--fcs-color-text-tertiary);
+    opacity: 1;
 }
 
-/* Page Header */
-.fcs-page-header {
-  margin-bottom: 20px;
+.fcs-admin .fcs-input:disabled,
+.fcs-admin .fcs-select:disabled,
+.fcs-admin .fcs-textarea:disabled {
+    background: #f0f0f1;
+    border-color: #dcdcde;
+    color: #8c8f94;
 }
 
-.fcs-page-title {
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1.3;
-  margin: 0 0 6px;
-  color: var(--fcs-color-text-main);
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.fcs-admin .fcs-input--number {
+    width: 88px;
+    text-align: center;
 }
 
-.fcs-page-subtitle {
-  color: var(--fcs-color-text-muted);
-  font-size: 13px;
-  margin: 0;
+.fcs-admin .fcs-input--time {
+    width: 130px;
+    flex: 0 0 auto;
 }
 
-/* Modern WordPress Tabs */
-.fcs-nav-tabs {
-  display: flex;
-  gap: 6px;
-  border-bottom: 1px solid var(--fcs-color-border);
-  margin-bottom: 20px;
+.fcs-admin .fcs-field {
+    margin-top: 24px;
 }
 
-.fcs-nav-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 14px;
-  margin-bottom: -1px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--fcs-color-text-muted);
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.15s ease-in-out;
+.fcs-admin .fcs-field:first-child {
+    margin-top: 0;
 }
 
-.fcs-nav-tab:hover {
-  color: var(--fcs-wp-theme);
-  background: transparent;
-  border-bottom-color: var(--fcs-color-border);
+.fcs-admin .fcs-field label {
+    display: block;
+    margin: 0 0 6px;
+    color: var(--fcs-color-text);
+    font-size: 13px;
+    font-weight: 600;
 }
 
-.fcs-nav-tab--active,
-.fcs-nav-tab--active:hover {
-  border-bottom-color: var(--fcs-wp-theme);
-  color: var(--fcs-color-text-main);
+.fcs-admin .fcs-field .fcs-input,
+.fcs-admin .fcs-field .fcs-select,
+.fcs-admin .fcs-field .fcs-textarea {
+    max-width: 520px;
 }
 
-.fcs-nav-tab:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 1px var(--fcs-color-surface), 0 0 0 3px var(--fcs-wp-theme);
+.fcs-admin .fcs-field .fcs-input--number {
+    width: 88px;
 }
-
-/* Panels */
-.fcs-tab-panel {
-  display: none;
+
+.fcs-admin .fcs-field__hint {
+    margin: 6px 0 0;
+    color: var(--fcs-color-text-secondary);
+    font-size: 12px;
+}
+
+/* Buttons: WordPress/Gutenberg hierarchy — primary, secondary, destructive, icon. */
+.fcs-admin .fcs-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: var(--fcs-control-height);
+    padding: 0 16px;
+    border: 1px solid var(--fcs-color-border);
+    border-radius: var(--fcs-control-radius);
+    background: var(--fcs-color-surface);
+    color: var(--fcs-color-text);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: none;
+    transition: background-color 100ms ease, border-color 100ms ease, color 100ms ease, box-shadow 100ms ease;
+}
+
+.fcs-admin .fcs-btn:hover {
+    background: var(--fcs-color-surface-hover);
+    border-color: var(--fcs-color-border-strong);
+    color: var(--fcs-color-text);
+}
+
+.fcs-admin .fcs-btn:active {
+    background: var(--fcs-color-surface-active);
+}
+
+.fcs-admin .fcs-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--fcs-focus);
+}
+
+.fcs-admin .fcs-btn:disabled,
+.fcs-admin .fcs-btn[aria-disabled="true"] {
+    opacity: .55;
+    background: var(--fcs-color-surface);
+    border-color: var(--fcs-color-border-subtle);
+    color: var(--fcs-color-text-tertiary);
+}
+
+.fcs-admin .fcs-btn--primary,
+.fcs-admin .fcs-btn--primary:hover,
+.fcs-admin .fcs-btn--primary:active {
+    border-color: var(--fcs-color-primary);
+    background: var(--fcs-color-primary);
+    color: var(--fcs-color-text-on-primary);
+}
+
+.fcs-admin .fcs-btn--primary:hover {
+    background: var(--fcs-color-primary-hover);
+    border-color: var(--fcs-color-primary-hover);
+}
+
+.fcs-admin .fcs-btn--primary:active {
+    background: var(--fcs-color-primary-active);
+    border-color: var(--fcs-color-primary-active);
+}
+
+.fcs-admin .fcs-btn--danger {
+    border-color: var(--fcs-color-danger);
+    background: var(--fcs-color-danger);
+    color: #fff;
+}
+
+.fcs-admin .fcs-btn--danger:hover {
+    border-color: var(--fcs-color-danger-hover);
+    background: var(--fcs-color-danger-hover);
+    color: #fff;
 }
 
-.fcs-tab-panel--active {
-  display: block;
+.fcs-admin .fcs-btn--danger:focus-visible {
+    box-shadow: var(--fcs-focus-danger);
 }
 
-/* Modern Postbox Card */
-.fcs-card {
-  background: var(--fcs-color-surface);
-  border: 1px solid var(--fcs-color-border);
-  border-radius: var(--fcs-radius-lg);
-  box-shadow: var(--fcs-shadow-card);
-  margin-bottom: 20px;
-  overflow: hidden;
+.fcs-admin .fcs-btn--add {
+    border-style: solid;
+    border-color: var(--fcs-color-border);
+    background: var(--fcs-color-surface);
+    color: var(--fcs-color-primary);
 }
 
-.fcs-card__header {
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--fcs-color-border-subtle);
-  background: var(--fcs-color-surface-subtle);
+.fcs-admin .fcs-btn--add:hover {
+    border-color: var(--fcs-color-primary);
+    background: var(--fcs-color-primary-soft);
+    color: var(--fcs-color-primary-hover);
 }
 
-.fcs-card__title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--fcs-color-text-main);
+.fcs-admin .fcs-btn--icon {
+    width: var(--fcs-control-height);
+    min-width: var(--fcs-control-height);
+    padding: 0;
 }
 
-.fcs-card__body {
-  padding: 20px 18px;
+.fcs-admin .fcs-btn--icon svg {
+    display: block;
 }
 
-.fcs-card__body--tight {
-  padding: 10px;
+.fcs-admin .fcs-btn svg {
+    flex: 0 0 auto;
 }
 
-.fcs-card__intro {
-  margin: 0 0 16px;
-  color: var(--fcs-color-text-muted);
+/* Status / badges: Gutenberg-style restrained labels rather than decorative pills. */
+.fcs-admin .fcs-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 24px;
+    padding: 0 8px;
+    border: 1px solid var(--fcs-color-border-subtle);
+    border-radius: var(--fcs-radius-full);
+    background: var(--fcs-color-surface);
+    color: var(--fcs-color-text-secondary);
+    font-size: 11px;
+    font-weight: 600;
 }
 
-/* Modernized Form Elements */
-.fcs-input,
-.fcs-select,
-.fcs-textarea {
-  border: 1px solid var(--fcs-color-border);
-  border-radius: var(--fcs-radius-md);
-  padding: 6px 10px;
-  min-height: 34px;
-  font-size: 13px;
-  font-family: inherit;
-  color: var(--fcs-color-text-main);
-  background-color: #ffffff;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+.fcs-admin .fcs-pill-badge--success {
+    border-color: var(--fcs-color-success-border);
+    background: var(--fcs-color-success-bg);
+    color: var(--fcs-color-success);
 }
 
-.fcs-input:focus,
-.fcs-select:focus,
-.fcs-textarea:focus {
-  border-color: var(--fcs-wp-theme);
-  box-shadow: var(--fcs-focus-ring);
+.fcs-admin .fcs-pill-badge--muted {
+    background: #f6f7f7;
 }
 
-.fcs-input--number {
-  width: 80px;
-  text-align: center;
-  font-weight: 600;
+.fcs-admin .fcs-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
 }
 
-.fcs-textarea {
-  min-height: 75px;
-  padding: 8px 10px;
-  width: 100%;
-  resize: vertical;
+/* Notices / alerts. */
+.fcs-admin .fcs-notice {
+    display: block;
+    margin: 20px 0 0;
+    padding: 12px 16px;
+    border: 1px solid var(--fcs-color-info-border);
+    border-left-width: 4px;
+    border-radius: 2px;
+    background: var(--fcs-color-info-bg);
+    color: var(--fcs-color-text-secondary);
 }
 
-/* Buttons */
-.fcs-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  min-height: 32px;
-  padding: 0 12px;
-  cursor: pointer;
-  border: 1px solid var(--fcs-color-border);
-  border-radius: var(--fcs-radius-md);
-  background: #ffffff;
-  color: var(--fcs-color-text-main);
-  text-decoration: none;
-  white-space: nowrap;
-  transition: all 0.15s ease-in-out;
+.fcs-admin .fcs-notice strong {
+    color: var(--fcs-color-text);
 }
 
-.fcs-btn:hover {
-  background: var(--fcs-color-surface-hover);
-  border-color: #b0b4b9;
+.fcs-admin .fcs-notice--success {
+    border-color: var(--fcs-color-success-border);
+    background: var(--fcs-color-success-bg);
 }
 
-.fcs-btn:focus-visible {
-  outline: none;
-  box-shadow: var(--fcs-focus-ring);
+.fcs-admin .fcs-notice--warning {
+    border-color: var(--fcs-color-warning-border);
+    background: var(--fcs-color-warning-bg);
 }
 
-.fcs-btn svg {
-  display: block;
-  flex-shrink: 0;
+.fcs-admin .fcs-notice--error {
+    border-color: var(--fcs-color-danger-border);
+    background: var(--fcs-color-danger-bg);
 }
 
-.fcs-btn--primary {
-  background: var(--fcs-wp-theme);
-  border-color: var(--fcs-wp-theme);
-  color: #ffffff;
-  font-weight: 600;
+/* Inline compound fields. */
+.fcs-admin .fcs-inline-field {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--fcs-color-border-subtle);
+    border-radius: var(--fcs-card-radius);
+    background: var(--fcs-color-surface);
+    color: var(--fcs-color-text-secondary);
 }
 
-.fcs-btn--primary:hover {
-  background: var(--fcs-wp-theme-hover);
-  border-color: var(--fcs-wp-theme-hover);
-  color: #ffffff;
+.fcs-admin .fcs-inline-field + .fcs-inline-field {
+    margin-top: 12px;
 }
 
-.fcs-btn--danger {
-  background: var(--fcs-color-danger);
-  border-color: var(--fcs-color-danger);
-  color: #ffffff;
-  font-weight: 600;
+.fcs-admin .fcs-inline-field label {
+    min-width: 90px;
+    color: var(--fcs-color-text);
+    font-weight: 600;
 }
 
-.fcs-btn--danger:hover {
-  background: var(--fcs-color-danger-hover);
-  border-color: var(--fcs-color-danger-hover);
-  color: #ffffff;
+.fcs-admin .fcs-inline-field .fcs-select {
+    flex: 1 1 220px;
+    max-width: 360px;
 }
 
-.fcs-btn--add {
-  background: var(--fcs-wp-theme-tint);
-  border: 1px dashed rgba(34, 113, 177, 0.4);
-  color: var(--fcs-wp-theme);
-  font-weight: 600;
+.fcs-admin .fcs-inline-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.fcs-btn--add:hover {
-  background: var(--fcs-wp-theme);
-  border-color: var(--fcs-wp-theme);
-  border-style: solid;
-  color: #ffffff;
+.fcs-admin .fcs-inline-value span {
+    color: var(--fcs-color-text-secondary);
 }
 
-.fcs-btn--icon {
-  width: 34px;
-  height: 34px;
-  min-height: 34px;
-  padding: 0;
-  border-radius: var(--fcs-radius-full);
+.fcs-admin .fcs-percent-input {
+    display: inline-flex;
+    align-items: stretch;
+    width: fit-content;
+    border: 1px solid var(--fcs-color-border);
+    border-radius: var(--fcs-control-radius);
+    background: var(--fcs-color-surface);
+    overflow: hidden;
 }
 
-.fcs-btn--icon svg {
-  display: block;
+.fcs-admin .fcs-percent-input:focus-within {
+    border-color: var(--fcs-color-primary);
+    box-shadow: var(--fcs-focus);
 }
 
-/* Pill Badges */
-.fcs-pill-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: var(--fcs-radius-full);
+.fcs-admin .fcs-percent-input .fcs-input--number {
+    width: 72px;
+    min-height: var(--fcs-control-height);
+    border: 0;
+    border-radius: 0;
 }
 
-.fcs-pill-badge--success {
-  background: var(--fcs-color-success-bg);
-  color: var(--fcs-color-success);
-  border: 1px solid var(--fcs-color-success-border);
+.fcs-admin .fcs-percent-input .fcs-input--number:focus {
+    box-shadow: none;
 }
 
-.fcs-pill-badge--muted {
-  background: var(--fcs-color-surface-hover);
-  color: var(--fcs-color-text-muted);
-  border: 1px solid var(--fcs-color-border-subtle);
+.fcs-admin .fcs-percent-input__suffix {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-left: 1px solid var(--fcs-color-border-subtle);
+    background: #f6f7f7;
+    color: var(--fcs-color-text-secondary);
+    font-weight: 600;
 }
 
-.fcs-status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
+.fcs-admin .fcs-submit-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 8px;
+    padding: 16px 0;
 }
 
-/* Modern Callout / Notice */
-.fcs-notice {
-  background: var(--fcs-wp-theme-tint);
-  border: 1px solid rgba(34, 113, 177, 0.2);
-  border-radius: var(--fcs-radius-md);
-  padding: 12px 16px;
-  margin: 18px 0 0;
-  font-size: 13px;
-  color: var(--fcs-color-text-body);
+.fcs-admin .fcs-submit-bar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
-.fcs-notice strong {
-  color: var(--fcs-color-text-main);
+.fcs-admin .fcs-save-status {
+    color: var(--fcs-color-text-secondary);
+    font-size: 12px;
 }
 
-/* Stacked form field: label above, full-width input/textarea, optional hint below */
-.fcs-field {
-  margin-top: 16px;
+.fcs-admin .fcs-save-status--saved {
+    color: var(--fcs-color-success);
 }
 
-.fcs-field:first-child {
-  margin-top: 0;
+.fcs-admin .fcs-save-status--dirty {
+    color: var(--fcs-color-warning);
 }
 
-.fcs-field label {
-  display: block;
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--fcs-color-text-main);
-  margin-bottom: 6px;
+/* Calendar — compact, grid-first and neutral like editor controls. */
+.fcs-admin .fcs-calendar-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 0 12px;
 }
 
-.fcs-field .fcs-input,
-.fcs-field .fcs-select,
-.fcs-field .fcs-textarea {
-  width: 100%;
-  max-width: 480px;
+.fcs-admin .fcs-calendar-toolbar__title {
+    min-width: 150px;
+    color: var(--fcs-color-text);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
 }
 
-.fcs-field .fcs-input--number {
-  width: 90px;
+.fcs-admin .fcs-calendar {
+    overflow: hidden;
+    border: 1px solid var(--fcs-color-border-subtle);
+    border-radius: var(--fcs-card-radius);
+    background: var(--fcs-color-surface);
 }
 
-.fcs-field__hint {
-  margin: 6px 0 0;
-  font-size: 12px;
-  color: var(--fcs-color-text-muted);
+.fcs-admin .fcs-calendar__head,
+.fcs-admin .fcs-calendar__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
-/* Number input with a fused suffix (e.g. a "%" affix), read as one control */
-.fcs-percent-input {
-  display: inline-flex;
-  align-items: stretch;
-  width: fit-content;
-  border: 1px solid var(--fcs-color-border);
-  border-radius: var(--fcs-radius-md);
-  overflow: hidden;
-  transition: border-color 0.15s, box-shadow 0.15s;
+.fcs-admin .fcs-calendar__head {
+    border-bottom: 1px solid var(--fcs-color-border-subtle);
+    background: #f6f7f7;
 }
 
-.fcs-percent-input:focus-within {
-  border-color: var(--fcs-wp-theme);
-  box-shadow: var(--fcs-focus-ring);
+.fcs-admin .fcs-calendar__th {
+    padding: 8px 4px;
+    color: var(--fcs-color-text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
 }
 
-.fcs-percent-input .fcs-input--number {
-  width: 70px;
-  border: 0;
-  border-radius: 0;
+.fcs-admin .fcs-calendar__cell {
+    position: relative;
+    min-height: 68px;
+    padding: 6px;
+    border-right: 1px solid var(--fcs-color-border-subtle);
+    border-bottom: 1px solid var(--fcs-color-border-subtle);
+    background: var(--fcs-color-surface);
 }
 
-.fcs-percent-input .fcs-input--number:focus {
-  box-shadow: none;
+.fcs-admin .fcs-calendar__cell:nth-child(7n) {
+    border-right: 0;
 }
 
-.fcs-percent-input__suffix {
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-  background: var(--fcs-color-surface-subtle);
-  color: var(--fcs-color-text-muted);
-  font-weight: 600;
-  border-left: 1px solid var(--fcs-color-border);
+.fcs-admin .fcs-calendar__cell--lastrow {
+    border-bottom: 0;
 }
 
-/* Submit bar */
-.fcs-submit-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 0 20px;
+.fcs-admin .fcs-calendar__cell--empty {
+    background: #f6f7f7;
 }
 
-.fcs-submit-bar__actions {
-  display: flex;
-  gap: 8px;
+.fcs-admin .fcs-calendar__date-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--fcs-color-text);
+    font-weight: 600;
 }
 
-.fcs-save-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 5px 14px;
-  border-radius: var(--fcs-radius-full);
-  background: #ffffff;
-  border: 1px solid var(--fcs-color-border-subtle);
-  color: var(--fcs-color-text-muted);
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
+.fcs-admin .fcs-calendar__date-btn:hover {
+    background: var(--fcs-color-surface-hover);
 }
 
-.fcs-save-status--saved {
-  background: var(--fcs-color-success-bg);
-  border-color: var(--fcs-color-success-border);
-  color: var(--fcs-color-success);
+.fcs-admin .fcs-calendar__date-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--fcs-focus);
 }
 
-.fcs-save-status--dirty {
-  background: var(--fcs-color-warning-bg);
-  border-color: var(--fcs-color-warning-border);
-  color: var(--fcs-color-warning);
+.fcs-admin .fcs-calendar__cell--today .fcs-calendar__date-btn {
+    box-shadow: inset 0 0 0 1px var(--fcs-color-primary);
 }
 
-/* CALENDAR (Unchanged Mechanics, Elevating WP Look) */
-.fcs-calendar-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 12px;
+.fcs-admin .fcs-calendar__cell--unavailable {
+    background: var(--fcs-color-danger-bg);
 }
 
-.fcs-calendar-toolbar__title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--fcs-color-text-main);
+.fcs-admin .fcs-calendar__cell--unavailable .fcs-calendar__date-btn {
+    background: var(--fcs-color-danger);
+    color: #fff;
 }
 
-.fcs-calendar {
-  border: 1px solid var(--fcs-color-border);
-  border-radius: var(--fcs-radius-lg);
-  background: #ffffff;
-  overflow: hidden;
+.fcs-admin .fcs-calendar__reason {
+    margin-top: 4px;
+    overflow: hidden;
+    color: var(--fcs-color-danger);
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.fcs-calendar__head,
-.fcs-calendar__grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+.fcs-admin .fcs-calendar-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    color: var(--fcs-color-text-secondary);
+    font-size: 12px;
 }
 
-.fcs-calendar__head {
-  background: var(--fcs-color-surface-subtle);
-  border-bottom: 1px solid var(--fcs-color-border-subtle);
+.fcs-admin .fcs-calendar-legend__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--fcs-color-danger);
 }
 
-.fcs-calendar__th {
-  text-align: center;
-  padding: 8px 2px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--fcs-color-text-muted);
+/* Summary / disclosure. */
+.fcs-admin .fcs-summary-list {
+    margin-top: 20px;
+    border-top: 1px solid var(--fcs-color-border-subtle);
+    padding-top: 16px;
 }
 
-.fcs-calendar__cell {
-  min-height: 72px;
-  border-right: 1px solid var(--fcs-color-border-subtle);
-  border-bottom: 1px solid var(--fcs-color-border-subtle);
-  padding: 6px;
-  background: var(--fcs-color-surface);
-  position: relative;
+.fcs-admin .fcs-summary-list__empty {
+    color: var(--fcs-color-text-secondary);
+    font-size: 12px;
 }
 
-.fcs-calendar__cell:nth-child(7n) {
-  border-right: 0;
+.fcs-admin .fcs-summary-month {
+    margin-bottom: 8px;
+    border: 1px solid var(--fcs-color-border-subtle);
+    border-radius: var(--fcs-control-radius);
+    background: var(--fcs-color-surface);
+    overflow: hidden;
 }
 
-.fcs-calendar__cell--lastrow {
-  border-bottom: 0;
+.fcs-admin .fcs-summary-month__summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    color: var(--fcs-color-text);
+    font-weight: 600;
 }
 
-.fcs-calendar__cell--empty {
-  background: var(--fcs-color-surface-subtle);
+.fcs-admin .fcs-summary-month__summary:hover {
+    background: #f6f7f7;
 }
 
-.fcs-calendar__date-btn {
-  width: 28px;
-  height: 28px;
-  border: 0;
-  background: transparent;
-  border-radius: 50%;
-  font-weight: 600;
-  font-size: 12px;
-  color: var(--fcs-color-text-main);
-  cursor: pointer;
-  transition: background 0.15s;
+.fcs-admin .fcs-summary-month__summary:focus-visible {
+    outline: none;
+    box-shadow: inset var(--fcs-focus);
 }
 
-.fcs-calendar__date-btn:hover {
-  background: var(--fcs-color-surface-hover);
+.fcs-admin .fcs-summary-month__summary::-webkit-details-marker {
+    display: none;
 }
 
-.fcs-calendar__date-btn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--fcs-wp-theme);
+.fcs-admin .fcs-summary-month__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.fcs-calendar__cell--today .fcs-calendar__date-btn {
-  box-shadow: inset 0 0 0 1.5px var(--fcs-wp-theme);
+.fcs-admin .fcs-summary-month__chevron {
+    transition: transform 100ms ease;
 }
 
-.fcs-calendar__cell--unavailable {
-  background: var(--fcs-color-danger-bg);
+.fcs-admin .fcs-summary-month[open] .fcs-summary-month__chevron {
+    transform: rotate(180deg);
 }
 
-.fcs-calendar__cell--unavailable .fcs-calendar__date-btn {
-  background: var(--fcs-color-danger);
-  color: #ffffff;
+.fcs-admin .fcs-summary-month__count {
+    margin-left: auto;
+    color: var(--fcs-color-text-secondary);
+    font-size: 11px;
+    font-weight: 500;
 }
 
-.fcs-calendar__reason {
-  font-size: 11px;
-  color: var(--fcs-color-danger);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 4px;
-  font-weight: 500;
+.fcs-admin .fcs-summary-month__body {
+    padding: 12px;
+    border-top: 1px solid var(--fcs-color-border-subtle);
 }
 
-.fcs-calendar-legend {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--fcs-color-text-muted);
+.fcs-admin .fcs-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
-.fcs-calendar-legend__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--fcs-color-danger);
-  display: inline-block;
+.fcs-admin .fcs-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 4px 4px 10px;
+    border: 1px solid var(--fcs-color-border);
+    border-radius: 2px;
+    background: var(--fcs-color-surface);
+    color: var(--fcs-color-text-secondary);
+    font-size: 12px;
 }
 
-/* Blackout Summary List */
-.fcs-summary-list {
-  margin-top: 18px;
-  border-top: 1px solid var(--fcs-color-border-subtle);
-  padding-top: 16px;
+.fcs-admin .fcs-pill:hover {
+    border-color: var(--fcs-color-primary);
+    background: var(--fcs-color-primary-soft);
 }
 
-.fcs-summary-list__empty {
-  font-size: 12px;
-  color: var(--fcs-color-text-muted);
+.fcs-admin .fcs-pill__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 2px;
+    background: transparent;
+    color: var(--fcs-color-text-secondary);
 }
 
-.fcs-summary-month {
-  border: 1px solid var(--fcs-color-border);
-  border-radius: var(--fcs-radius-md);
-  margin-bottom: 8px;
-  overflow: hidden;
-  background: #ffffff;
+.fcs-admin .fcs-pill__remove:hover {
+    background: var(--fcs-color-danger-bg);
+    color: var(--fcs-color-danger);
 }
 
-.fcs-summary-month__summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 10px 14px;
-  background: var(--fcs-color-surface-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--fcs-color-text-main);
-  transition: background 0.15s;
+.fcs-admin .fcs-pill__remove:focus-visible {
+    outline: none;
+    box-shadow: var(--fcs-focus);
 }
 
-.fcs-summary-month__summary:hover {
-  background: var(--fcs-color-surface-hover);
+/* Popover / modal. */
+.fcs-admin .fcs-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, .5);
 }
 
-.fcs-summary-month__summary:focus-visible {
-  outline: none;
-  box-shadow: inset var(--fcs-focus-ring);
+.fcs-admin .fcs-overlay--show {
+    display: flex;
 }
 
-.fcs-summary-month__summary::-webkit-details-marker {
-  display: none;
+.fcs-admin .fcs-modal,
+.fcs-admin .fcs-popover {
+    border: 1px solid var(--fcs-color-border);
+    border-radius: var(--fcs-card-radius);
+    background: var(--fcs-color-surface);
+    box-shadow: var(--fcs-shadow-popover);
 }
 
-.fcs-summary-month__label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.fcs-admin .fcs-modal {
+    width: min(420px, 100%);
+    padding: 24px;
 }
 
-.fcs-summary-month__chevron {
-  color: var(--fcs-color-text-subtle);
-  flex-shrink: 0;
-  transition: transform 0.15s ease-in-out;
+.fcs-admin .fcs-modal__title {
+    margin: 0 0 8px;
+    color: var(--fcs-color-text);
+    font-size: 16px;
+    font-weight: 600;
 }
 
-.fcs-summary-month[open] > .fcs-summary-month__summary .fcs-summary-month__chevron {
-  transform: rotate(-180deg);
+.fcs-admin .fcs-modal__body {
+    margin: 0 0 20px;
+    color: var(--fcs-color-text-secondary);
+    line-height: 1.55;
 }
 
-.fcs-summary-month__count {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--fcs-color-text-muted);
-  background: var(--fcs-color-surface);
-  border: 1px solid var(--fcs-color-border-subtle);
-  border-radius: var(--fcs-radius-full);
-  padding: 2px 8px;
-  margin-left: auto;
+.fcs-admin .fcs-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
 }
 
-.fcs-summary-month__body {
-  padding: 10px 12px;
-  border-top: 1px solid var(--fcs-color-border-subtle);
+.fcs-admin .fcs-popover {
+    display: none;
+    position: fixed;
+    z-index: 100001;
+    width: 320px;
+    padding: 16px;
 }
 
-.fcs-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.fcs-admin .fcs-popover--show {
+    display: block;
 }
 
-.fcs-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  border: 1px solid var(--fcs-color-border-subtle);
-  background: var(--fcs-color-surface-subtle);
-  border-radius: var(--fcs-radius-full);
-  padding: 4px 6px 4px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--fcs-color-text-body);
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+.fcs-admin .fcs-popover__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
 }
 
-.fcs-pill:hover {
-  background: var(--fcs-wp-theme-tint);
-  border-color: rgba(34, 113, 177, 0.25);
+.fcs-admin .fcs-popover__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    margin: -4px -4px 0 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--fcs-control-radius);
+    background: transparent;
+    color: var(--fcs-color-text-tertiary);
 }
 
-.fcs-pill__remove {
-  width: 20px;
-  height: 20px;
-  border: 0;
-  background: transparent;
-  border-radius: 50%;
-  color: var(--fcs-color-text-muted);
-  font-size: 14px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+.fcs-admin .fcs-popover__close:hover {
+    background: var(--fcs-color-surface-hover);
+    color: var(--fcs-color-text);
 }
 
-.fcs-pill__remove:hover {
-  background: var(--fcs-color-danger-bg);
-  color: var(--fcs-color-danger);
+.fcs-admin .fcs-popover__close:focus-visible {
+    outline: none;
+    box-shadow: var(--fcs-focus);
 }
 
-.fcs-pill__remove:focus-visible {
-  outline: none;
-  box-shadow: var(--fcs-focus-ring);
+.fcs-admin .fcs-popover__title {
+    color: var(--fcs-color-text);
+    font-size: 13px;
+    font-weight: 600;
 }
 
-/* Popover */
-.fcs-popover {
-  display: none;
-  position: fixed;
-  width: 300px;
-  z-index: 9999;
-  background: #ffffff;
-  border: 1px solid var(--fcs-color-border);
-  border-radius: var(--fcs-radius-lg);
-  box-shadow: var(--fcs-shadow-popover);
-  padding: 14px;
+.fcs-admin .fcs-popover__subtitle {
+    margin-top: 2px;
+    color: var(--fcs-color-text-secondary);
+    font-size: 11px;
 }
 
-.fcs-popover--show {
-  display: block;
+.fcs-admin .fcs-popover__label {
+    display: block;
+    margin: 12px 0 6px;
+    color: var(--fcs-color-text);
+    font-size: 12px;
+    font-weight: 600;
 }
 
-.fcs-popover__title {
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--fcs-color-text-main);
+.fcs-admin .fcs-popover__count {
+    margin-top: 4px;
+    color: var(--fcs-color-text-tertiary);
+    font-size: 11px;
+    text-align: right;
 }
 
-.fcs-popover__subtitle {
-  font-size: 11px;
-  color: var(--fcs-color-text-muted);
+.fcs-admin .fcs-popover__actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
 }
 
-.fcs-popover__label {
-  font-size: 11px;
-  font-weight: 600;
-  display: block;
-  margin: 10px 0 4px;
-  color: var(--fcs-color-text-body);
+/* Arrow: two stacked CSS triangles so the border shows through, like a Gutenberg Popover. */
+.fcs-admin .fcs-popover__arrow,
+.fcs-admin .fcs-popover__arrow::before {
+    position: absolute;
+    left: var(--fcs-popover-arrow-offset, 24px);
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
 }
 
-.fcs-popover__count {
-  text-align: right;
-  color: var(--fcs-color-text-subtle);
-  font-size: 11px;
-  margin-top: 2px;
+.fcs-admin .fcs-popover__arrow::before {
+    content: "";
+    left: -8px;
 }
 
-.fcs-popover__actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
+.fcs-admin .fcs-popover--arrow-up .fcs-popover__arrow {
+    top: -8px;
+    border-bottom-color: var(--fcs-color-border);
 }
+
+.fcs-admin .fcs-popover--arrow-up .fcs-popover__arrow::before {
+    top: 1px;
+    border-bottom-color: var(--fcs-color-surface);
+}
+
+.fcs-admin .fcs-popover--arrow-down .fcs-popover__arrow {
+    bottom: -8px;
+    border-top-color: var(--fcs-color-border);
+}
+
+.fcs-admin .fcs-popover--arrow-down .fcs-popover__arrow::before {
+    top: -1px;
+    border-top-color: var(--fcs-color-surface);
+}
+
+/* Toast: WordPress notice-like, not a dark SaaS snackbar. */
+.fcs-admin .fcs-toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 100002;
+    max-width: 360px;
+    padding: 10px 14px;
+    border: 1px solid var(--fcs-color-border);
+    border-left: 4px solid var(--fcs-color-primary);
+    background: var(--fcs-color-surface);
+    color: var(--fcs-color-text);
+    box-shadow: var(--fcs-shadow-popover);
+    opacity: 0;
+    transform: translateY(6px);
+    pointer-events: none;
+    transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.fcs-admin .fcs-toast--show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Loading state used by JS without changing layout. */
+.fcs-admin .fcs-btn.fcs-is-loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.fcs-admin .fcs-btn.fcs-is-loading::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    color: var(--fcs-color-text-secondary);
+    animation: fcs-spin .7s linear infinite;
+}
+
+.fcs-admin .fcs-btn--primary.fcs-is-loading::after,
+.fcs-admin .fcs-btn--danger.fcs-is-loading::after {
+    color: #fff;
+}
+
+@keyframes fcs-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 782px) {
+    .fcs-admin.fcs-wrap {
+        padding: 20px 12px 40px;
+    }
+
+    .fcs-admin .fcs-page-title {
+        font-size: 20px;
+    }
+
+    .fcs-admin .fcs-submit-bar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 
-/* Toast Notification */
-.fcs-toast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: var(--fcs-color-text-main);
-  color: #ffffff;
-  padding: 9px 16px;
-  font-size: 13px;
-  border-radius: var(--fcs-radius-md);
-  box-shadow: var(--fcs-shadow-md);
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.2s, transform 0.2s;
-  pointer-events: none;
-  z-index: 10000;
+    .fcs-admin .fcs-calendar__cell {
+        min-height: 56px;
+    }
 }
 
-.fcs-toast--show {
-  opacity: 1;
-  transform: translateY(0);
+@media (prefers-reduced-motion: reduce) {
+    .fcs-admin *, .fcs-admin *::before, .fcs-admin *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+    }
 }
