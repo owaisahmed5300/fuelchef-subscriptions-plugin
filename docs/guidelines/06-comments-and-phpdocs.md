@@ -2,6 +2,11 @@
 
 A comment is for the reader of the code today, not a log of how it got here.
 
+This applies whether the code was written by a person or an AI agent. An agent's source
+comments document what the code does, never the agent's own task, reasoning, alternatives
+considered, or what changed and why — that belongs in the commit message, the PR
+description, or the chat response, never in the file itself.
+
 ## What a comment is for
 
 - Say something the code itself can't: a non-obvious constraint ("must still parse on
