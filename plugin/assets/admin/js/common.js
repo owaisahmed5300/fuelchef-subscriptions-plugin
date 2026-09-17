@@ -158,6 +158,7 @@ FCS.createCalendar = function (options) {
   let items = blackouts.slice();
   let activeId = null;
   let triggerEl = null;
+  let currentAnchor = null;
 
   const isoDate = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
   const dateLabel = (y, m, d) => `${monthNames[m].slice(0, 3)} ${String(d).padStart(2, '0')}, ${y}`;
@@ -338,20 +339,39 @@ FCS.createCalendar = function (options) {
     });
   }
 
+  // Same technique Popper.js (which Bootstrap's Popover uses) applies for a single
+  // preferred placement: measure the anchor and the popover's own real box, try below
+  // the anchor, flip above it if that would overflow the viewport ("flip"), then clamp
+  // horizontally to stay on-screen ("shift"). Driven by real measurements rather than
+  // guessed constants so it stays accurate at any popover content size or viewport.
   function positionPopover(anchor) {
     if (!popoverEl || !anchor) return;
     const rect = anchor.getBoundingClientRect();
+
+    // A re-render can leave `anchor` pointing at a now-detached node - its
+    // getBoundingClientRect() comes back all-zero, which would otherwise snap the
+    // popover to the top-left corner. Leave it at its last known position instead.
+    if (0 === rect.width && 0 === rect.height) return;
+
+    const popoverRect = popoverEl.getBoundingClientRect();
+    const gap = 6;
+    const edge = 12;
     const anchorCenter = rect.left + (rect.width / 2);
+
     let left = rect.left;
-    let top = rect.bottom + 6;
+    let top = rect.bottom + gap;
     let arrowUp = true;
-    if (left + 300 > window.innerWidth - 12) left = window.innerWidth - 312;
-    if (top + 260 > window.innerHeight) {
-      top = rect.top - 268;
+
+    if (left + popoverRect.width > window.innerWidth - edge) {
+      left = window.innerWidth - popoverRect.width - edge;
+    }
+    if (top + popoverRect.height > window.innerHeight - edge) {
+      top = rect.top - popoverRect.height - gap;
       arrowUp = false;
     }
-    left = Math.max(12, left);
-    top = Math.max(12, top);
+
+    left = Math.max(edge, left);
+    top = Math.max(edge, top);
 
     popoverEl.style.left = `${left}px`;
     popoverEl.style.top = `${top}px`;
@@ -359,14 +379,23 @@ FCS.createCalendar = function (options) {
     popoverEl.classList.toggle('fcs-popover--arrow-down', !arrowUp);
     popoverEl.style.setProperty(
       '--fcs-popover-arrow-offset',
-      `${Math.min(296, Math.max(24, anchorCenter - left))}px`
+      `${Math.min(popoverRect.width - 24, Math.max(24, anchorCenter - left))}px`
     );
+  }
+
+  // Keeps the popover accurately placed against the same viewport hazards Popper.js's
+  // own "autoUpdate" watches for - the surrounding page scrolling or the window resizing
+  // while the popover is open - without polling. Bound/unbound alongside the popover's
+  // own open/closed state below.
+  function reposition() {
+    positionPopover(currentAnchor);
   }
 
   function openPopover(item, anchor) {
     if (!popoverEl) return;
     activeId = item.id;
     triggerEl = document.activeElement;
+    currentAnchor = anchor;
 
     const title = popoverEl.querySelector('[data-pop-title]');
     const reason = popoverEl.querySelector('[data-pop-reason]');
@@ -396,9 +425,19 @@ FCS.createCalendar = function (options) {
     // up here, since they all ultimately fire this event rather than calling
     // closePopover() itself.
     popoverEl.addEventListener('toggle', (event) => {
-      if (event.newState !== 'closed') return;
+      if ('open' === event.newState) {
+        // Capture phase: catches scrolling inside wp-admin's own scrollable wrappers
+        // (e.g. the calendar card), not just the window itself.
+        window.addEventListener('scroll', reposition, true);
+        window.addEventListener('resize', reposition);
+        return;
+      }
+
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
 
       activeId = null;
+      currentAnchor = null;
       if (triggerEl && typeof triggerEl.focus === 'function') triggerEl.focus();
       triggerEl = null;
     });
