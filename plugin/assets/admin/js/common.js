@@ -233,9 +233,11 @@ FCS.createCalendar = function (options) {
       const curDate = new Date(y, m, d);
       const isToday = curDate.toDateString() === today.toDateString();
 
+      const fullDateLabel = `${monthNames[m]} ${d}, ${y}`;
+
       html += `
         <div class="fcs-calendar__cell ${item ? 'fcs-calendar__cell--unavailable ' : ''}${isToday ? 'fcs-calendar__cell--today' : ''}">
-          <button type="button" class="fcs-calendar__date-btn" data-date="${iso}">${d}</button>
+          <button type="button" class="fcs-calendar__date-btn" data-date="${iso}" aria-label="${FCS.escapeHtml(fullDateLabel)}">${d}</button>
           ${item && item.reason ? `<div class="fcs-calendar__reason">${FCS.escapeHtml(item.reason)}</div>` : ''}
         </div>
       `;

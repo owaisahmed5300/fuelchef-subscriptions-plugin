@@ -47,13 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>
           <div class="fcs-weekday-time-ctrl" style="${day.enabled ? '' : 'display:none;'}">
             <div class="fcs-weekday-time-field">
-              <label>${FCS.escapeHtml(window.fcsAdmin.i18n.scheduleStart)}</label>
-              <input type="time" class="fcs-input fcs-day-time-input" data-role="start" value="${FCS.escapeHtml(day.start_time.slice(0, 5))}">
+              <label for="weekday${day.day_of_week}StartTime">${FCS.escapeHtml(window.fcsAdmin.i18n.scheduleStart)}</label>
+              <input id="weekday${day.day_of_week}StartTime" type="time" class="fcs-input fcs-day-time-input" data-role="start" value="${FCS.escapeHtml(day.start_time.slice(0, 5))}">
             </div>
             <span class="fcs-weekday-time-sep" aria-hidden="true">&ndash;</span>
             <div class="fcs-weekday-time-field">
-              <label>${FCS.escapeHtml(window.fcsAdmin.i18n.scheduleEnd)}</label>
-              <input type="time" class="fcs-input fcs-day-time-input" data-role="end" value="${FCS.escapeHtml(day.end_time.slice(0, 5))}">
+              <label for="weekday${day.day_of_week}EndTime">${FCS.escapeHtml(window.fcsAdmin.i18n.scheduleEnd)}</label>
+              <input id="weekday${day.day_of_week}EndTime" type="time" class="fcs-input fcs-day-time-input" data-role="end" value="${FCS.escapeHtml(day.end_time.slice(0, 5))}">
             </div>
             ${isLast ? '' : `
               <button type="button" class="fcs-btn fcs-btn--icon fcs-copy-down-btn" title="${FCS.escapeHtml(window.fcsAdmin.i18n.copyToDaysBelow)}" aria-label="${FCS.escapeHtml(window.fcsAdmin.i18n.copyToDaysBelow)}">
