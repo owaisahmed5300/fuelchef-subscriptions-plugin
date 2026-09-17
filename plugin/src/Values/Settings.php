@@ -31,6 +31,13 @@ final class Settings {
 	public const MAX_DESCRIPTION_LENGTH = 300;
 
 	/**
+	 * The most days into the future a fulfilment window may reach. Matches
+	 * `Availability_Service::walk_open_dates()`'s own range-walk safety cap, so a
+	 * configured window can never exceed what the service actually honours.
+	 */
+	public const MAX_FULFILMENT_WINDOW_DAYS = 730;
+
+	/**
 	 * Creates the settings value object.
 	 *
 	 * @param int    $cutoff_days How many days before the fulfilment date an order locks.
@@ -83,6 +90,12 @@ final class Settings {
 		if ( $max_fulfilment_window_days < 1 ) {
 			throw new InvalidArgumentException(
 				esc_html__( 'Maximum fulfilment window must be at least 1 day.', 'fuelchef-subscriptions' )
+			);
+		}
+
+		if ( $max_fulfilment_window_days > self::MAX_FULFILMENT_WINDOW_DAYS ) {
+			throw new InvalidArgumentException(
+				esc_html__( 'Maximum fulfilment window is too far in the future.', 'fuelchef-subscriptions' )
 			);
 		}
 

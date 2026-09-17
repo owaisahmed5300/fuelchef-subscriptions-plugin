@@ -16,6 +16,7 @@ use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
 use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Values\DateTime;
+use FuelChef\Subscriptions\Values\Settings;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,12 +29,6 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Availability_Service {
 
-
-	/**
-	 * The most days one range query walks, so a caller cannot ask for an unbounded
-	 * range and hang the request.
-	 */
-	public const MAX_RANGE_DAYS = 730;
 
 	/**
 	 * Creates the service.
@@ -180,7 +175,7 @@ final class Availability_Service {
 		$last   = new DateTimeImmutable( $to );
 		$walked = 0;
 
-		while ( $cursor <= $last && $walked < self::MAX_RANGE_DAYS ) {
+		while ( $cursor <= $last && $walked < Settings::MAX_FULFILMENT_WINDOW_DAYS ) {
 			$date = $cursor->format( DateTime::DATABASE_DATE_FORMAT );
 
 			if ( isset( $open_weekdays[ (int) $cursor->format( 'w' ) ] ) && ! isset( $closed[ $date ] ) ) {
