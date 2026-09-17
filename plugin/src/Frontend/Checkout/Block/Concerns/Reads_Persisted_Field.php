@@ -31,7 +31,7 @@ trait Reads_Persisted_Field {
 		$container = Package::container();
 
 		/** @var CheckoutFields $checkout_fields */
-		$checkout_fields = $container->get( CheckoutFields::class ); // @phpstan-ignore-line
+		$checkout_fields = $container->get( CheckoutFields::class );
 
 		return $checkout_fields->get_field_from_object( $field_id, $order, 'other' );
 	}

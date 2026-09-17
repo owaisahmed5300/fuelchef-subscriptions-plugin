@@ -216,7 +216,7 @@ final class Fulfilment_Date_Field {
 			return;
 		}
 
-		throw new RouteException( // @phpstan-ignore-line
+		throw new RouteException(
 			'fcs_fulfilment_date_required',
 			esc_html__( 'Please choose a fulfilment date.', 'fuelchef-subscriptions' ),
 			400
