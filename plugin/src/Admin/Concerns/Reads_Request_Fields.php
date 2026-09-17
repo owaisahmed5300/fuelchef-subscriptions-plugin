@@ -30,4 +30,11 @@ trait Reads_Request_Fields {
 	private function posted_int( string $key ): int {
 		return absint( Narrow::string( $_POST[ $key ] ?? null ) );
 	}
+
+	/**
+	 * A posted field, as a non-negative float.
+	 */
+	private function posted_float( string $key ): float {
+		return max( 0.0, (float) Narrow::string( $_POST[ $key ] ?? null ) );
+	}
 }

@@ -553,6 +553,42 @@
     font-weight: 600;
 }
 
+.fcs-admin .fcs-currency-input {
+    display: inline-flex;
+    align-items: stretch;
+    width: fit-content;
+    border: 1px solid var(--fcs-color-border);
+    border-radius: var(--fcs-control-radius);
+    background: var(--fcs-color-surface);
+    overflow: hidden;
+}
+
+.fcs-admin .fcs-currency-input:focus-within {
+    border-color: var(--fcs-color-primary);
+    box-shadow: var(--fcs-focus);
+}
+
+.fcs-admin .fcs-currency-input .fcs-input--number {
+    width: 90px;
+    min-height: var(--fcs-control-height);
+    border: 0;
+    border-radius: 0;
+}
+
+.fcs-admin .fcs-currency-input .fcs-input--number:focus {
+    box-shadow: none;
+}
+
+.fcs-admin .fcs-currency-input__prefix {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-right: 1px solid var(--fcs-color-border-subtle);
+    background: #f6f7f7;
+    color: var(--fcs-color-text-secondary);
+    font-weight: 600;
+}
+
 .fcs-admin .fcs-submit-bar {
     display: flex;
     align-items: center;

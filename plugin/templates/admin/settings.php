@@ -9,6 +9,7 @@
  *
  * @var Settings $settings
  * @var list<string> $applicabilities
+ * @var string $currency_symbol
  */
 
 declare(strict_types=1);
@@ -20,6 +21,7 @@ defined( 'ABSPATH' ) || exit;
 
 $settings        = $data['settings'];
 $applicabilities = $data['applicabilities'];
+$currency_symbol = $data['currency_symbol'];
 ?>
 <div class="wrap">
 	<div class="fcs-admin fcs-wrap fcs-editor-shell">
@@ -356,6 +358,72 @@ $applicabilities = $data['applicabilities'];
 								<?php
 								esc_html_e(
 									'Shown under the checkbox. Also accepts {percent}. Leave blank to show none.',
+									'fuelchef-subscriptions'
+								);
+								?>
+							</p>
+						</div>
+
+						<div class="fcs-field">
+							<label for="minimumOrderAmount">
+								<?php esc_html_e( 'Minimum order amount', 'fuelchef-subscriptions' ); ?>
+							</label>
+							<div class="fcs-currency-input">
+								<span class="fcs-currency-input__prefix"><?php echo esc_html( $currency_symbol ); ?></span>
+								<input
+									class="fcs-input fcs-input--number"
+									id="minimumOrderAmount"
+									type="number"
+									min="0"
+									step="0.01"
+									value="<?php echo esc_attr( (string) $settings->minimum_order_amount() ); ?>"
+								>
+							</div>
+							<p class="fcs-field__hint">
+								<?php
+								esc_html_e(
+									'Cart subtotal required before Subscribe & Save is offered. 0 means no restriction.',
+									'fuelchef-subscriptions'
+								);
+								?>
+							</p>
+						</div>
+
+						<div class="fcs-field">
+							<label for="minimumCartQuantity">
+								<?php esc_html_e( 'Minimum items in cart', 'fuelchef-subscriptions' ); ?>
+							</label>
+							<input
+								class="fcs-input fcs-input--number"
+								id="minimumCartQuantity"
+								type="number"
+								min="0"
+								value="<?php echo esc_attr( (string) $settings->minimum_cart_quantity() ); ?>"
+							>
+							<p class="fcs-field__hint">
+								<?php
+								esc_html_e(
+									'Cart items required before Subscribe & Save is offered. 0 means no restriction.',
+									'fuelchef-subscriptions'
+								);
+								?>
+							</p>
+						</div>
+
+						<div class="fcs-field">
+							<label for="ineligibleMessage">
+								<?php esc_html_e( 'Ineligible message (optional)', 'fuelchef-subscriptions' ); ?>
+							</label>
+							<textarea
+								class="fcs-textarea"
+								id="ineligibleMessage"
+								maxlength="300"
+								placeholder="<?php echo esc_attr( $settings->ineligible_message_resolved() ); ?>"
+							><?php echo esc_textarea( $settings->ineligible_message() ); ?></textarea>
+							<p class="fcs-field__hint">
+								<?php
+								esc_html_e(
+									'Shown instead of Subscribe & Save when the cart doesn\'t qualify. Leave blank to use the default wording.',
 									'fuelchef-subscriptions'
 								);
 								?>

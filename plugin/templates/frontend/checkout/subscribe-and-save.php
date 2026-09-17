@@ -2,8 +2,8 @@
 /**
  * Classic checkout subscribe-and-save checkbox.
  *
- * $data carries `checked` (bool), `label` (string) and `description` (string, empty for
- * none).
+ * $data carries `eligible` (bool), `checked` (bool), `label` (string), `description`
+ * (string, empty for none) and `ineligible_message` (string).
  */
 
 declare(strict_types=1);
@@ -12,12 +12,23 @@ use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save;
 
 defined( 'ABSPATH' ) || exit;
 
+/** @var bool $eligible */
+$eligible = $data['eligible'];
 /** @var bool $checked */
 $checked = $data['checked'];
 /** @var string $label */
 $label = $data['label'];
 /** @var string $description */
 $description = $data['description'];
+/** @var string $ineligible_message */
+$ineligible_message = $data['ineligible_message'];
+
+if ( ! $eligible ) :
+	?>
+	<p class="fcs-subscribe-and-save-ineligible"><?php echo esc_html( $ineligible_message ); ?></p>
+	<?php
+	return;
+endif;
 
 woocommerce_form_field(
 	Subscribe_And_Save::FIELD_NAME,

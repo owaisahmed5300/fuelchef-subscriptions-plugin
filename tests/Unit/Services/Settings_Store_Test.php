@@ -43,6 +43,9 @@ final class Settings_Store_Test extends TestCase {
 		$this->assertSame( '', $settings->fulfilment_date_description() );
 		$this->assertSame( 'Subscribe & Save {percent}%', $settings->subscribe_save_label() );
 		$this->assertSame( '', $settings->subscribe_save_description() );
+		$this->assertSame( 0.0, $settings->minimum_order_amount() );
+		$this->assertSame( 0, $settings->minimum_cart_quantity() );
+		$this->assertSame( '', $settings->ineligible_message() );
 	}
 
 	public function test_get_returns_the_stored_values_when_they_are_valid(): void {
@@ -57,6 +60,9 @@ final class Settings_Store_Test extends TestCase {
 				'fulfilment_date_description' => 'Choose any day we can fulfil in your area.',
 				'subscribe_save_label'        => 'Save {percent}% every order',
 				'subscribe_save_description'  => 'Cancel anytime from My Account.',
+				'minimum_order_amount'        => 50.0,
+				'minimum_cart_quantity'       => 3,
+				'ineligible_message'          => 'Add more to unlock this.',
 			]
 		);
 
@@ -71,6 +77,25 @@ final class Settings_Store_Test extends TestCase {
 		$this->assertSame( 'Choose any day we can fulfil in your area.', $settings->fulfilment_date_description() );
 		$this->assertSame( 'Save {percent}% every order', $settings->subscribe_save_label() );
 		$this->assertSame( 'Cancel anytime from My Account.', $settings->subscribe_save_description() );
+		$this->assertSame( 50.0, $settings->minimum_order_amount() );
+		$this->assertSame( 3, $settings->minimum_cart_quantity() );
+		$this->assertSame( 'Add more to unlock this.', $settings->ineligible_message() );
+	}
+
+	public function test_get_falls_back_to_the_default_minimum_order_amount_when_the_stored_one_is_negative(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'minimum_order_amount' => -10.0 ] );
+
+		$settings = ( new Settings_Store() )->get();
+
+		$this->assertSame( 0.0, $settings->minimum_order_amount() );
+	}
+
+	public function test_get_falls_back_to_the_default_minimum_cart_quantity_when_the_stored_one_is_negative(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'minimum_cart_quantity' => -1 ] );
+
+		$settings = ( new Settings_Store() )->get();
+
+		$this->assertSame( 0, $settings->minimum_cart_quantity() );
 	}
 
 	public function test_get_falls_back_to_the_default_cutoff_time_when_the_stored_one_is_not_a_valid_time(): void {
@@ -170,6 +195,9 @@ final class Settings_Store_Test extends TestCase {
 					'fulfilment_date_description' => 'Choose any day we can fulfil in your area.',
 					'subscribe_save_label'        => 'Save {percent}% every order',
 					'subscribe_save_description'  => 'Cancel anytime from My Account.',
+					'minimum_order_amount'        => 50.0,
+					'minimum_cart_quantity'       => 3,
+					'ineligible_message'          => 'Add more to unlock this.',
 				]
 			);
 
@@ -183,7 +211,10 @@ final class Settings_Store_Test extends TestCase {
 				'Preferred fulfilment day',
 				'Choose any day we can fulfil in your area.',
 				'Save {percent}% every order',
-				'Cancel anytime from My Account.'
+				'Cancel anytime from My Account.',
+				minimum_order_amount: 50.0,
+				minimum_cart_quantity: 3,
+				ineligible_message: 'Add more to unlock this.'
 			)
 		);
 	}

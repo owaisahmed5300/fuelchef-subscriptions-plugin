@@ -80,6 +80,7 @@ final class Settings_Controller {
 			[
 				'settings'        => $this->settings_store->get(),
 				'applicabilities' => Subscribe_Applicability::all(),
+				'currency_symbol' => get_woocommerce_currency_symbol(),
 			]
 		);
 
@@ -88,7 +89,7 @@ final class Settings_Controller {
 	}
 
 	/**
-	 * Saves the cutoff, discount, applicability and checkout copy settings.
+	 * Saves the cutoff, discount, applicability, eligibility and checkout copy settings.
 	 */
 	public function ajax_save_settings(): void {
 		$this->verify_ajax_request();
@@ -103,7 +104,10 @@ final class Settings_Controller {
 				fulfilment_date_label: $this->posted_text( 'fulfilment_date_label' ),
 				fulfilment_date_description: $this->posted_text( 'fulfilment_date_description' ),
 				subscribe_save_label: $this->posted_text( 'subscribe_save_label' ),
-				subscribe_save_description: $this->posted_text( 'subscribe_save_description' )
+				subscribe_save_description: $this->posted_text( 'subscribe_save_description' ),
+				minimum_order_amount: $this->posted_float( 'minimum_order_amount' ),
+				minimum_cart_quantity: $this->posted_int( 'minimum_cart_quantity' ),
+				ineligible_message: $this->posted_text( 'ineligible_message' )
 			);
 		} catch ( InvalidArgumentException $exception ) {
 			wp_send_json_error( [ 'message' => $exception->getMessage() ] );

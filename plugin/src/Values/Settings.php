@@ -57,6 +57,14 @@ final class Settings {
 	 * @param string $subscribe_save_description Checkout help text for the subscribe
 	 *                                           discount, or an empty string to show none.
 	 *                                           May contain the placeholder `{percent}`.
+	 * @param float  $minimum_order_amount Cart subtotal a customer needs to be offered
+	 *                                     Subscribe & Save. Zero means no restriction.
+	 * @param int    $minimum_cart_quantity Cart item quantity a customer needs to be
+	 *                                      offered Subscribe & Save. Zero means no
+	 *                                      restriction.
+	 * @param string $ineligible_message Shown instead of Subscribe & Save when the cart
+	 *                                   does not meet the minimums, or an empty string to
+	 *                                   show the default wording.
 	 */
 	public function __construct(
 		private int $cutoff_days,
@@ -67,7 +75,10 @@ final class Settings {
 		private string $fulfilment_date_label,
 		private string $fulfilment_date_description,
 		private string $subscribe_save_label,
-		private string $subscribe_save_description
+		private string $subscribe_save_description,
+		private float $minimum_order_amount = 0.0,
+		private int $minimum_cart_quantity = 0,
+		private string $ineligible_message = ''
 	) {
 		if ( $cutoff_days < 0 ) {
 			throw new InvalidArgumentException( esc_html__( 'Cutoff days cannot be negative.', 'fuelchef-subscriptions' ) );
@@ -97,6 +108,18 @@ final class Settings {
 			throw new InvalidArgumentException(
 				esc_html__( 'Maximum fulfilment window is too far in the future.', 'fuelchef-subscriptions' )
 			);
+		}
+
+		if ( $minimum_order_amount < 0.0 ) {
+			throw new InvalidArgumentException( esc_html__( 'Minimum order amount cannot be negative.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( $minimum_cart_quantity < 0 ) {
+			throw new InvalidArgumentException( esc_html__( 'Minimum cart quantity cannot be negative.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( strlen( $ineligible_message ) > self::MAX_DESCRIPTION_LENGTH ) {
+			throw new InvalidArgumentException( esc_html__( 'Ineligible subscription message is too long.', 'fuelchef-subscriptions' ) );
 		}
 
 		// Reads the promoted properties above, already assigned by this point - not their
@@ -215,5 +238,40 @@ final class Settings {
 	 */
 	public function subscribe_save_description_resolved(): string {
 		return str_replace( '{percent}', (string) $this->subscribe_discount_percent, $this->subscribe_save_description );
+	}
+
+	/**
+	 * Cart subtotal a customer needs to be offered Subscribe & Save. Zero means no
+	 * restriction.
+	 */
+	public function minimum_order_amount(): float {
+		return $this->minimum_order_amount;
+	}
+
+	/**
+	 * Cart item quantity a customer needs to be offered Subscribe & Save. Zero means no
+	 * restriction.
+	 */
+	public function minimum_cart_quantity(): int {
+		return $this->minimum_cart_quantity;
+	}
+
+	/**
+	 * The message shown instead of Subscribe & Save when the cart does not meet the
+	 * minimums, exactly as stored. Empty when the store shows the default wording - see
+	 * {@see self::ineligible_message_resolved()}.
+	 */
+	public function ineligible_message(): string {
+		return $this->ineligible_message;
+	}
+
+	/**
+	 * The message shown instead of Subscribe & Save when the cart does not meet the
+	 * minimums, falling back to a sensible default when the store has not customised it.
+	 */
+	public function ineligible_message_resolved(): string {
+		return '' !== $this->ineligible_message
+			? $this->ineligible_message
+			: esc_html__( "Subscribe & Save isn't available for this order yet - add more to your cart to unlock it.", 'fuelchef-subscriptions' );
 	}
 }
