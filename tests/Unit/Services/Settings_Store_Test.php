@@ -113,6 +113,16 @@ final class Settings_Store_Test extends TestCase {
 		$this->assertSame( 60, $settings->max_fulfilment_window_days() );
 	}
 
+	public function test_get_falls_back_to_the_default_max_fulfilment_window_when_the_stored_one_is_beyond_the_ceiling(): void {
+		Functions\when( 'get_option' )->justReturn(
+			[ 'max_fulfilment_window_days' => Settings::MAX_FULFILMENT_WINDOW_DAYS + 1 ]
+		);
+
+		$settings = ( new Settings_Store() )->get();
+
+		$this->assertSame( 60, $settings->max_fulfilment_window_days() );
+	}
+
 	public function test_get_falls_back_to_the_default_fulfilment_date_label_when_the_stored_one_is_blank(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'fulfilment_date_label' => '   ' ] );
 

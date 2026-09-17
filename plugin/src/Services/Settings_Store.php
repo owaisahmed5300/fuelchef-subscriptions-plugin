@@ -165,7 +165,7 @@ final class Settings_Store {
 
 	/**
 	 * Narrows a stored maximum fulfilment window, falling back to the default when it is
-	 * missing or not a positive number of days.
+	 * missing or outside the range `Settings` itself accepts.
 	 *
 	 * @param mixed $value Raw stored value.
 	 */
@@ -176,7 +176,9 @@ final class Settings_Store {
 
 		$days = (int) $value;
 
-		return $days >= 1 ? $days : self::DEFAULT_MAX_FULFILMENT_WINDOW_DAYS;
+		return ( $days >= 1 && $days <= Settings::MAX_FULFILMENT_WINDOW_DAYS )
+			? $days
+			: self::DEFAULT_MAX_FULFILMENT_WINDOW_DAYS;
 	}
 
 	/**
