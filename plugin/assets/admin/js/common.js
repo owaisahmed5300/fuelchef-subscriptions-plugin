@@ -13,9 +13,11 @@ FCS.setBusy = function (el, busy) {
   el.classList.toggle('fcs-is-loading', !!busy);
 };
 
+// The calendar popover isn't included here - it's a native popover (`popover="auto"`),
+// which already closes on Escape and returns its own cleanup through its `toggle` event.
 FCS.closeTransientUI = function () {
-  document.querySelectorAll('.fcs-overlay--show, .fcs-popover--show').forEach((el) => {
-    el.classList.remove('fcs-overlay--show', 'fcs-popover--show');
+  document.querySelectorAll('.fcs-overlay--show').forEach((el) => {
+    el.classList.remove('fcs-overlay--show');
   });
 };
 
@@ -376,31 +378,34 @@ FCS.createCalendar = function (options) {
       if (count) count.textContent = reason.value.length;
     }
 
-    popoverEl.classList.add('fcs-popover--show');
+    // force: true - safe to call even if already open (e.g. clicking straight from one
+    // date to another), unlike showPopover(), which throws in that case.
+    popoverEl.togglePopover(true);
     positionPopover(anchor);
     if (reason) reason.focus();
   }
 
   function closePopover() {
     if (!popoverEl) return;
-    popoverEl.classList.remove('fcs-popover--show');
-    activeId = null;
-
-    if (triggerEl && typeof triggerEl.focus === 'function') triggerEl.focus();
-    triggerEl = null;
+    popoverEl.togglePopover(false);
   }
 
   if (popoverEl) {
-    popoverEl.addEventListener('keydown', (event) => {
-      // The document-level Escape handler (FCS.closeTransientUI) only hides the popover;
-      // going through closePopover() here also returns focus to what opened it.
-      if (event.key === 'Escape') {
-        closePopover();
-        return;
-      }
+    // Runs for every way the popover can close - the close button, a successful save or
+    // remove, Escape, and the native API's own light-dismiss on an outside click all end
+    // up here, since they all ultimately fire this event rather than calling
+    // closePopover() itself.
+    popoverEl.addEventListener('toggle', (event) => {
+      if (event.newState !== 'closed') return;
 
-      FCS.trapFocus(popoverEl, event);
+      activeId = null;
+      if (triggerEl && typeof triggerEl.focus === 'function') triggerEl.focus();
+      triggerEl = null;
     });
+
+    // Escape-to-close and light-dismiss on an outside click are both the native API's
+    // own behaviour now; only Tab containment is still this popover's own job.
+    popoverEl.addEventListener('keydown', (event) => FCS.trapFocus(popoverEl, event));
   }
 
   if (popoverEl) {
@@ -438,15 +443,6 @@ FCS.createCalendar = function (options) {
         if (null !== activeId) removeItem(activeId);
       };
     }
-
-    document.addEventListener('click', (e) => {
-      if (popoverEl.classList.contains('fcs-popover--show') &&
-          !e.target.closest('.fcs-popover') &&
-          !e.target.closest('.fcs-pill') &&
-          !e.target.closest('.fcs-calendar__cell')) {
-        closePopover();
-      }
-    });
   }
 
   if (prevBtn) prevBtn.onclick = () => { viewDate.setMonth(viewDate.getMonth() - 1); render(); };

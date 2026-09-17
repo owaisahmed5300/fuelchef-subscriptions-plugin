@@ -903,16 +903,13 @@
     gap: 8px;
 }
 
+/* Shown/hidden by the native Popover API (the `popover="auto"` attribute) - top-layer
+   rendering means no z-index is needed to sit above the rest of the admin page. */
 .fcs-admin .fcs-popover {
-    display: none;
     position: fixed;
-    z-index: 100001;
+    margin: 0;
     width: 320px;
     padding: 16px;
-}
-
-.fcs-admin .fcs-popover--show {
-    display: block;
 }
 
 .fcs-admin .fcs-popover__header {
