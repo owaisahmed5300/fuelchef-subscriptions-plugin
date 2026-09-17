@@ -376,11 +376,11 @@ $applicabilities = $data['applicabilities'];
 			</div>
 		</form>
 
-		<div class="fcs-popover" id="datePopover">
+		<div class="fcs-popover" id="datePopover" role="dialog" aria-modal="true" aria-labelledby="datePopoverTitle">
 			<div class="fcs-popover__arrow"></div>
 			<div class="fcs-popover__header">
 				<div>
-					<div class="fcs-popover__title" data-pop-title></div>
+					<div class="fcs-popover__title" id="datePopoverTitle" data-pop-title></div>
 					<div class="fcs-popover__subtitle">
 						<?php esc_html_e( 'Global Store Closure', 'fuelchef-subscriptions' ); ?>
 					</div>

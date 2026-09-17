@@ -275,8 +275,8 @@ $destination_counts = $data['destination_counts'];
 		if ( null !== $selected ) :
 			?>
 			<div class="fcs-overlay" id="deleteModalOverlay">
-				<div class="fcs-modal">
-					<h3 class="fcs-modal__title">
+				<div class="fcs-modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+					<h3 class="fcs-modal__title" id="deleteModalTitle">
 						<?php esc_html_e( 'Delete this schedule?', 'fuelchef-subscriptions' ); ?>
 					</h3>
 					<p class="fcs-modal__body">
@@ -293,11 +293,11 @@ $destination_counts = $data['destination_counts'];
 				</div>
 			</div>
 
-			<div class="fcs-popover" id="datePopover">
+			<div class="fcs-popover" id="datePopover" role="dialog" aria-modal="true" aria-labelledby="datePopoverTitle">
 				<div class="fcs-popover__arrow"></div>
 				<div class="fcs-popover__header">
 					<div>
-						<div class="fcs-popover__title" data-pop-title></div>
+						<div class="fcs-popover__title" id="datePopoverTitle" data-pop-title></div>
 						<div class="fcs-popover__subtitle">
 							<?php esc_html_e( 'Local Closure', 'fuelchef-subscriptions' ); ?>
 						</div>

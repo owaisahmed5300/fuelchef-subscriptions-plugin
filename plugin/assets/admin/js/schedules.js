@@ -198,8 +198,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Delete modal
   const overlay = document.getElementById('deleteModalOverlay');
-  document.getElementById('deleteScheduleBtn')?.addEventListener('click', () => overlay.classList.add('fcs-overlay--show'));
-  document.getElementById('cancelDeleteBtn')?.addEventListener('click', () => overlay.classList.remove('fcs-overlay--show'));
+  const deleteModal = overlay?.querySelector('.fcs-modal');
+  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+  let deleteModalTrigger = null;
+
+  function openDeleteModal() {
+    if (!overlay) return;
+    deleteModalTrigger = document.activeElement;
+    overlay.classList.add('fcs-overlay--show');
+    cancelDeleteBtn?.focus();
+  }
+
+  function closeDeleteModal() {
+    if (!overlay) return;
+    overlay.classList.remove('fcs-overlay--show');
+
+    if (deleteModalTrigger && typeof deleteModalTrigger.focus === 'function') deleteModalTrigger.focus();
+    deleteModalTrigger = null;
+  }
+
+  if (deleteModal) {
+    deleteModal.addEventListener('keydown', (event) => {
+      // The document-level Escape handler (FCS.closeTransientUI) only hides the modal;
+      // going through closeDeleteModal() here also returns focus to what opened it.
+      if (event.key === 'Escape') {
+        closeDeleteModal();
+        return;
+      }
+
+      FCS.trapFocus(deleteModal, event);
+    });
+  }
+
+  document.getElementById('deleteScheduleBtn')?.addEventListener('click', openDeleteModal);
+  cancelDeleteBtn?.addEventListener('click', closeDeleteModal);
   document.getElementById('confirmDeleteBtn')?.addEventListener('click', () => {
     FCS.post('fcs_delete_schedule', { schedule_id: data.selectedId }).done((response) => {
       if (!response.success) {

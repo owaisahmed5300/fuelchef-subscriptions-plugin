@@ -23,6 +23,33 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') FCS.closeTransientUI();
 });
 
+// Every focusable descendant of a dialog-like container, in DOM order.
+FCS.focusableIn = function (container) {
+  return Array.from(
+    container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+  ).filter((el) => !el.disabled && el.offsetParent !== null);
+};
+
+// Keeps Tab/Shift+Tab cycling within an open dialog-like container instead of
+// escaping to the rest of the page. Call from that container's own keydown handler.
+FCS.trapFocus = function (container, event) {
+  if (event.key !== 'Tab') return;
+
+  const focusable = FCS.focusableIn(container);
+  if (!focusable.length) return;
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+};
+
 // Helper: Escape HTML
 FCS.escapeHtml = function (str) {
   return String(str).replace(/[&<>'"]/g, tag => ({
@@ -128,6 +155,7 @@ FCS.createCalendar = function (options) {
   let viewDate = new Date();
   let items = blackouts.slice();
   let activeId = null;
+  let triggerEl = null;
 
   const isoDate = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
   const dateLabel = (y, m, d) => `${monthNames[m].slice(0, 3)} ${String(d).padStart(2, '0')}, ${y}`;
@@ -336,6 +364,7 @@ FCS.createCalendar = function (options) {
   function openPopover(item, anchor) {
     if (!popoverEl) return;
     activeId = item.id;
+    triggerEl = document.activeElement;
 
     const title = popoverEl.querySelector('[data-pop-title]');
     const reason = popoverEl.querySelector('[data-pop-reason]');
@@ -356,6 +385,22 @@ FCS.createCalendar = function (options) {
     if (!popoverEl) return;
     popoverEl.classList.remove('fcs-popover--show');
     activeId = null;
+
+    if (triggerEl && typeof triggerEl.focus === 'function') triggerEl.focus();
+    triggerEl = null;
+  }
+
+  if (popoverEl) {
+    popoverEl.addEventListener('keydown', (event) => {
+      // The document-level Escape handler (FCS.closeTransientUI) only hides the popover;
+      // going through closePopover() here also returns focus to what opened it.
+      if (event.key === 'Escape') {
+        closePopover();
+        return;
+      }
+
+      FCS.trapFocus(popoverEl, event);
+    });
   }
 
   if (popoverEl) {
