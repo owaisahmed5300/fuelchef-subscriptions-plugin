@@ -31,6 +31,30 @@ parameters:
 
   treatPhpDocTypesAsCertain: false
 
+  ignoreErrors:
+    -
+      # Automattic\WooCommerce\Blocks\Container::get()'s return type is unknown to any
+      # available PHPStan stub package, so PHPStan sees `mixed` here even though the very
+      # next line's @var docblock narrows it back to CheckoutFields. Used from both
+      # Block\Fulfilment_Date_Field and Block\Subscribe_And_Save, so PHPStan reports it
+      # once per class that uses the trait.
+      message: '#^Cannot call method get\(\) on mixed\.$#'
+      identifier: method.nonObject
+      count: 2
+      path: plugin/src/Frontend/Checkout/Block/Concerns/Reads_Persisted_Field.php
+    -
+      # Automattic\WooCommerce\StoreApi\Exceptions\RouteException is not covered by any
+      # available PHPStan stub package, so neither the class nor throwing it is known here.
+      message: '#^Instantiated class Automattic\\WooCommerce\\StoreApi\\Exceptions\\RouteException not found\.$#'
+      identifier: class.notFound
+      count: 1
+      path: plugin/src/Frontend/Checkout/Block/Fulfilment_Date_Field.php
+    -
+      message: '#^Throwing object of an unknown class Automattic\\WooCommerce\\StoreApi\\Exceptions\\RouteException\.$#'
+      identifier: class.notFound
+      count: 1
+      path: plugin/src/Frontend/Checkout/Block/Fulfilment_Date_Field.php
+
 includes:
   - vendor/szepeviktor/phpstan-wordpress/extension.neon
   - vendor/phpstan/phpstan-strict-rules/rules.neon
