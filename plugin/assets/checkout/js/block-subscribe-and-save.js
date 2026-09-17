@@ -57,7 +57,9 @@ jQuery(function ($) {
       return;
     }
 
-    $anchor.after($('<p class="fcs-subscribe-and-save-description"></p>').text(description));
+    const descriptionId = 'fcsBlockSubscribeAndSaveDescription';
+    $anchor.after($('<p class="fcs-subscribe-and-save-description"></p>').attr('id', descriptionId).text(description));
+    $checkbox.attr('aria-describedby', descriptionId);
   }
 
   function bind($checkbox) {

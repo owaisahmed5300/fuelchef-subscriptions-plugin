@@ -82,6 +82,13 @@ jQuery(function ($) {
     });
 
     instance.altInput.setAttribute('placeholder', i18n.chooseDate);
+
+    // <label for="fcs_fulfilment_date"> in the template targets this input, but
+    // altInput: true swaps in a separate visible input (this one keeps the raw value,
+    // hidden) - move the id to the one the customer actually sees and interacts with.
+    instance.altInput.id = $input.attr('id');
+    $input.removeAttr('id');
+
     updateWindowCaption($input.val());
   }
 

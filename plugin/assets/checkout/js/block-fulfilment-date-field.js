@@ -55,7 +55,9 @@ jQuery(function ($) {
       return;
     }
 
-    $select.after($('<p class="fcs-fulfilment-date-description"></p>').text(description));
+    const descriptionId = 'fcsBlockFulfilmentDateDescription';
+    $select.after($('<p class="fcs-fulfilment-date-description"></p>').attr('id', descriptionId).text(description));
+    $select.attr('aria-describedby', descriptionId);
   }
 
   function updateWindowCaption($select) {
