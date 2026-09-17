@@ -9,8 +9,7 @@
 .fcs-admin #settingsForm .fcs-inline-field { max-width: 760px; }
 
 /* Keep settings content calm: labels and descriptions carry hierarchy. */
-.fcs-admin #tab-checkout-fields .fcs-field + .fcs-field,
-.fcs-admin #tab-subscribe .fcs-field + .fcs-field { margin-top: 24px; }
+.fcs-admin #tab-checkout-fields .fcs-field + .fcs-field { margin-top: 24px; }
 
 @media (max-width: 782px) {
   .fcs-admin #settingsForm .fcs-inline-field { align-items: flex-start; }
