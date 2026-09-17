@@ -147,9 +147,11 @@ final class Fulfilment_Date_Field {
 				$last_month = $month_key;
 			}
 
+			$label_format = $date->format( 'Y' ) === $today->format( 'Y' ) ? 'D, M j' : 'D, M j, Y';
+
 			$options[] = [
 				'value' => $date->format( DateTime::DATABASE_DATE_FORMAT ),
-				'label' => $this->localized_date( $date, 'D, M j' ),
+				'label' => $this->localized_date( $date, $label_format ),
 			];
 		}
 
