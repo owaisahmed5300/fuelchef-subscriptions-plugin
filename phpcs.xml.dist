@@ -89,6 +89,17 @@
         <exclude-pattern>plugin/src/Entities/*</exclude-pattern>
     </rule>
 
+    <!--
+        Templates document the `$data` shape they expect as one "Template Variables"
+        block at the top of the file - Type $var per line - which is the convention
+        PhpStorm and Intelephense both recognise for typing a template's inputs. The
+        sniff expects an inline `@var` to sit beside the one variable it describes;
+        a grouped block by design does not.
+    -->
+    <rule ref="SlevomatCodingStandard.Commenting.InlineDocCommentDeclaration.MissingVariable">
+        <exclude-pattern>plugin/templates/*</exclude-pattern>
+    </rule>
+
     <arg name="extensions" value="php"/>
     <arg name="colors"/>
     <arg name="cache" value=".phpcs.cache"/>

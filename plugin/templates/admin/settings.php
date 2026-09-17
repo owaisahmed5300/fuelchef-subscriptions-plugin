@@ -2,10 +2,13 @@
 /**
  * Settings admin screen.
  *
- * Rendered by Settings_Controller::render(). $data carries `settings`
- * (Values\Settings) and `applicabilities` (list<string>). The blackout
- * calendar reads its own data from the `fcsSettings` script localization
- * instead - see the controller.
+ * Rendered by Settings_Controller::render(). The blackout calendar reads its own data
+ * from the `fcsSettings` script localization instead - see the controller.
+ *
+ * Template Variables
+ *
+ * @var Settings $settings
+ * @var list<string> $applicabilities
  */
 
 declare(strict_types=1);
@@ -15,7 +18,8 @@ use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
 defined( 'ABSPATH' ) || exit;
 
-$settings = $data['settings'];
+$settings        = $data['settings'];
+$applicabilities = $data['applicabilities'];
 ?>
 <div class="wrap">
 	<div class="fcs-admin fcs-wrap fcs-editor-shell">
@@ -301,7 +305,7 @@ $settings = $data['settings'];
 								<?php esc_html_e( 'Applies to', 'fuelchef-subscriptions' ); ?>
 							</label>
 							<select class="fcs-select" id="subscribeApplicability">
-								<?php foreach ( $data['applicabilities'] as $value ) : ?>
+								<?php foreach ( $applicabilities as $value ) : ?>
 									<option
 										value="<?php echo esc_attr( $value ); ?>"
 										<?php selected( $settings->subscribe_applicability(), $value ); ?>

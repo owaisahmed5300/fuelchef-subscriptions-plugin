@@ -2,21 +2,28 @@
 /**
  * Schedules admin screen.
  *
- * Rendered by Schedules_Controller::render(). $data carries `schedules`
- * (list<Entities\Schedule>), `selected` (Entities\Schedule|null) and
- * `destination_counts` (array<int, int>, keyed by schedule id, for the sidebar list). The
- * weekday table, blackout calendar and destination list all read their own data from the
- * `fcsSchedulesData` script localization instead - see the controller.
+ * Rendered by Schedules_Controller::render(). The weekday table, blackout calendar and
+ * destination list all read their own data from the `fcsSchedulesData` script
+ * localization instead - see the controller.
+ *
+ * Template Variables
+ *
+ * @var list<Schedule> $schedules
+ * @var Schedule|null $selected
+ * @var array<int, int> $destination_counts Destination counts, keyed by schedule id.
  */
 
 declare(strict_types=1);
 
 use FuelChef\Subscriptions\Admin\Menu;
+use FuelChef\Subscriptions\Entities\Schedule;
 
 defined( 'ABSPATH' ) || exit;
 
-$base_url = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
-$selected = $data['selected'];
+$base_url           = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
+$schedules          = $data['schedules'];
+$selected           = $data['selected'];
+$destination_counts = $data['destination_counts'];
 ?>
 <div class="wrap">
 	<div class="fcs-admin fcs-wrap fcs-editor-shell">
@@ -42,8 +49,8 @@ $selected = $data['selected'];
 					<div class="fcs-card__body fcs-card__body--tight">
 						<ul class="fcs-schedule-nav">
 							<?php
-							foreach ( $data['schedules'] as $schedule ) :
-								$destination_count = $data['destination_counts'][ (int) $schedule->id() ] ?? 0;
+							foreach ( $schedules as $schedule ) :
+								$destination_count = $destination_counts[ (int) $schedule->id() ] ?? 0;
 								?>
 								<li>
 									<a
