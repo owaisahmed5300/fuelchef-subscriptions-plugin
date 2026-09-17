@@ -156,7 +156,7 @@ $applicabilities = $data['applicabilities'];
 								value="<?php echo esc_attr( (string) $settings->cutoff_days() ); ?>"
 							>
 							<span>
-								<?php esc_html_e( 'day(s) before fulfilment, at', 'fuelchef-subscriptions' ); ?>
+								<?php esc_html_e( 'day(s) before the fulfilment date, at', 'fuelchef-subscriptions' ); ?>
 							</span>
 							<input
 								class="fcs-input fcs-input--time"

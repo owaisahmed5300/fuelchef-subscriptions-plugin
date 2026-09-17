@@ -227,7 +227,7 @@ $destination_counts = $data['destination_counts'];
 						<div class="fcs-card">
 							<div class="fcs-card__header">
 								<h2 class="fcs-card__title">
-									<?php esc_html_e( 'Assigned Fulfilment Zones', 'fuelchef-subscriptions' ); ?>
+									<?php esc_html_e( 'Assigned Destinations', 'fuelchef-subscriptions' ); ?>
 								</h2>
 							</div>
 							<div class="fcs-card__body">
