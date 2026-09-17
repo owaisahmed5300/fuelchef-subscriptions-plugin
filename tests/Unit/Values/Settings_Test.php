@@ -27,12 +27,14 @@ final class Settings_Test extends TestCase {
 
 	/**
 	 * Every constructor argument, in order, for a value known to be valid - so each test
-	 * only has to override the one argument it is checking.
+	 * only has to override the one argument it is checking. Positional overrides only:
+	 * PHP 8.0 (this plugin's floor) cannot combine argument unpacking with named
+	 * arguments in the same call.
 	 *
-	 * @return array{0: int, 1: string, 2: int, 3: string, 4: int, 5: string, 6: string, 7: string, 8: string}
+	 * @return array{0: int, 1: string, 2: int, 3: string, 4: int, 5: string, 6: string, 7: string, 8: string, 9: float, 10: int, 11: string}
 	 */
 	private function valid_args(): array {
-		return [ 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS, 60, 'Fulfilment date', '', 'Subscribe & Save {percent}%', '' ];
+		return [ 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS, 60, 'Fulfilment date', '', 'Subscribe & Save {percent}%', '', 0.0, 0, '' ];
 	}
 
 	public function test_accepts_valid_values(): void {
@@ -53,12 +55,12 @@ final class Settings_Test extends TestCase {
 	}
 
 	public function test_accepts_custom_eligibility_values(): void {
-		$settings = new Settings(
-			...$this->valid_args(),
-			minimum_order_amount: 50.0,
-			minimum_cart_quantity: 3,
-			ineligible_message: 'Add more to unlock this.'
-		);
+		$args     = $this->valid_args();
+		$args[9]  = 50.0;
+		$args[10] = 3;
+		$args[11] = 'Add more to unlock this.';
+
+		$settings = new Settings( ...$args );
 
 		$this->assertSame( 50.0, $settings->minimum_order_amount() );
 		$this->assertSame( 3, $settings->minimum_cart_quantity() );
@@ -72,27 +74,39 @@ final class Settings_Test extends TestCase {
 	}
 
 	public function test_ineligible_message_resolved_returns_the_custom_message_when_set(): void {
-		$settings = new Settings( ...$this->valid_args(), ineligible_message: 'Add more to unlock this.' );
+		$args     = $this->valid_args();
+		$args[11] = 'Add more to unlock this.';
+
+		$settings = new Settings( ...$args );
 
 		$this->assertSame( 'Add more to unlock this.', $settings->ineligible_message_resolved() );
 	}
 
 	public function test_rejects_a_negative_minimum_order_amount(): void {
+		$args    = $this->valid_args();
+		$args[9] = -0.01;
+
 		$this->expectException( InvalidArgumentException::class );
 
-		new Settings( ...$this->valid_args(), minimum_order_amount: -0.01 );
+		new Settings( ...$args );
 	}
 
 	public function test_rejects_a_negative_minimum_cart_quantity(): void {
+		$args     = $this->valid_args();
+		$args[10] = -1;
+
 		$this->expectException( InvalidArgumentException::class );
 
-		new Settings( ...$this->valid_args(), minimum_cart_quantity: -1 );
+		new Settings( ...$args );
 	}
 
 	public function test_rejects_an_ineligible_message_over_the_length_limit(): void {
+		$args     = $this->valid_args();
+		$args[11] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
+
 		$this->expectException( InvalidArgumentException::class );
 
-		new Settings( ...$this->valid_args(), ineligible_message: str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 ) );
+		new Settings( ...$args );
 	}
 
 	public function test_subscribe_save_label_resolved_replaces_the_percent_placeholder(): void {
