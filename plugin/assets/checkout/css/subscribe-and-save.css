@@ -19,18 +19,29 @@
 .fcs-subscribe-and-save-description {
 	margin: 0.4em 0 0;
 	font-size: 0.9em;
+	line-height: 1.4;
 	color: #646970;
 }
 
+/*
+ * Block checkout's own .wc-block-components-checkbox (the row this sits inside of, as a
+ * plain sibling - there's no description slot in the Additional Checkout Fields API to
+ * use instead) sets line-height: 0 to tightly align its checkbox and label. Without an
+ * explicit line-height here, this and the two rules below silently inherit that 0 and any
+ * wrapped line collapses onto the line above it - confirmed live, not theoretical.
+ */
 .fcs-subscribe-and-save-ineligible {
-	margin: 0;
+	margin: 0.4em 0 0.6em;
 	font-size: 0.9em;
-	color: #646970;
+	font-weight: 500;
+	line-height: 1.4;
+	color: #8a5b00;
 }
 
 .fcs-recurring-day-notice {
 	margin: 0.4em 0 0;
 	font-size: 0.9em;
 	font-weight: 600;
+	line-height: 1.4;
 	color: #646970;
 }

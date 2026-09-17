@@ -272,6 +272,6 @@ final class Settings {
 	public function ineligible_message_resolved(): string {
 		return '' !== $this->ineligible_message
 			? $this->ineligible_message
-			: esc_html__( "Subscribe & Save isn't available for this order yet - add more to your cart to unlock it.", 'fuelchef-subscriptions' );
+			: esc_html__( 'Add more to your cart to unlock Subscribe & Save.', 'fuelchef-subscriptions' );
 	}
 }
