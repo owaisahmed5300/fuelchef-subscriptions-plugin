@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Admin\Controllers;
 
 use FuelChef\Subscriptions\Admin\Concerns\Presents_Blackouts;
+use FuelChef\Subscriptions\Admin\Concerns\Reads_Request_Fields;
 use FuelChef\Subscriptions\Admin\Concerns\Verifies_Ajax_Request;
 use FuelChef\Subscriptions\Admin\Menu;
 use FuelChef\Subscriptions\Entities\Schedule;
@@ -30,14 +31,13 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Renders the Schedules screen and handles its ajax actions.
  *
- * Not unit-tested: view/glue code that reads a request, calls a service, and renders a
- * template or sends a JSON response, with no branchy logic of its own to break - see
- * docs/guidelines/03-testing.md.
+ * Not unit-tested - glue code; see docs/guidelines/03-testing.md.
  */
 final class Schedules_Controller {
 
 
 	use Presents_Blackouts;
+	use Reads_Request_Fields;
 	use Verifies_Ajax_Request;
 
 	/**
@@ -216,8 +216,8 @@ final class Schedules_Controller {
 	public function ajax_save_schedule(): void {
 		$this->verify_ajax_request();
 
-		$schedule_id = absint( Narrow::string( $_POST['schedule_id'] ?? null ) );
-		$name        = sanitize_text_field( wp_unslash( Narrow::string( $_POST['name'] ?? null ) ) );
+		$schedule_id = $this->posted_int( 'schedule_id' );
+		$name        = $this->posted_text( 'name' );
 
 		try {
 			$schedule = $schedule_id > 0
@@ -241,7 +241,7 @@ final class Schedules_Controller {
 	public function ajax_delete_schedule(): void {
 		$this->verify_ajax_request();
 
-		$this->schedule_service->delete( absint( Narrow::string( $_POST['schedule_id'] ?? null ) ) );
+		$this->schedule_service->delete( $this->posted_int( 'schedule_id' ) );
 
 		wp_send_json_success();
 	}
@@ -254,11 +254,11 @@ final class Schedules_Controller {
 
 		try {
 			$weekday = $this->schedule_service->update_weekday(
-				absint( Narrow::string( $_POST['schedule_id'] ?? null ) ),
-				absint( Narrow::string( $_POST['day_of_week'] ?? null ) ),
+				$this->posted_int( 'schedule_id' ),
+				$this->posted_int( 'day_of_week' ),
 				isset( $_POST['enabled'] ),
-				sanitize_text_field( wp_unslash( Narrow::string( $_POST['start_time'] ?? null ) ) ),
-				sanitize_text_field( wp_unslash( Narrow::string( $_POST['end_time'] ?? null ) ) )
+				$this->posted_text( 'start_time' ),
+				$this->posted_text( 'end_time' )
 			);
 		} catch ( Validation_Exception $exception ) {
 			wp_send_json_error( [ 'message' => $exception->getMessage() ] );
@@ -275,8 +275,8 @@ final class Schedules_Controller {
 
 		try {
 			$updated = $this->schedule_service->copy_weekday_to_days_below(
-				absint( Narrow::string( $_POST['schedule_id'] ?? null ) ),
-				absint( Narrow::string( $_POST['day_of_week'] ?? null ) )
+				$this->posted_int( 'schedule_id' ),
+				$this->posted_int( 'day_of_week' )
 			);
 		} catch ( Validation_Exception $exception ) {
 			wp_send_json_error( [ 'message' => $exception->getMessage() ] );
@@ -297,7 +297,7 @@ final class Schedules_Controller {
 	public function ajax_save_schedule_destinations(): void {
 		$this->verify_ajax_request();
 
-		$schedule_id = absint( Narrow::string( $_POST['schedule_id'] ?? null ) );
+		$schedule_id = $this->posted_int( 'schedule_id' );
 
 		/** @var array<int, array{type?: string, key?: string}> $raw */
 		$raw = wp_unslash( Narrow::array( $_POST['destinations'] ?? null ) );

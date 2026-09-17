@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Admin\Controllers;
 
 use FuelChef\Subscriptions\Admin\Concerns\Presents_Blackouts;
+use FuelChef\Subscriptions\Admin\Concerns\Reads_Request_Fields;
 use FuelChef\Subscriptions\Admin\Concerns\Verifies_Ajax_Request;
 use FuelChef\Subscriptions\Admin\Menu;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
@@ -25,14 +26,13 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Renders the Settings screen and handles its ajax actions.
  *
- * Not unit-tested: view/glue code that reads a request, calls a service, and renders a
- * template or sends a JSON response, with no branchy logic of its own to break - see
- * docs/guidelines/03-testing.md.
+ * Not unit-tested - glue code; see docs/guidelines/03-testing.md.
  */
 final class Settings_Controller {
 
 
 	use Presents_Blackouts;
+	use Reads_Request_Fields;
 	use Verifies_Ajax_Request;
 
 	/**
@@ -115,25 +115,9 @@ final class Settings_Controller {
 	}
 
 	/**
-	 * A posted field, sanitized as plain text.
-	 */
-	private function posted_text( string $key ): string {
-		return sanitize_text_field( wp_unslash( Narrow::string( $_POST[ $key ] ?? null ) ) );
-	}
-
-	/**
-	 * A posted field, as a non-negative integer.
-	 */
-	private function posted_int( string $key ): int {
-		return absint( Narrow::string( $_POST[ $key ] ?? null ) );
-	}
-
-	/**
 	 * Creates or updates a store-wide blackout date.
 	 *
-	 * Shared with `Schedules_Controller`, which registers the same action for a
-	 * schedule-scoped blackout - both delegate to `Blackout_Service`, which already
-	 * accepts a nullable schedule ID, so one handler covers both cases.
+	 * Shared with `Schedules_Controller` - see `register()`.
 	 */
 	public function ajax_save_blackout(): void {
 		$this->verify_ajax_request();
@@ -166,7 +150,7 @@ final class Settings_Controller {
 	/**
 	 * Removes a blackout date.
 	 *
-	 * Shared with `Schedules_Controller` - see `ajax_save_blackout()`.
+	 * Shared with `Schedules_Controller` - see `register()`.
 	 */
 	public function ajax_delete_blackout(): void {
 		$this->verify_ajax_request();
