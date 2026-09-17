@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
           day_of_week: day.day_of_week
         }).done((response) => {
           if (!response.success) {
-            FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotCopySchedule));
+            FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotCopySchedule), 'error');
             return;
           }
 
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     FCS.setBusy(trigger, true);
     FCS.post('fcs_save_schedule', { schedule_id: data.selectedId, name: titleInput.value }).done((response) => {
       if (!response.success) {
-        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveScheduleName));
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveScheduleName), 'error');
         return;
       }
       if (onSuccess) onSuccess();
@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     FCS.post('fcs_save_schedule', { name }).done((response) => {
       if (!response.success) {
-        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotCreateSchedule));
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotCreateSchedule), 'error');
         return;
       }
       window.location.href = `${data.baseUrl}&schedule_id=${response.data.id}`;
@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('confirmDeleteBtn')?.addEventListener('click', () => {
     FCS.post('fcs_delete_schedule', { schedule_id: data.selectedId }).done((response) => {
       if (!response.success) {
-        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotDeleteSchedule));
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotDeleteSchedule), 'error');
         return;
       }
       window.location.href = data.baseUrl;
@@ -298,14 +298,14 @@ document.addEventListener('DOMContentLoaded', () => {
     emptyMessage: window.fcsAdmin.i18n.noLocalClosures,
     onCreate: (date) => FCS.post('fcs_save_blackout', { schedule_id: data.selectedId, date }).then((response) => {
       if (!response.success) {
-        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotAddDate));
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotAddDate), 'error');
         return null;
       }
       return { id: response.data.id, date: response.data.date, reason: response.data.reason };
     }),
     onSave: (id, reason) => FCS.post('fcs_save_blackout', { blackout_id: id, reason }).then((response) => {
       if (!response.success) {
-        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveNote));
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveNote), 'error');
         return null;
       }
       return { id: response.data.id, date: response.data.date, reason: response.data.reason };
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCatalogOptions();
     saveDestinations().done((response) => {
       if (!response.success) {
-        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveDestination));
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveDestination), 'error');
         return;
       }
       FCS.toast(window.fcsAdmin.i18n.destinationAdded);

@@ -353,7 +353,10 @@ $destination_counts = $data['destination_counts'];
 		endif;
 		?>
 
-		<div class="fcs-toast" id="fcsToast" role="status" aria-live="polite"></div>
+		<div class="fcs-toast" id="fcsToast" role="status" aria-live="polite">
+			<span class="fcs-toast__icon" aria-hidden="true"></span>
+			<span class="fcs-toast__message" data-toast-message></span>
+		</div>
 	</div>
 
 </div>
