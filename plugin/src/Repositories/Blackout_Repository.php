@@ -68,13 +68,7 @@ final class Blackout_Repository extends Abstract_Repository {
 			);
 		}
 
-		$blackouts = [];
-
-		if ( is_array( $rows ) ) {
-			foreach ( $rows as $row ) {
-				$blackouts[] = $this->hydrate( $row );
-			}
-		}
+		$blackouts = $this->hydrate_all( $rows );
 
 		wp_cache_set( $cache_key, $blackouts, self::$cache_group );
 
@@ -121,13 +115,7 @@ final class Blackout_Repository extends Abstract_Repository {
 			);
 		}
 
-		$blackouts = [];
-
-		if ( is_array( $rows ) ) {
-			foreach ( $rows as $row ) {
-				$blackouts[] = $this->hydrate( $row );
-			}
-		}
+		$blackouts = $this->hydrate_all( $rows );
 
 		/**
 		 * Filters the blackouts found for a schedule within a date range.

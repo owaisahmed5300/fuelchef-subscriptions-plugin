@@ -79,6 +79,27 @@ abstract class Abstract_Repository {
 	}
 
 	/**
+	 * Builds an entity from each of a set of database rows, skipping when
+	 * there are none.
+	 *
+	 * @param list<array<string, mixed>>|null $rows Raw database rows, or null
+	 *                                               when the query found none.
+	 *
+	 * @return list<TEntity> The hydrated entities.
+	 */
+	protected function hydrate_all( ?array $rows ): array {
+		$entities = [];
+
+		if ( is_array( $rows ) ) {
+			foreach ( $rows as $row ) {
+				$entities[] = $this->hydrate( $row );
+			}
+		}
+
+		return $entities;
+	}
+
+	/**
 	 * Finds a row by ID.
 	 *
 	 * @return TEntity|null The entity, or null when no row has this ID.
