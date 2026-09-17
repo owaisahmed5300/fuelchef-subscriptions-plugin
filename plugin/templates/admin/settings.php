@@ -9,6 +9,7 @@
  *
  * @var Settings $settings
  * @var list<string> $applicabilities
+ * @var string $currency_symbol
  */
 
 declare(strict_types=1);
@@ -20,6 +21,7 @@ defined( 'ABSPATH' ) || exit;
 
 $settings        = $data['settings'];
 $applicabilities = $data['applicabilities'];
+$currency_symbol = $data['currency_symbol'];
 ?>
 <div class="wrap">
 	<div class="fcs-admin fcs-wrap fcs-editor-shell">
@@ -366,18 +368,21 @@ $applicabilities = $data['applicabilities'];
 							<label for="minimumOrderAmount">
 								<?php esc_html_e( 'Minimum order amount', 'fuelchef-subscriptions' ); ?>
 							</label>
-							<input
-								class="fcs-input fcs-input--number"
-								id="minimumOrderAmount"
-								type="number"
-								min="0"
-								step="0.01"
-								value="<?php echo esc_attr( (string) $settings->minimum_order_amount() ); ?>"
-							>
+							<div class="fcs-currency-input">
+								<span class="fcs-currency-input__prefix"><?php echo esc_html( $currency_symbol ); ?></span>
+								<input
+									class="fcs-input fcs-input--number"
+									id="minimumOrderAmount"
+									type="number"
+									min="0"
+									step="0.01"
+									value="<?php echo esc_attr( (string) $settings->minimum_order_amount() ); ?>"
+								>
+							</div>
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Cart subtotal a customer needs to be offered Subscribe & Save. 0 means no restriction.',
+									'Cart subtotal required before Subscribe & Save is offered. 0 means no restriction.',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -386,7 +391,7 @@ $applicabilities = $data['applicabilities'];
 
 						<div class="fcs-field">
 							<label for="minimumCartQuantity">
-								<?php esc_html_e( 'Minimum cart quantity', 'fuelchef-subscriptions' ); ?>
+								<?php esc_html_e( 'Minimum items in cart', 'fuelchef-subscriptions' ); ?>
 							</label>
 							<input
 								class="fcs-input fcs-input--number"
@@ -398,7 +403,7 @@ $applicabilities = $data['applicabilities'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Cart item quantity a customer needs to be offered Subscribe & Save. 0 means no restriction.',
+									'Cart items required before Subscribe & Save is offered. 0 means no restriction.',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -418,7 +423,7 @@ $applicabilities = $data['applicabilities'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Shown instead of Subscribe & Save when the cart does not meet the minimums above. Leave blank to show the default wording.',
+									'Shown instead of Subscribe & Save when the cart doesn\'t qualify. Leave blank to use the default wording.',
 									'fuelchef-subscriptions'
 								);
 								?>

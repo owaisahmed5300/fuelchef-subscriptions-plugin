@@ -80,6 +80,7 @@ final class Settings_Controller {
 			[
 				'settings'        => $this->settings_store->get(),
 				'applicabilities' => Subscribe_Applicability::all(),
+				'currency_symbol' => get_woocommerce_currency_symbol(),
 			]
 		);
 
