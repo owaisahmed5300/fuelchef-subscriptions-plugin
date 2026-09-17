@@ -274,6 +274,28 @@ $destination_counts = $data['destination_counts'];
 		<?php
 		if ( null !== $selected ) :
 			?>
+			<div class="fcs-overlay" id="addScheduleModalOverlay">
+				<div class="fcs-modal" role="dialog" aria-modal="true" aria-labelledby="addScheduleModalTitle">
+					<h3 class="fcs-modal__title" id="addScheduleModalTitle">
+						<?php esc_html_e( 'New schedule', 'fuelchef-subscriptions' ); ?>
+					</h3>
+					<div class="fcs-field">
+						<label for="newScheduleName">
+							<?php esc_html_e( 'Schedule name', 'fuelchef-subscriptions' ); ?>
+						</label>
+						<input class="fcs-input" id="newScheduleName" type="text" maxlength="190">
+					</div>
+					<div class="fcs-modal__actions">
+						<button type="button" class="fcs-btn" id="cancelAddScheduleBtn">
+							<?php esc_html_e( 'Cancel', 'fuelchef-subscriptions' ); ?>
+						</button>
+						<button type="button" class="fcs-btn fcs-btn--primary" id="confirmAddScheduleBtn">
+							<?php esc_html_e( 'Create Schedule', 'fuelchef-subscriptions' ); ?>
+						</button>
+					</div>
+				</div>
+			</div>
+
 			<div class="fcs-overlay" id="deleteModalOverlay">
 				<div class="fcs-modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
 					<h3 class="fcs-modal__title" id="deleteModalTitle">

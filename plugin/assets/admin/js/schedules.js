@@ -183,8 +183,29 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Add a schedule
-  document.getElementById('addScheduleBtn')?.addEventListener('click', () => {
-    const name = window.prompt(window.fcsAdmin.i18n.promptNewScheduleName);
+  const addOverlay = document.getElementById('addScheduleModalOverlay');
+  const addModal = addOverlay?.querySelector('.fcs-modal');
+  const newScheduleNameInput = document.getElementById('newScheduleName');
+  let addModalTrigger = null;
+
+  function openAddScheduleModal() {
+    if (!addOverlay) return;
+    addModalTrigger = document.activeElement;
+    if (newScheduleNameInput) newScheduleNameInput.value = '';
+    addOverlay.classList.add('fcs-overlay--show');
+    newScheduleNameInput?.focus();
+  }
+
+  function closeAddScheduleModal() {
+    if (!addOverlay) return;
+    addOverlay.classList.remove('fcs-overlay--show');
+
+    if (addModalTrigger && typeof addModalTrigger.focus === 'function') addModalTrigger.focus();
+    addModalTrigger = null;
+  }
+
+  function submitAddSchedule() {
+    const name = newScheduleNameInput?.value.trim();
     if (!name) return;
 
     FCS.post('fcs_save_schedule', { name }).done((response) => {
@@ -194,7 +215,30 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       window.location.href = `${data.baseUrl}&schedule_id=${response.data.id}`;
     });
-  });
+  }
+
+  if (addModal) {
+    addModal.addEventListener('keydown', (event) => {
+      // The document-level Escape handler (FCS.closeTransientUI) only hides the modal;
+      // going through closeAddScheduleModal() here also returns focus to what opened it.
+      if (event.key === 'Escape') {
+        closeAddScheduleModal();
+        return;
+      }
+
+      if (event.key === 'Enter' && event.target === newScheduleNameInput) {
+        event.preventDefault();
+        submitAddSchedule();
+        return;
+      }
+
+      FCS.trapFocus(addModal, event);
+    });
+  }
+
+  document.getElementById('addScheduleBtn')?.addEventListener('click', openAddScheduleModal);
+  document.getElementById('cancelAddScheduleBtn')?.addEventListener('click', closeAddScheduleModal);
+  document.getElementById('confirmAddScheduleBtn')?.addEventListener('click', submitAddSchedule);
 
   // Delete modal
   const overlay = document.getElementById('deleteModalOverlay');
