@@ -9,8 +9,10 @@ namespace FuelChef\Subscriptions\Frontend\Checkout;
 
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
+use FuelChef\Subscriptions\Services\Subscribe_Eligibility_Service;
 use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Utils\Renderer;
+use FuelChef\Subscriptions\Values\Settings;
 use WC_Cart;
 use WC_Order;
 
@@ -18,8 +20,8 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Adds the "Subscribe & Save" checkbox to classic checkout, and the cart discount it
- * unlocks. Only offered to a logged-in customer - subscribing needs an account for a
- * renewal to attach to.
+ * unlocks. Only offered to a logged-in customer whose cart meets the store's configured
+ * minimum order amount and quantity - an ineligible cart sees a message instead.
  *
  * Reads nothing of its own beyond the checkbox's current value, read straight from the
  * current request on every use rather than cached on the instance. Block checkout has no
@@ -53,7 +55,8 @@ final class Subscribe_And_Save {
 	public function __construct(
 		private Settings_Store $settings,
 		private Renderer $renderer,
-		private Subscribe_Discount_Service $discount_service
+		private Subscribe_Discount_Service $discount_service,
+		private Subscribe_Eligibility_Service $eligibility_service
 	) {
 	}
 
@@ -67,22 +70,32 @@ final class Subscribe_And_Save {
 	}
 
 	/**
-	 * Renders the checkbox for a logged-in customer, checked when the current request
-	 * already has it checked.
+	 * Renders the checkbox for a logged-in, eligible customer, checked when the current
+	 * request already has it checked - or the ineligible message when the cart does not
+	 * meet the store's configured minimums.
 	 */
 	public function render(): void {
 		if ( ! is_user_logged_in() ) {
 			return;
 		}
 
+		$cart = WC()->cart;
+
+		if ( null === $cart ) {
+			return;
+		}
+
 		$settings = $this->settings->get();
+		$eligible = $this->is_cart_eligible( $cart, $settings );
 
 		$html = $this->renderer->render(
 			'frontend/checkout/subscribe-and-save',
 			[
-				'checked'     => $this->is_checked_in_request(),
-				'label'       => $settings->subscribe_save_label_resolved(),
-				'description' => $settings->subscribe_save_description_resolved(),
+				'eligible'           => $eligible,
+				'checked'            => $eligible && $this->is_checked_in_request(),
+				'label'              => $settings->subscribe_save_label_resolved(),
+				'description'        => $settings->subscribe_save_description_resolved(),
+				'ineligible_message' => $settings->ineligible_message_resolved(),
 			]
 		);
 
@@ -90,16 +103,23 @@ final class Subscribe_And_Save {
 	}
 
 	/**
-	 * Adds the discount as a cart fee when the checkbox is checked.
+	 * Adds the discount as a cart fee when the checkbox is checked and the cart is
+	 * eligible.
 	 */
 	public function maybe_apply_discount( WC_Cart $cart ): void {
 		if ( ! is_user_logged_in() || ! $this->is_checked_in_request() ) {
 			return;
 		}
 
+		$settings = $this->settings->get();
+
+		if ( ! $this->is_cart_eligible( $cart, $settings ) ) {
+			return;
+		}
+
 		// WC_Cart::get_subtotal() is declared to return float but actually returns the
 		// value formatted as a numeric string; cast it back at this one boundary.
-		$amount = $this->discount_service->discount_amount( (float) $cart->get_subtotal(), $this->settings->get() );
+		$amount = $this->discount_service->discount_amount( (float) $cart->get_subtotal(), $settings );
 
 		if ( $amount <= 0.0 ) {
 			return;
@@ -108,6 +128,19 @@ final class Subscribe_And_Save {
 		$cart->add_fee(
 			esc_html__( 'Subscribe & Save discount', 'fuelchef-subscriptions' ),
 			-$amount
+		);
+	}
+
+	/**
+	 * Whether a cart's subtotal and item quantity meet the store's configured minimums.
+	 */
+	private function is_cart_eligible( WC_Cart $cart, Settings $settings ): bool {
+		// WC_Cart::get_subtotal() is declared to return float but actually returns the
+		// value formatted as a numeric string; cast it back at this one boundary.
+		return $this->eligibility_service->is_eligible(
+			(float) $cart->get_subtotal(),
+			$cart->get_cart_contents_count(),
+			$settings
 		);
 	}
 
@@ -123,7 +156,11 @@ final class Subscribe_And_Save {
 	 * @param array<string, mixed> $data Unused - see above.
 	 */
 	public function persist( WC_Order $order, array $data ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
-		$subscribed = is_user_logged_in() && $this->is_checked_in_request();
+		$cart       = WC()->cart;
+		$subscribed = is_user_logged_in()
+			&& $this->is_checked_in_request()
+			&& null !== $cart
+			&& $this->is_cart_eligible( $cart, $this->settings->get() );
 
 		$order->update_meta_data( self::META_KEY, $subscribed ? 'yes' : 'no' );
 	}

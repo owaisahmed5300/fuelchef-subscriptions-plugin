@@ -47,6 +47,52 @@ final class Settings_Test extends TestCase {
 		$this->assertSame( '', $settings->fulfilment_date_description() );
 		$this->assertSame( 'Subscribe & Save {percent}%', $settings->subscribe_save_label() );
 		$this->assertSame( '', $settings->subscribe_save_description() );
+		$this->assertSame( 0.0, $settings->minimum_order_amount() );
+		$this->assertSame( 0, $settings->minimum_cart_quantity() );
+		$this->assertSame( '', $settings->ineligible_message() );
+	}
+
+	public function test_accepts_custom_eligibility_values(): void {
+		$settings = new Settings(
+			...$this->valid_args(),
+			minimum_order_amount: 50.0,
+			minimum_cart_quantity: 3,
+			ineligible_message: 'Add more to unlock this.'
+		);
+
+		$this->assertSame( 50.0, $settings->minimum_order_amount() );
+		$this->assertSame( 3, $settings->minimum_cart_quantity() );
+		$this->assertSame( 'Add more to unlock this.', $settings->ineligible_message() );
+	}
+
+	public function test_ineligible_message_resolved_falls_back_to_the_default_when_empty(): void {
+		$settings = new Settings( ...$this->valid_args() );
+
+		$this->assertNotSame( '', $settings->ineligible_message_resolved() );
+	}
+
+	public function test_ineligible_message_resolved_returns_the_custom_message_when_set(): void {
+		$settings = new Settings( ...$this->valid_args(), ineligible_message: 'Add more to unlock this.' );
+
+		$this->assertSame( 'Add more to unlock this.', $settings->ineligible_message_resolved() );
+	}
+
+	public function test_rejects_a_negative_minimum_order_amount(): void {
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$this->valid_args(), minimum_order_amount: -0.01 );
+	}
+
+	public function test_rejects_a_negative_minimum_cart_quantity(): void {
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$this->valid_args(), minimum_cart_quantity: -1 );
+	}
+
+	public function test_rejects_an_ineligible_message_over_the_length_limit(): void {
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$this->valid_args(), ineligible_message: str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 ) );
 	}
 
 	public function test_subscribe_save_label_resolved_replaces_the_percent_placeholder(): void {

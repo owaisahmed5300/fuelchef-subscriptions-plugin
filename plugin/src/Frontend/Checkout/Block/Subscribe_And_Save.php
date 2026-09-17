@@ -11,6 +11,7 @@ use FuelChef\Subscriptions\Frontend\Checkout\Block\Concerns\Reads_Persisted_Fiel
 use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save as Classic_Subscribe_And_Save;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
+use FuelChef\Subscriptions\Services\Subscribe_Eligibility_Service;
 use WC_Order;
 use WC_Order_Item_Fee;
 
@@ -19,7 +20,10 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Registers the "Subscribe & Save" checkbox for the Checkout block, and applies the same
  * discount the classic checkout checkbox unlocks. Only offered to a logged-in customer,
- * same as classic checkout's own field.
+ * same as classic checkout's own field. The field stays registered even when the cart is
+ * currently ineligible - `assets/checkout/js/block-subscribe-and-save.js` toggles it for
+ * an ineligible message instead, since the eligibility rule can only be re-evaluated
+ * client-side as the cart changes, but `apply_discount()` below is the authoritative gate.
  *
  * Two mechanisms apply the discount. `assets/checkout/js/block-subscribe-and-save.js`
  * reports a live cart-total preview through the Store API's `extensionCartUpdate()`,
@@ -57,7 +61,8 @@ final class Subscribe_And_Save {
 	public function __construct(
 		private Settings_Store $settings,
 		private Classic_Subscribe_And_Save $classic,
-		private Subscribe_Discount_Service $discount_service
+		private Subscribe_Discount_Service $discount_service,
+		private Subscribe_Eligibility_Service $eligibility_service
 	) {
 	}
 
@@ -120,13 +125,23 @@ final class Subscribe_And_Save {
 
 	/**
 	 * Adds or removes the discount fee on the order to match the checkbox's current
-	 * value. Idempotent: safe to run more than once for the same order.
+	 * value, only when the order is eligible. Idempotent: safe to run more than once for
+	 * the same order. The authoritative eligibility gate - the checkbox's own visibility
+	 * is only a client-side preview of the same rule.
 	 */
 	public function apply_discount( WC_Order $order ): void {
 		$this->remove_existing_fee( $order );
 
-		if ( is_user_logged_in() && $this->is_checked( $order ) ) {
-			$amount = $this->discount_service->discount_amount( (float) $order->get_subtotal(), $this->settings->get() );
+		$settings = $this->settings->get();
+
+		if (
+			is_user_logged_in()
+			&& $this->is_checked( $order )
+			// WC_Order::get_item_count() is declared to return int but PHPStan's stubs see
+			// it as int|string, since it sums quantities that arrive as numeric strings.
+			&& $this->eligibility_service->is_eligible( (float) $order->get_subtotal(), (int) $order->get_item_count(), $settings )
+		) {
+			$amount = $this->discount_service->discount_amount( (float) $order->get_subtotal(), $settings );
 
 			if ( $amount > 0.0 ) {
 				$this->add_fee( $order, $amount );

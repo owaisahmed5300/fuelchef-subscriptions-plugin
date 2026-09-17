@@ -361,6 +361,69 @@ $applicabilities = $data['applicabilities'];
 								?>
 							</p>
 						</div>
+
+						<div class="fcs-field">
+							<label for="minimumOrderAmount">
+								<?php esc_html_e( 'Minimum order amount', 'fuelchef-subscriptions' ); ?>
+							</label>
+							<input
+								class="fcs-input fcs-input--number"
+								id="minimumOrderAmount"
+								type="number"
+								min="0"
+								step="0.01"
+								value="<?php echo esc_attr( (string) $settings->minimum_order_amount() ); ?>"
+							>
+							<p class="fcs-field__hint">
+								<?php
+								esc_html_e(
+									'Cart subtotal a customer needs to be offered Subscribe & Save. 0 means no restriction.',
+									'fuelchef-subscriptions'
+								);
+								?>
+							</p>
+						</div>
+
+						<div class="fcs-field">
+							<label for="minimumCartQuantity">
+								<?php esc_html_e( 'Minimum cart quantity', 'fuelchef-subscriptions' ); ?>
+							</label>
+							<input
+								class="fcs-input fcs-input--number"
+								id="minimumCartQuantity"
+								type="number"
+								min="0"
+								value="<?php echo esc_attr( (string) $settings->minimum_cart_quantity() ); ?>"
+							>
+							<p class="fcs-field__hint">
+								<?php
+								esc_html_e(
+									'Cart item quantity a customer needs to be offered Subscribe & Save. 0 means no restriction.',
+									'fuelchef-subscriptions'
+								);
+								?>
+							</p>
+						</div>
+
+						<div class="fcs-field">
+							<label for="ineligibleMessage">
+								<?php esc_html_e( 'Ineligible message (optional)', 'fuelchef-subscriptions' ); ?>
+							</label>
+							<textarea
+								class="fcs-textarea"
+								id="ineligibleMessage"
+								maxlength="300"
+								placeholder="<?php echo esc_attr( $settings->ineligible_message_resolved() ); ?>"
+							><?php echo esc_textarea( $settings->ineligible_message() ); ?></textarea>
+							<p class="fcs-field__hint">
+								<?php
+								esc_html_e(
+									'Shown instead of Subscribe & Save when the cart does not meet the minimums above. Leave blank to show the default wording.',
+									'fuelchef-subscriptions'
+								);
+								?>
+							</p>
+						</div>
 					</div>
 				</div>
 			</section>

@@ -22,7 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
         fulfilment_date_label: document.getElementById('fulfilmentDateLabel').value,
         fulfilment_date_description: document.getElementById('fulfilmentDateDescription').value,
         subscribe_save_label: document.getElementById('subscribeSaveLabel').value,
-        subscribe_save_description: document.getElementById('subscribeSaveDescription').value
+        subscribe_save_description: document.getElementById('subscribeSaveDescription').value,
+        minimum_order_amount: document.getElementById('minimumOrderAmount').value,
+        minimum_cart_quantity: document.getElementById('minimumCartQuantity').value,
+        ineligible_message: document.getElementById('ineligibleMessage').value
       }).done((response) => {
         if (!response.success) {
           FCS.toast(response.data && response.data.message ? response.data.message : window.fcsAdmin.i18n.couldNotSaveSettings);

@@ -121,7 +121,9 @@ final class Assets {
 		wp_enqueue_script(
 			'fcs-block-checkout-subscribe',
 			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/block-subscribe-and-save.js',
-			[ 'jquery', 'fcs-checkout-shared' ],
+			// wc-blocks-data-store exposes window.wc.wcBlocksData and pulls in wp-data,
+			// needed to read live cart totals for the eligibility check below.
+			[ 'jquery', 'fcs-checkout-shared', 'wc-blocks-data-store' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION,
 			true
 		);
@@ -139,6 +141,9 @@ final class Assets {
 				'eligibleDatesUrl'          => rest_url( Block_Fulfilment_Date_Field::REST_NAMESPACE . Block_Fulfilment_Date_Field::REST_ROUTE ),
 				'fulfilmentDateDescription' => $settings->fulfilment_date_description(),
 				'subscribeSaveDescription'  => $settings->subscribe_save_description_resolved(),
+				'minimumOrderAmount'        => $settings->minimum_order_amount(),
+				'minimumCartQuantity'       => $settings->minimum_cart_quantity(),
+				'ineligibleMessage'         => $settings->ineligible_message_resolved(),
 				'i18n'                      => $this->strings(),
 			]
 		);

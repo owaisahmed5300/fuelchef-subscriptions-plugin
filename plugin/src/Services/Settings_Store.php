@@ -35,6 +35,8 @@ final class Settings_Store {
 	private const DEFAULT_SUBSCRIBE_DISCOUNT_PERCENT = 5;
 	private const DEFAULT_SUBSCRIBE_APPLICABILITY    = Subscribe_Applicability::INITIAL_AND_RENEWALS;
 	private const DEFAULT_MAX_FULFILMENT_WINDOW_DAYS = 60;
+	private const DEFAULT_MINIMUM_ORDER_AMOUNT       = 0.0;
+	private const DEFAULT_MINIMUM_CART_QUANTITY      = 0;
 
 	/**
 	 * The current settings, falling back to defaults for anything missing or invalid.
@@ -52,7 +54,10 @@ final class Settings_Store {
 			fulfilment_date_label: $this->label( $this->raw( $stored, 'fulfilment_date_label' ), $this->default_fulfilment_date_label() ),
 			fulfilment_date_description: $this->description( $this->raw( $stored, 'fulfilment_date_description' ) ),
 			subscribe_save_label: $this->label( $this->raw( $stored, 'subscribe_save_label' ), $this->default_subscribe_save_label() ),
-			subscribe_save_description: $this->description( $this->raw( $stored, 'subscribe_save_description' ) )
+			subscribe_save_description: $this->description( $this->raw( $stored, 'subscribe_save_description' ) ),
+			minimum_order_amount: $this->minimum_order_amount( $this->raw( $stored, 'minimum_order_amount' ) ),
+			minimum_cart_quantity: $this->minimum_cart_quantity( $this->raw( $stored, 'minimum_cart_quantity' ) ),
+			ineligible_message: $this->description( $this->raw( $stored, 'ineligible_message' ) )
 		);
 	}
 
@@ -81,6 +86,9 @@ final class Settings_Store {
 				'fulfilment_date_description' => $settings->fulfilment_date_description(),
 				'subscribe_save_label'        => $settings->subscribe_save_label(),
 				'subscribe_save_description'  => $settings->subscribe_save_description(),
+				'minimum_order_amount'        => $settings->minimum_order_amount(),
+				'minimum_cart_quantity'       => $settings->minimum_cart_quantity(),
+				'ineligible_message'          => $settings->ineligible_message(),
 			]
 		);
 
@@ -178,6 +186,38 @@ final class Settings_Store {
 		return ( $days >= 1 && $days <= Settings::MAX_FULFILMENT_WINDOW_DAYS )
 			? $days
 			: self::DEFAULT_MAX_FULFILMENT_WINDOW_DAYS;
+	}
+
+	/**
+	 * Narrows a stored minimum order amount, falling back to the default when it is
+	 * missing or negative.
+	 *
+	 * @param mixed $value Raw stored value.
+	 */
+	private function minimum_order_amount( mixed $value ): float {
+		if ( ! is_numeric( $value ) ) {
+			return self::DEFAULT_MINIMUM_ORDER_AMOUNT;
+		}
+
+		$amount = (float) $value;
+
+		return $amount >= 0.0 ? $amount : self::DEFAULT_MINIMUM_ORDER_AMOUNT;
+	}
+
+	/**
+	 * Narrows a stored minimum cart quantity, falling back to the default when it is
+	 * missing or negative.
+	 *
+	 * @param mixed $value Raw stored value.
+	 */
+	private function minimum_cart_quantity( mixed $value ): int {
+		if ( ! is_numeric( $value ) ) {
+			return self::DEFAULT_MINIMUM_CART_QUANTITY;
+		}
+
+		$quantity = (int) $value;
+
+		return $quantity >= 0 ? $quantity : self::DEFAULT_MINIMUM_CART_QUANTITY;
 	}
 
 	/**
