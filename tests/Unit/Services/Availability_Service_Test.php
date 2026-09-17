@@ -139,6 +139,23 @@ final class Availability_Service_Test extends Repository_TestCase {
 		$this->assertFalse( $service->is_closed( 4, '2026-12-26' ) );
 	}
 
+	public function test_is_closed_is_true_for_a_schedule_scoped_blackout(): void {
+		$service = $this->service( [], [ $this->blackout_row( '4', '2026-09-14' ) ] );
+
+		$this->assertTrue( $service->is_closed( 4, '2026-09-14' ) );
+	}
+
+	public function test_open_dates_excludes_dates_from_both_global_and_schedule_scoped_blackouts(): void {
+		// Monday the 14th and 21st both fall in range and are enabled; the 14th is
+		// blacked out store-wide, the 21st is blacked out for this schedule only.
+		$service = $this->service(
+			[ $this->weekday_row( 4, 1, true ) ],
+			[ $this->blackout_row( null, '2026-09-14' ), $this->blackout_row( '4', '2026-09-21' ) ]
+		);
+
+		$this->assertSame( [], $service->open_dates( 4, '2026-09-14', '2026-09-21' ) );
+	}
+
 	public function test_open_dates_is_empty_when_no_weekday_is_enabled(): void {
 		$service = $this->service( [ $this->weekday_row( 4, 1, false ) ] );
 

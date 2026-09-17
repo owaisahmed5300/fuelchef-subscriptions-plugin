@@ -86,6 +86,29 @@ final class Schedule_Destination_Repository_Test extends Repository_TestCase {
 		$repository->find_by_destination( 'pickup_location', 'central-depot' );
 	}
 
+	public function test_deleting_a_destination_invalidates_its_schedules_cached_list(): void {
+		$row = [
+			'id'               => '1',
+			'schedule_id'      => '4',
+			'destination_type' => 'shipping_zone',
+			'destination_key'  => '2',
+			'date_created'     => '2026-01-01 00:00:00',
+			'date_updated'     => '2026-01-01 00:00:00',
+		];
+
+		$wpdb = $this->wpdb();
+		// Once for the cache-priming list, once more after delete() invalidates it.
+		$wpdb->shouldReceive( 'get_results' )->twice()->andReturn( [ $row ] );
+		$wpdb->shouldReceive( 'get_row' )->once()->andReturn( $row );
+		$wpdb->shouldReceive( 'delete' )->once()->andReturn( 1 );
+
+		$repository = new Schedule_Destination_Repository( $wpdb, $this->clock() );
+
+		$repository->find_by_schedule( 4 );
+		$repository->delete( 1 );
+		$repository->find_by_schedule( 4 );
+	}
+
 	public function test_replace_for_schedule_deletes_the_old_set_before_inserting_the_new_one(): void {
 		$wpdb = $this->wpdb();
 		$wpdb->shouldReceive( 'get_results' )->once()->andReturn(
