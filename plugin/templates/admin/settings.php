@@ -199,6 +199,33 @@ $applicabilities = $data['applicabilities'];
 						</p>
 
 						<div class="fcs-field">
+							<label for="maxFulfilmentWindowDays">
+								<?php esc_html_e( 'Maximum fulfilment window', 'fuelchef-subscriptions' ); ?>
+							</label>
+							<div class="fcs-inline-value">
+								<input
+									class="fcs-input fcs-input--number"
+									id="maxFulfilmentWindowDays"
+									type="number"
+									min="1"
+									max="<?php echo esc_attr( (string) Settings::MAX_FULFILMENT_WINDOW_DAYS ); ?>"
+									value="<?php echo esc_attr( (string) $settings->max_fulfilment_window_days() ); ?>"
+								>
+								<span>
+									<?php esc_html_e( 'days into the future', 'fuelchef-subscriptions' ); ?>
+								</span>
+							</div>
+							<p class="fcs-field__hint">
+								<?php
+								esc_html_e(
+									'How far ahead customers can choose a fulfilment date, still subject to schedules, closure dates and the order cutoff.',
+									'fuelchef-subscriptions'
+								);
+								?>
+							</p>
+						</div>
+
+						<div class="fcs-field">
 							<label for="fulfilmentDateLabel">
 								<?php esc_html_e( 'Field label', 'fuelchef-subscriptions' ); ?>
 							</label>
@@ -236,33 +263,6 @@ $applicabilities = $data['applicabilities'];
 								?>
 							</p>
 						</div>
-
-						<div class="fcs-field">
-							<label for="maxFulfilmentWindowDays">
-								<?php esc_html_e( 'Maximum fulfilment window', 'fuelchef-subscriptions' ); ?>
-							</label>
-							<div class="fcs-inline-value">
-								<input
-									class="fcs-input fcs-input--number"
-									id="maxFulfilmentWindowDays"
-									type="number"
-									min="1"
-									max="<?php echo esc_attr( (string) Settings::MAX_FULFILMENT_WINDOW_DAYS ); ?>"
-									value="<?php echo esc_attr( (string) $settings->max_fulfilment_window_days() ); ?>"
-								>
-								<span>
-									<?php esc_html_e( 'days into the future', 'fuelchef-subscriptions' ); ?>
-								</span>
-							</div>
-							<p class="fcs-field__hint">
-								<?php
-								esc_html_e(
-									'How far ahead customers can choose a fulfilment date, still subject to schedules, closure dates and the order cutoff.',
-									'fuelchef-subscriptions'
-								);
-								?>
-							</p>
-						</div>
 					</div>
 				</div>
 
@@ -276,7 +276,7 @@ $applicabilities = $data['applicabilities'];
 						<p class="fcs-card__intro">
 							<?php
 							esc_html_e(
-								'Configure the discount a customer gets for choosing to subscribe at checkout.',
+								'Configure the discount a customer gets for subscribing at checkout, and the wording shown next to the Subscribe & Save checkbox.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -314,24 +314,6 @@ $applicabilities = $data['applicabilities'];
 								<?php endforeach; ?>
 							</select>
 						</div>
-					</div>
-				</div>
-
-				<div class="fcs-card">
-					<div class="fcs-card__header">
-						<h2 class="fcs-card__title">
-							<?php esc_html_e( 'Checkout Wording', 'fuelchef-subscriptions' ); ?>
-						</h2>
-					</div>
-					<div class="fcs-card__body">
-						<p class="fcs-card__intro">
-							<?php
-							esc_html_e(
-								'Customize the wording shown next to the Subscribe & Save checkbox at checkout.',
-								'fuelchef-subscriptions'
-							);
-							?>
-						</p>
 
 						<div class="fcs-field">
 							<label for="subscribeSaveLabel">
