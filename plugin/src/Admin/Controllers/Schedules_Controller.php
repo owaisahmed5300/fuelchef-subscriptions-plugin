@@ -300,9 +300,7 @@ final class Schedules_Controller {
 		$schedule_id = absint( Narrow::string( $_POST['schedule_id'] ?? null ) );
 
 		/** @var array<int, array{type?: string, key?: string}> $raw */
-		$raw = isset( $_POST['destinations'] ) && is_array( $_POST['destinations'] )
-			? wp_unslash( $_POST['destinations'] )
-			: [];
+		$raw = wp_unslash( Narrow::array( $_POST['destinations'] ?? null ) );
 
 		$destinations = [];
 

@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Services;
 
+use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Values\DateTime;
 use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
@@ -39,10 +40,8 @@ final class Settings_Store {
 	 * The current settings, falling back to defaults for anything missing or invalid.
 	 */
 	public function get(): Settings {
-		$raw = get_option( self::OPTION_KEY, [] );
-
 		/** @var array<string, mixed> $stored */
-		$stored = is_array( $raw ) ? $raw : [];
+		$stored = Narrow::array( get_option( self::OPTION_KEY, [] ) );
 
 		return new Settings(
 			cutoff_days: $this->cutoff_days( $this->raw( $stored, 'cutoff_days' ) ),

@@ -72,4 +72,15 @@ final class Narrow {
 	public static function bool( mixed $value ): bool {
 		return is_numeric( $value ) && 0 !== (int) $value;
 	}
+
+	/**
+	 * Narrows a value to an array, defaulting to empty.
+	 *
+	 * @param mixed $value Raw value.
+	 *
+	 * @return array<mixed> The value, when it is already an array, or an empty array.
+	 */
+	public static function array( mixed $value ): array {
+		return is_array( $value ) ? $value : [];
+	}
 }
