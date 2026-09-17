@@ -23,7 +23,6 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Menu {
 
-
 	/**
 	 * Capability required to view or change this plugin's settings.
 	 */
@@ -89,7 +88,7 @@ final class Menu {
 	 */
 	public function print_icon_size(): void {
 		printf(
-			'<style>#%s div.wp-menu-image.svg{background-size:16px auto}</style>',
+			'<style>#%s div.wp-menu-image.svg{background-size:12px auto}</style>',
 			esc_attr( 'toplevel_page_' . self::SETTINGS_SLUG )
 		);
 	}

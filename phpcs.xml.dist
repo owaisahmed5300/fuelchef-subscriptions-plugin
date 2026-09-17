@@ -2,8 +2,8 @@
 <ruleset name="FuelChef Subscriptions PHPCS">
     <description>FuelChef Subscriptions coding standards.</description>
 
-    <rule ref="WPTechnix-PSR4" />
-    <rule ref="WPTechnix-Strict" />
+    <rule ref="WPTechnix-PSR4"/>
+    <rule ref="WPTechnix-Strict"/>
 
     <file>plugin</file>
 
@@ -89,18 +89,18 @@
         <exclude-pattern>plugin/src/Entities/*</exclude-pattern>
     </rule>
 
-    <arg name="extensions" value="php" />
-    <arg name="colors" />
-    <arg name="cache" value=".phpcs.cache" />
-    <arg value="sp" />
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg name="cache" value=".phpcs.cache"/>
+    <arg value="sp"/>
 
-    <config name="testVersion" value="8.0-" />
+    <config name="testVersion" value="8.0-"/>
 
     <!-- Must match the `Text Domain:` header in the main plugin file. -->
     <rule ref="WordPress.WP.I18n">
         <properties>
             <property name="text_domain" type="array">
-                <element value="fuelchef-subscriptions" />
+                <element value="fuelchef-subscriptions"/>
             </property>
         </properties>
     </rule>
