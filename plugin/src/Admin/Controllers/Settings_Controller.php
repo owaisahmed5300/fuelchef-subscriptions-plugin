@@ -95,15 +95,15 @@ final class Settings_Controller {
 
 		try {
 			$settings = new Settings(
-				$this->posted_int( 'cutoff_days' ),
-				$this->posted_text( 'cutoff_time' ),
-				$this->posted_int( 'subscribe_discount_percent' ),
-				$this->posted_text( 'subscribe_applicability' ),
-				$this->posted_int( 'max_fulfilment_window_days' ),
-				$this->posted_text( 'fulfilment_date_label' ),
-				$this->posted_text( 'fulfilment_date_description' ),
-				$this->posted_text( 'subscribe_save_label' ),
-				$this->posted_text( 'subscribe_save_description' )
+				cutoff_days: $this->posted_int( 'cutoff_days' ),
+				cutoff_time: $this->posted_text( 'cutoff_time' ),
+				subscribe_discount_percent: $this->posted_int( 'subscribe_discount_percent' ),
+				subscribe_applicability: $this->posted_text( 'subscribe_applicability' ),
+				max_fulfilment_window_days: $this->posted_int( 'max_fulfilment_window_days' ),
+				fulfilment_date_label: $this->posted_text( 'fulfilment_date_label' ),
+				fulfilment_date_description: $this->posted_text( 'fulfilment_date_description' ),
+				subscribe_save_label: $this->posted_text( 'subscribe_save_label' ),
+				subscribe_save_description: $this->posted_text( 'subscribe_save_description' )
 			);
 		} catch ( InvalidArgumentException $exception ) {
 			wp_send_json_error( [ 'message' => $exception->getMessage() ] );
