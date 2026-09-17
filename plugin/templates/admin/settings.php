@@ -445,7 +445,7 @@ $currency_symbol = $data['currency_symbol'];
 		</form>
 
 		<div class="fcs-popover" id="datePopover" popover="auto" role="dialog" aria-labelledby="datePopoverTitle">
-			<div class="fcs-popover__arrow"></div>
+			<div class="fcs-popover__arrow" data-popper-arrow></div>
 			<div class="fcs-popover__header">
 				<div>
 					<div class="fcs-popover__title" id="datePopoverTitle" data-pop-title></div>

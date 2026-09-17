@@ -21,6 +21,12 @@ final class Assets {
 
 
 	/**
+	 * The vendored Popper.js build's version, used as its own cache-busting query arg
+	 * since it does not change with plugin releases.
+	 */
+	private const POPPER_VERSION = '2.11.8';
+
+	/**
 	 * Registers the enqueue hook.
 	 */
 	public function register(): void {
@@ -57,9 +63,17 @@ final class Assets {
 		);
 
 		wp_enqueue_script(
+			'fcs-popper',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/lib/popper/popper.min.js',
+			[],
+			self::POPPER_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
 			'fcs-admin-common',
 			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/admin/js/common.js',
-			[ 'jquery' ],
+			[ 'jquery', 'fcs-popper' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION,
 			true
 		);

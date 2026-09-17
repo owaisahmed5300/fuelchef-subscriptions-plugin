@@ -158,7 +158,6 @@ FCS.createCalendar = function (options) {
   let items = blackouts.slice();
   let activeId = null;
   let triggerEl = null;
-  let currentAnchor = null;
 
   const isoDate = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
   const dateLabel = (y, m, d) => `${monthNames[m].slice(0, 3)} ${String(d).padStart(2, '0')}, ${y}`;
@@ -339,63 +338,66 @@ FCS.createCalendar = function (options) {
     });
   }
 
-  // Same technique Popper.js (which Bootstrap's Popover uses) applies for a single
-  // preferred placement: measure the anchor and the popover's own real box, try below
-  // the anchor, flip above it if that would overflow the viewport ("flip"), then clamp
-  // horizontally to stay on-screen ("shift"). Driven by real measurements rather than
-  // guessed constants so it stays accurate at any popover content size or viewport.
+  let popperInstance = null;
+
+  // Popper.js (vendored, same as Bootstrap's own Popover uses under the hood) owns
+  // placement entirely: flip when the preferred side overflows, shift to stay in the
+  // viewport, position the arrow, and - critically, via its own default `eventListeners`
+  // modifier - keep all of that live on scroll and resize for as long as the instance
+  // exists, none of which a hand-rolled position-once-on-open implementation reliably
+  // covers. `strategy: 'fixed'` matches this element's own `position: fixed` in CSS.
   function positionPopover(anchor) {
-    if (!popoverEl || !anchor) return;
-    const rect = anchor.getBoundingClientRect();
-
-    // A re-render can leave `anchor` pointing at a now-detached node - its
-    // getBoundingClientRect() comes back all-zero, which would otherwise snap the
-    // popover to the top-left corner. Leave it at its last known position instead.
-    if (0 === rect.width && 0 === rect.height) return;
-
-    const popoverRect = popoverEl.getBoundingClientRect();
-    const gap = 6;
-    const edge = 12;
-    const anchorCenter = rect.left + (rect.width / 2);
-
-    let left = rect.left;
-    let top = rect.bottom + gap;
-    let arrowUp = true;
-
-    if (left + popoverRect.width > window.innerWidth - edge) {
-      left = window.innerWidth - popoverRect.width - edge;
-    }
-    if (top + popoverRect.height > window.innerHeight - edge) {
-      top = rect.top - popoverRect.height - gap;
-      arrowUp = false;
+    if (popperInstance) {
+      popperInstance.destroy();
+      popperInstance = null;
     }
 
-    left = Math.max(edge, left);
-    top = Math.max(edge, top);
+    if (!popoverEl || !anchor || typeof window.Popper === 'undefined') return;
 
-    popoverEl.style.left = `${left}px`;
-    popoverEl.style.top = `${top}px`;
-    popoverEl.classList.toggle('fcs-popover--arrow-up', arrowUp);
-    popoverEl.classList.toggle('fcs-popover--arrow-down', !arrowUp);
-    popoverEl.style.setProperty(
-      '--fcs-popover-arrow-offset',
-      `${Math.min(popoverRect.width - 24, Math.max(24, anchorCenter - left))}px`
-    );
+    popperInstance = window.Popper.createPopper(anchor, popoverEl, {
+      strategy: 'fixed',
+      placement: 'bottom-start',
+      modifiers: [
+        { name: 'offset', options: { offset: [0, 6] } },
+        { name: 'preventOverflow', options: { padding: 12 } },
+        { name: 'flip', options: { padding: 12 } },
+        { name: 'arrow', options: { element: '[data-popper-arrow]', padding: 12 } },
+        {
+          // The arrow's ::before pseudo-element (the inner surface-colored triangle that
+          // overlays the outer border-colored one) can't receive an inline style from
+          // Popper's own applyStyles the way the real arrow element does, so it stays
+          // synced through the same --fcs-popover-arrow-offset custom property this file
+          // used before Popper - CSS custom properties inherit to a ::before, a plain
+          // inline style never would. `requires: ['arrow']` guarantees the arrow
+          // modifier's own offset is already computed before this reads it.
+          name: 'fcsArrowSync',
+          enabled: true,
+          phase: 'write',
+          requires: ['arrow'],
+          fn({ state }) {
+            const isTop = state.placement.startsWith('top');
+            popoverEl.classList.toggle('fcs-popover--arrow-up', !isTop);
+            popoverEl.classList.toggle('fcs-popover--arrow-down', isTop);
+
+            if (state.modifiersData.arrow && 'number' === typeof state.modifiersData.arrow.x) {
+              popoverEl.style.setProperty('--fcs-popover-arrow-offset', `${state.modifiersData.arrow.x}px`);
+            }
+          }
+        }
+      ]
+    });
   }
 
-  // Keeps the popover accurately placed against the same viewport hazards Popper.js's
-  // own "autoUpdate" watches for - the surrounding page scrolling or the window resizing
-  // while the popover is open - without polling. Bound/unbound alongside the popover's
-  // own open/closed state below.
-  function reposition() {
-    positionPopover(currentAnchor);
+  function destroyPopper() {
+    if (!popperInstance) return;
+    popperInstance.destroy();
+    popperInstance = null;
   }
 
   function openPopover(item, anchor) {
     if (!popoverEl) return;
     activeId = item.id;
     triggerEl = document.activeElement;
-    currentAnchor = anchor;
 
     const title = popoverEl.querySelector('[data-pop-title]');
     const reason = popoverEl.querySelector('[data-pop-reason]');
@@ -411,7 +413,12 @@ FCS.createCalendar = function (options) {
     // date to another), unlike showPopover(), which throws in that case.
     popoverEl.togglePopover(true);
     positionPopover(anchor);
-    if (reason) reason.focus();
+    // preventScroll: true - Popper positions asynchronously (its first update runs after
+    // this call returns, unlike the old synchronous hand-rolled math), so this textarea
+    // could still be at its unpositioned default location for a moment. Without this, the
+    // browser's own default focus-scroll-into-view behaviour could jump the page to
+    // wherever that is before Popper places the popover.
+    if (reason) reason.focus({ preventScroll: true });
   }
 
   function closePopover() {
@@ -425,19 +432,10 @@ FCS.createCalendar = function (options) {
     // up here, since they all ultimately fire this event rather than calling
     // closePopover() itself.
     popoverEl.addEventListener('toggle', (event) => {
-      if ('open' === event.newState) {
-        // Capture phase: catches scrolling inside wp-admin's own scrollable wrappers
-        // (e.g. the calendar card), not just the window itself.
-        window.addEventListener('scroll', reposition, true);
-        window.addEventListener('resize', reposition);
-        return;
-      }
+      if ('open' === event.newState) return;
 
-      window.removeEventListener('scroll', reposition, true);
-      window.removeEventListener('resize', reposition);
-
+      destroyPopper();
       activeId = null;
-      currentAnchor = null;
       if (triggerEl && typeof triggerEl.focus === 'function') triggerEl.focus();
       triggerEl = null;
     });

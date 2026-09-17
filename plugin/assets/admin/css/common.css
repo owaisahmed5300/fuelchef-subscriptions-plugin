@@ -912,6 +912,16 @@
     padding: 16px;
 }
 
+/* Popper's own `hide` modifier (on by default in the vendored full build, no options
+   needed) sets this attribute once the anchor it's tracking scrolls fully out of view -
+   rather than staying tethered to a boundary with no visible connection to anything, the
+   popover hides until scrolling brings the anchor back, non-destructively (its own state
+   and DOM are untouched). */
+.fcs-admin .fcs-popover[data-popper-reference-hidden] {
+    visibility: hidden;
+    pointer-events: none;
+}
+
 .fcs-admin .fcs-popover__header {
     display: flex;
     align-items: flex-start;
