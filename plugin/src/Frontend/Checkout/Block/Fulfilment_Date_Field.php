@@ -36,10 +36,16 @@ defined( 'ABSPATH' ) || exit;
  * eligible set.
  *
  * `validate()` is skipped by WooCommerce entirely when nothing was posted and the field
- * is not `required: true` (which it deliberately is not - it must stay optional for a
- * destination with no schedule). `validate_order()` is the backstop for that gap: it
- * always fires once per place-order attempt and rejects the order if a schedule applies
- * and nothing eligible was ever saved.
+ * is not `required: true`. It is registered `required: false` regardless, because
+ * `required` can only be set once at registration time with no per-customer context, and
+ * a genuinely unfulfillable destination (no schedule at all) must still let the order
+ * through the field itself so `validate_order()` below can reject it with a clearer,
+ * destination-specific message instead of a generic "field required" one.
+ * `validate_order()` is the backstop for the skipped-validation gap above: it always fires
+ * once per place-order attempt and rejects the order whenever a fulfilment date cannot be
+ * resolved for it at all - no destination chosen, a destination with no schedule, or a
+ * schedule whose saved date isn't actually eligible. A fulfilment date is required for
+ * every order.
  */
 final class Fulfilment_Date_Field {
 
@@ -170,8 +176,12 @@ final class Fulfilment_Date_Field {
 	}
 
 	/**
-	 * Rejects checkout when a schedule applies to the customer's chosen destination but
-	 * the posted date is not one it can actually fulfil.
+	 * Rejects checkout whenever a fulfilment date cannot be resolved for the order: no
+	 * destination chosen yet, a destination with no schedule covering it, or a schedule
+	 * whose posted date isn't one it can actually fulfil. A fulfilment date is required for
+	 * every order, not just ones where a schedule happens to apply. This only runs when
+	 * something was actually posted for the field - see {@see self::validate_order()} for
+	 * the backstop that also covers nothing having been posted at all.
 	 *
 	 * @param WP_Error $errors Validation errors, added to by reference.
 	 * @param string   $field_key The ID of the field being validated.
@@ -182,9 +192,23 @@ final class Fulfilment_Date_Field {
 			return;
 		}
 
+		if ( ! $this->window->destination_chosen() ) {
+			$errors->add(
+				'fcs_fulfilment_date',
+				esc_html__( 'Add a shipping address or select a pickup location to continue.', 'fuelchef-subscriptions' )
+			);
+
+			return;
+		}
+
 		$schedule = $this->window->schedule();
 
 		if ( null === $schedule ) {
+			$errors->add(
+				'fcs_fulfilment_date',
+				esc_html__( 'We are unable to fulfil orders to this location. Please choose a different address or pickup location.', 'fuelchef-subscriptions' )
+			);
+
 			return;
 		}
 
@@ -201,16 +225,29 @@ final class Fulfilment_Date_Field {
 	}
 
 	/**
-	 * Rejects the order outright when a schedule applies but nothing eligible was ever
-	 * saved to it - the backstop for `validate()`; see the class docblock. Throwing
-	 * `RouteException` is the Store API's own way to reject an order from this hook;
-	 * `AbstractRoute::get_response()` converts it to a proper REST error response.
+	 * Rejects the order outright whenever a fulfilment date cannot be resolved for it - the
+	 * backstop for `validate()`, which WooCommerce skips calling entirely when nothing was
+	 * posted for this non-required field. Throwing `RouteException` is the Store API's own
+	 * way to reject an order from this hook; `AbstractRoute::get_response()` converts it to
+	 * a proper REST error response.
 	 */
 	public function validate_order( WC_Order $order ): void {
+		if ( ! $this->window->destination_chosen() ) {
+			throw new RouteException(
+				'fcs_fulfilment_date_required',
+				esc_html__( 'Add a shipping address or select a pickup location to continue.', 'fuelchef-subscriptions' ),
+				400
+			);
+		}
+
 		$schedule = $this->window->schedule();
 
 		if ( null === $schedule ) {
-			return;
+			throw new RouteException(
+				'fcs_fulfilment_date_required',
+				esc_html__( 'We are unable to fulfil orders to this location. Please choose a different address or pickup location.', 'fuelchef-subscriptions' ),
+				400
+			);
 		}
 
 		$posted = Narrow::string( $this->persisted_field_value( self::FIELD_ID, $order ) );
