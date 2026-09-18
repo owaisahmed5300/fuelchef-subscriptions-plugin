@@ -90,10 +90,7 @@ final class Subscribe_And_Save {
 		if ( ! is_user_logged_in() ) {
 			$html = $this->renderer->render(
 				'frontend/checkout/subscribe-and-save-logged-out',
-				[
-					'message'   => $settings->logged_out_message_resolved(),
-					'login_url' => $this->login_url_resolver->checkout_login_url(),
-				]
+				[ 'message_html' => $this->logged_out_message_html( $settings->logged_out_message_resolved() ) ]
 			);
 
 			echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -114,6 +111,26 @@ final class Subscribe_And_Save {
 		);
 
 		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	/**
+	 * The logged-out message, safely escaped, with a "Log in" link either substituted in
+	 * for a `{login_link}` placeholder or appended after the message when the merchant's
+	 * wording does not use one - the same fallback block checkout's own
+	 * `loggedOutMessageElement()` applies.
+	 */
+	private function logged_out_message_html( string $raw_message ): string {
+		$login_link = sprintf(
+			'<a href="%s" class="fcs-subscribe-and-save-logged-out__link">%s</a>',
+			esc_url( $this->login_url_resolver->checkout_login_url() ),
+			esc_html__( 'Log in', 'fuelchef-subscriptions' )
+		);
+
+		$escaped = esc_html( $raw_message );
+
+		return str_contains( $raw_message, '{login_link}' )
+			? str_replace( '{login_link}', $login_link, $escaped )
+			: $escaped . ' ' . $login_link;
 	}
 
 	/**

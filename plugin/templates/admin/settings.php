@@ -278,7 +278,7 @@ $currency_symbol = $data['currency_symbol'];
 						<p class="fcs-card__intro">
 							<?php
 							esc_html_e(
-								'Configure the discount a customer gets for subscribing at checkout, and the wording shown next to the Subscribe & Save checkbox.',
+								'Configure the discount a customer gets for subscribing at checkout, and the wording shown next to the checkbox.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -443,7 +443,7 @@ $currency_symbol = $data['currency_symbol'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Shown instead of Subscribe & Save when the customer isn\'t logged in, next to a Log in link. Leave blank to use the default wording.',
+									'Shown instead of Subscribe & Save when the customer isn\'t logged in. Use {login_link} anywhere you want the Log in link to appear, e.g. "{login_link} to unlock Subscribe & Save." - otherwise it is added to the end automatically. Leave blank to use the default wording.',
 									'fuelchef-subscriptions'
 								);
 								?>

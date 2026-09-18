@@ -135,10 +135,31 @@ jQuery(function ($) {
       return $message;
     }
 
-    $message = $('<p class="fcs-subscribe-and-save-logged-out" hidden></p>').text(`${loggedOutMessage} `);
-    $message.append(
-      $('<a class="fcs-subscribe-and-save-logged-out__link"></a>').attr('href', loginUrl).text(window.fcsCheckout.i18n.logIn)
-    );
+    const $link = $('<a class="fcs-subscribe-and-save-logged-out__link"></a>')
+      .attr('href', loginUrl)
+      .text(window.fcsCheckout.i18n.logIn);
+
+    $message = $('<p class="fcs-subscribe-and-save-logged-out" hidden></p>');
+
+    const placeholder = '{login_link}';
+    const index = loggedOutMessage.indexOf(placeholder);
+
+    if (index === -1) {
+      $message.text(`${loggedOutMessage} `);
+      $message.append($link);
+    } else {
+      const before = loggedOutMessage.slice(0, index);
+      const after = loggedOutMessage.slice(index + placeholder.length);
+
+      if (before) {
+        $message.append(document.createTextNode(before));
+      }
+      $message.append($link);
+      if (after) {
+        $message.append(document.createTextNode(after));
+      }
+    }
+
     $anchor.after($message);
 
     return $message;
