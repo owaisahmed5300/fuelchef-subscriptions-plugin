@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend\Checkout;
 
+use FuelChef\Subscriptions\Services\Login_Url_Resolver;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
 use FuelChef\Subscriptions\Services\Subscribe_Eligibility_Service;
@@ -57,7 +58,8 @@ final class Subscribe_And_Save {
 		private Settings_Store $settings,
 		private Renderer $renderer,
 		private Subscribe_Discount_Service $discount_service,
-		private Subscribe_Eligibility_Service $eligibility_service
+		private Subscribe_Eligibility_Service $eligibility_service,
+		private Login_Url_Resolver $login_url_resolver
 	) {
 	}
 
@@ -90,7 +92,7 @@ final class Subscribe_And_Save {
 				'frontend/checkout/subscribe-and-save-logged-out',
 				[
 					'message'   => $settings->logged_out_message_resolved(),
-					'login_url' => $this->login_url(),
+					'login_url' => $this->login_url_resolver->checkout_login_url(),
 				]
 			);
 
@@ -185,14 +187,6 @@ final class Subscribe_And_Save {
 		if ( null !== WC()->session ) {
 			WC()->session->set( self::SESSION_KEY, $checked );
 		}
-	}
-
-	/**
-	 * The login URL for a logged-out customer's "Log in" link, redirecting back to
-	 * checkout once signed in.
-	 */
-	private function login_url(): string {
-		return wp_login_url( wc_get_checkout_url() );
 	}
 
 	/**

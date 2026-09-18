@@ -8,8 +8,10 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Frontend;
 
 use FuelChef\Subscriptions\Frontend\Checkout\Block\Fulfilment_Date_Field as Block_Fulfilment_Date_Field;
+use FuelChef\Subscriptions\Services\Login_Url_Resolver;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Locale;
+use FuelChef\Subscriptions\Utils\Narrow;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -29,15 +31,38 @@ final class Assets {
 	 * Creates the asset handler.
 	 */
 	public function __construct(
-		private Settings_Store $settings
+		private Settings_Store $settings,
+		private Login_Url_Resolver $login_url_resolver
 	) {
 	}
 
 	/**
-	 * Registers the enqueue hook.
+	 * Registers the enqueue hook and the login form's redirect-back-to-checkout field.
 	 */
 	public function register(): void {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue' ] );
+		add_action( 'woocommerce_login_form', [ $this, 'render_login_redirect_field' ] );
+	}
+
+	/**
+	 * Outputs a hidden `redirect` field inside WooCommerce's own login form, carrying
+	 * {@see Login_Url_Resolver::REDIRECT_PARAM} through to `WC_Form_Handler::
+	 * process_login()`, which already validates it against the site's own host before
+	 * ever redirecting to it. Does nothing outside a request that arrived via this
+	 * plugin's own login link.
+	 */
+	public function render_login_redirect_field(): void {
+		if ( ! isset( $_GET[ Login_Url_Resolver::REDIRECT_PARAM ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+
+		$target = Narrow::string( wp_unslash( $_GET[ Login_Url_Resolver::REDIRECT_PARAM ] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		if ( '' === $target ) {
+			return;
+		}
+
+		printf( '<input type="hidden" name="redirect" value="%s" />', esc_attr( $target ) );
 	}
 
 	/**
@@ -154,7 +179,7 @@ final class Assets {
 				'ineligibleMessage'         => $settings->ineligible_message_resolved(),
 				'isLoggedIn'                => is_user_logged_in(),
 				'loggedOutMessage'          => $settings->logged_out_message_resolved(),
-				'loginUrl'                  => wp_login_url( wc_get_checkout_url() ),
+				'loginUrl'                  => $this->login_url_resolver->checkout_login_url(),
 				'i18n'                      => $this->strings(),
 			]
 		);

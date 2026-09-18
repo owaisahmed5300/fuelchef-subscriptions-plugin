@@ -26,8 +26,8 @@ final class Provider implements ServiceProvider {
 	/**
 	 * Registers the schedule, blackout, availability, subscribe-discount and
 	 * subscribe-eligibility services, the settings store, the destination catalog and
-	 * resolver, and the fulfilment window resolver, as singletons wired to their
-	 * dependencies.
+	 * resolver, the fulfilment window resolver, and the checkout login URL resolver, as
+	 * singletons wired to their dependencies.
 	 */
 	public function register( Base_Container $container ): void {
 		$container
@@ -55,6 +55,8 @@ final class Provider implements ServiceProvider {
 		$container->singleton( Subscribe_Discount_Service::class );
 
 		$container->singleton( Subscribe_Eligibility_Service::class );
+
+		$container->singleton( Login_Url_Resolver::class );
 
 		$container->singleton( Destination_Catalog::class );
 

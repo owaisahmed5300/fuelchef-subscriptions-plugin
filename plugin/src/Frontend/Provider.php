@@ -14,6 +14,7 @@ use FuelChef\Subscriptions\Frontend\Checkout\Block\Subscribe_And_Save as Block_S
 use FuelChef\Subscriptions\Frontend\Checkout\Fulfilment_Date_Field;
 use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save;
 use FuelChef\Subscriptions\Services\Current_Fulfilment_Window;
+use FuelChef\Subscriptions\Services\Login_Url_Resolver;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
 use FuelChef\Subscriptions\Services\Subscribe_Eligibility_Service;
@@ -49,7 +50,8 @@ final class Provider implements ServiceProvider {
 			->addParameter( Settings_Store::class, true )
 			->addParameter( Renderer::class, true )
 			->addParameter( Subscribe_Discount_Service::class, true )
-			->addParameter( Subscribe_Eligibility_Service::class, true );
+			->addParameter( Subscribe_Eligibility_Service::class, true )
+			->addParameter( Login_Url_Resolver::class, true );
 
 		$container
 			->singleton( Block_Fulfilment_Date_Field::class )
@@ -66,7 +68,8 @@ final class Provider implements ServiceProvider {
 
 		$container
 			->singleton( Assets::class )
-			->addParameter( Settings_Store::class, true );
+			->addParameter( Settings_Store::class, true )
+			->addParameter( Login_Url_Resolver::class, true );
 	}
 
 	/**
