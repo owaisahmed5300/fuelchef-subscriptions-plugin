@@ -156,22 +156,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function saveName(onSuccess, trigger = null) {
-    FCS.setBusy(trigger, true);
-    FCS.post('fcs_save_schedule', { schedule_id: data.selectedId, name: titleInput.value }).done((response) => {
-      if (!response.success) {
-        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveScheduleName), 'error');
-        return;
-      }
-      if (onSuccess) onSuccess();
-    }).always(() => FCS.setBusy(trigger, false));
-  }
-
+  // No ajax here - a name edit only marks the screen dirty, like a weekday toggle or time
+  // change. It is sent, along with every other pending edit, only when the admin clicks
+  // "Save Schedule" below.
   if (titleInput) {
-    titleInput.addEventListener('change', () => saveName(() => {
-      FCS.State.markClean();
-      FCS.toast(window.fcsAdmin.i18n.scheduleNameSaved);
-    }));
+    titleInput.addEventListener('input', () => FCS.State.markDirty());
   }
 
   function weekdaysPayload() {
