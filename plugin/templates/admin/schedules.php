@@ -317,36 +317,38 @@ $destination_counts = $data['destination_counts'];
 
 			<div class="fcs-popover" id="datePopover" popover="auto" role="dialog" aria-labelledby="datePopoverTitle">
 				<div class="fcs-popover__arrow" data-popper-arrow></div>
-				<div class="fcs-popover__header">
-					<div>
-						<div class="fcs-popover__title" id="datePopoverTitle" data-pop-title></div>
-						<div class="fcs-popover__subtitle">
-							<?php esc_html_e( 'Local Closure', 'fuelchef-subscriptions' ); ?>
+				<div class="fcs-popover__body">
+					<div class="fcs-popover__header">
+						<div>
+							<div class="fcs-popover__title" id="datePopoverTitle" data-pop-title></div>
+							<div class="fcs-popover__subtitle">
+								<?php esc_html_e( 'Local Closure', 'fuelchef-subscriptions' ); ?>
+							</div>
 						</div>
+						<button type="button" class="fcs-popover__close" data-pop-close aria-label="<?php esc_attr_e( 'Close', 'fuelchef-subscriptions' ); ?>">
+							<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+								<path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+							</svg>
+						</button>
 					</div>
-					<button type="button" class="fcs-popover__close" data-pop-close aria-label="<?php esc_attr_e( 'Close', 'fuelchef-subscriptions' ); ?>">
-						<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-							<path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-						</svg>
-					</button>
-				</div>
-				<label class="fcs-popover__label">
-					<?php esc_html_e( 'Closure reason (optional)', 'fuelchef-subscriptions' ); ?>
-				</label>
-				<textarea
-					class="fcs-textarea"
-					data-pop-reason
-					maxlength="255"
-					placeholder="<?php esc_attr_e( 'e.g. Local Road Closure or Renovation', 'fuelchef-subscriptions' ); ?>"
-				></textarea>
-				<div class="fcs-popover__count"><span data-pop-count>0</span> / 255</div>
-				<div class="fcs-popover__actions">
-					<button type="button" class="fcs-btn fcs-btn--danger" data-pop-remove>
-						<?php esc_html_e( 'Remove date', 'fuelchef-subscriptions' ); ?>
-					</button>
-					<button type="button" class="fcs-btn fcs-btn--primary" data-pop-save>
-						<?php esc_html_e( 'Save note', 'fuelchef-subscriptions' ); ?>
-					</button>
+					<label class="fcs-popover__label">
+						<?php esc_html_e( 'Closure reason (optional)', 'fuelchef-subscriptions' ); ?>
+					</label>
+					<textarea
+						class="fcs-textarea"
+						data-pop-reason
+						maxlength="255"
+						placeholder="<?php esc_attr_e( 'e.g. Local Road Closure or Renovation', 'fuelchef-subscriptions' ); ?>"
+					></textarea>
+					<div class="fcs-popover__count"><span data-pop-count>0</span> / 255</div>
+					<div class="fcs-popover__actions">
+						<button type="button" class="fcs-btn fcs-btn--danger" data-pop-remove>
+							<?php esc_html_e( 'Remove date', 'fuelchef-subscriptions' ); ?>
+						</button>
+						<button type="button" class="fcs-btn fcs-btn--primary" data-pop-save>
+							<?php esc_html_e( 'Save note', 'fuelchef-subscriptions' ); ?>
+						</button>
+					</div>
 				</div>
 			</div>
 			<?php

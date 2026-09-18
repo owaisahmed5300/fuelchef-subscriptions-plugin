@@ -913,6 +913,17 @@
     overflow: visible;
     margin: 0;
     width: 320px;
+    padding: 0;
+}
+
+/* The scrollable region, separate from .fcs-popover itself: the arrow needs to render
+   outside this box's edge (hence overflow: visible above), which a height cap and
+   overflow-y here would clip right back if applied to the same element. Grows to fit its
+   content up to the cap - a scrollbar only ever appears on a viewport too short to show
+   the whole popover otherwise, never in the ordinary case. */
+.fcs-admin .fcs-popover__body {
+    overflow-y: auto;
+    max-height: min(480px, calc(100vh - 64px));
     padding: 16px;
 }
 
