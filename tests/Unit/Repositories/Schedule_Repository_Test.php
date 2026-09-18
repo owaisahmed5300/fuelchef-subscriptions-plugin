@@ -15,11 +15,11 @@ use InvalidArgumentException;
 use Mockery;
 
 /**
- * Also exercises Abstract_Repository's find/insert/update/delete, which every
- * other repository shares.
+ * Also exercises Abstract_Entity_Repository's find/insert/update/delete, which
+ * every other repository shares.
  *
  * @covers \FuelChef\Subscriptions\Repositories\Schedule_Repository
- * @covers \FuelChef\Subscriptions\Repositories\Abstract_Repository
+ * @covers \FuelChef\Subscriptions\Repositories\Abstracts\Abstract_Entity_Repository
  */
 final class Schedule_Repository_Test extends Repository_TestCase {
 

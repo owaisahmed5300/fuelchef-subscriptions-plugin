@@ -26,7 +26,7 @@ business logic.
    (`use Entities\Concerns\Has_Timestamps`) if it has `date_created`/`date_updated` columns,
    which every table here does so far.
 3. Add a repository under `Repositories\` extending
-   `Repositories\Abstract_Repository<TheEntity>`. It supplies `$table`,
+   `Repositories\Abstracts\Abstract_Entity_Repository<TheEntity>`. It supplies `$table`,
    `$cache_group`, `hydrate()` and `dehydrate()`; `find()`/`insert()`/`update()`/
    `delete()` come from the base, and fire the actions described in "Hooks" below with no
    extra work. Register it in `Repositories\Provider`.
@@ -48,7 +48,7 @@ going through the repository that owns their cache.
 
 ## Hooks
 
-Every repository gets three actions for free from `Abstract_Repository`: a successful
+Every repository gets three actions for free from `Abstract_Entity_Repository`: a successful
 `insert()`, `update()` or `delete()` fires `fuelchef_subscriptions/{table}/created`,
 `.../updated` or `.../deleted`, named after the table (`schedules`, `blackouts`, and so
 on) — `deleted` only fires when a row actually existed to remove. Nothing to add when
@@ -141,9 +141,13 @@ instead of `Services\`, which is what "Frontend checkout" below now describes. A
 into one `Utils\Narrow`: both narrowed a `mixed` value from an untyped source (a
 superglobal, a `$wpdb` row) to a known PHP type with the identical method set - two
 classes doing the same job for two different callers, not two different jobs.
-`Repositories\Abstracts\Abstract_Repository` lost its single-class `Abstracts\`
-subdirectory for the same reason `Templating\`/`Settings\` did, and now sits directly in
-`Repositories\` the way `Database\Abstract_Installer` already sat directly in `Database\`.
+`Repositories\Abstract_Repository` lost its single-class `Abstracts\` subdirectory for the
+same reason `Templating\`/`Settings\` did, for a time sitting directly in `Repositories\`
+the way `Database\Abstract_Installer` sits directly in `Database\`. It later split into
+`Repositories\Abstracts\Abstract_Repository` (just the `$wpdb`/`Clock` constructor - not
+every repository is necessarily entity-backed) and `Abstracts\Abstract_Entity_Repository`
+(the `find()`/`insert()`/`update()`/`delete()`/caching every current repository actually
+extends), which earns the subdirectory back now that two classes belong there.
 
 ## Admin
 
