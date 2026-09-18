@@ -123,10 +123,14 @@ FCS.initTabs = function () {
     tab.addEventListener('click', (e) => {
       e.preventDefault();
       const wrap = tab.closest('.fcs-wrap');
-      wrap.querySelectorAll('.fcs-nav-tab').forEach(t => t.classList.remove('fcs-nav-tab--active'));
+      wrap.querySelectorAll('.fcs-nav-tab').forEach(t => {
+        t.classList.remove('fcs-nav-tab--active');
+        t.setAttribute('aria-selected', 'false');
+      });
       wrap.querySelectorAll('.fcs-tab-panel').forEach(p => p.classList.remove('fcs-tab-panel--active'));
 
       tab.classList.add('fcs-nav-tab--active');
+      tab.setAttribute('aria-selected', 'true');
       const target = document.getElementById(tab.dataset.tab);
       if (target) target.classList.add('fcs-tab-panel--active');
     });

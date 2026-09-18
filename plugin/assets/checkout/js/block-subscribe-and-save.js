@@ -121,7 +121,7 @@ jQuery(function ($) {
       return $message;
     }
 
-    $message = $('<p class="fcs-subscribe-and-save-ineligible" hidden></p>').text(ineligibleMessage);
+    $message = $('<p class="fcs-subscribe-and-save-ineligible" aria-live="polite" hidden></p>').text(ineligibleMessage);
     $anchor.after($message);
 
     return $message;
@@ -135,7 +135,7 @@ jQuery(function ($) {
       return $message;
     }
 
-    $message = $('<p class="fcs-subscribe-and-save-logged-out" hidden></p>').text(`${loggedOutMessage} `);
+    $message = $('<p class="fcs-subscribe-and-save-logged-out" aria-live="polite" hidden></p>').text(`${loggedOutMessage} `);
     $message.append(
       $('<a class="fcs-subscribe-and-save-logged-out__link"></a>').attr('href', loginUrl).text(window.fcsCheckout.i18n.logIn)
     );

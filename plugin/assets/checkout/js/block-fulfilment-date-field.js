@@ -72,7 +72,7 @@ jQuery(function ($) {
       return $message;
     }
 
-    $message = $('<p class="fcs-fulfilment-date-no-match" hidden></p>').text(i18n.noFulfilmentDateMatch);
+    $message = $('<p class="fcs-fulfilment-date-no-match" aria-live="polite" hidden></p>').text(i18n.noFulfilmentDateMatch);
     $wrapper.after($message);
 
     return $message;

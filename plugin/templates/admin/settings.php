@@ -41,20 +41,20 @@ $currency_symbol = $data['currency_symbol'];
 			</p>
 		</div>
 
-		<nav class="fcs-nav-tabs" aria-label="<?php esc_attr_e( 'Settings Tabs', 'fuelchef-subscriptions' ); ?>">
-			<button type="button" class="fcs-nav-tab fcs-nav-tab--active" data-tab="tab-blackouts">
+		<nav class="fcs-nav-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Settings Tabs', 'fuelchef-subscriptions' ); ?>">
+			<button type="button" id="tab-blackouts-trigger" class="fcs-nav-tab fcs-nav-tab--active" role="tab" aria-selected="true" aria-controls="tab-blackouts" data-tab="tab-blackouts">
 				<?php esc_html_e( 'Global Closures', 'fuelchef-subscriptions' ); ?>
 			</button>
-			<button type="button" class="fcs-nav-tab" data-tab="tab-cutoff">
+			<button type="button" id="tab-cutoff-trigger" class="fcs-nav-tab" role="tab" aria-selected="false" aria-controls="tab-cutoff" data-tab="tab-cutoff">
 				<?php esc_html_e( 'Order Cutoff', 'fuelchef-subscriptions' ); ?>
 			</button>
-			<button type="button" class="fcs-nav-tab" data-tab="tab-checkout-fields">
+			<button type="button" id="tab-checkout-fields-trigger" class="fcs-nav-tab" role="tab" aria-selected="false" aria-controls="tab-checkout-fields" data-tab="tab-checkout-fields">
 				<?php esc_html_e( 'Checkout Fields', 'fuelchef-subscriptions' ); ?>
 			</button>
 		</nav>
 
 		<form id="settingsForm" onsubmit="return false;">
-			<section class="fcs-tab-panel fcs-tab-panel--active" id="tab-blackouts">
+			<section class="fcs-tab-panel fcs-tab-panel--active" id="tab-blackouts" role="tabpanel" aria-labelledby="tab-blackouts-trigger" tabindex="0">
 				<div class="fcs-card">
 					<div class="fcs-card__header">
 						<h2 class="fcs-card__title">
@@ -129,7 +129,7 @@ $currency_symbol = $data['currency_symbol'];
 				</div>
 			</section>
 
-			<section class="fcs-tab-panel" id="tab-cutoff">
+			<section class="fcs-tab-panel" id="tab-cutoff" role="tabpanel" aria-labelledby="tab-cutoff-trigger" tabindex="0">
 				<div class="fcs-card">
 					<div class="fcs-card__header">
 						<h2 class="fcs-card__title">
@@ -183,7 +183,7 @@ $currency_symbol = $data['currency_symbol'];
 				</div>
 			</section>
 
-			<section class="fcs-tab-panel" id="tab-checkout-fields">
+			<section class="fcs-tab-panel" id="tab-checkout-fields" role="tabpanel" aria-labelledby="tab-checkout-fields-trigger" tabindex="0">
 				<div class="fcs-card">
 					<div class="fcs-card__header">
 						<h2 class="fcs-card__title">
