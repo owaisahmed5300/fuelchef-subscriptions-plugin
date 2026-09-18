@@ -51,3 +51,6 @@ scripts/docker/.env
 
 plugin/templates/admin/html/*
 plugin/templates/frontend/html/*
+
+# Working instructions/scratch prompt, not project documentation
+Task.md
