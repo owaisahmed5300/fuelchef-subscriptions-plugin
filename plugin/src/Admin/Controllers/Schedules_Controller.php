@@ -88,7 +88,7 @@ final class Schedules_Controller {
 					'weekdays'     => $this->weekdays_for_js( $this->weekdays->find_by_schedule( $schedule_id ) ),
 					'blackouts'    => $this->blackouts_for_js( $this->blackouts->find_by_schedule( $schedule_id ) ),
 					'destinations' => $this->destinations_for_js( $this->destinations->find_by_schedule( $schedule_id ) ),
-					'catalog'      => $this->catalog_for_js(),
+					'catalog'      => $this->catalog_for_js( $schedule_id ),
 				]
 			);
 		}
@@ -185,25 +185,33 @@ final class Schedules_Controller {
 	}
 
 	/**
-	 * Shapes the destination catalog for the "add a destination" script.
+	 * Shapes the destination catalog for the "add a destination" script, noting which
+	 * destinations are already assigned to a different schedule so the picker can grey
+	 * them out instead of letting an admin hit the same conflict on save.
 	 *
 	 * @return list<array{
 	 *     type: string,
 	 *     key: string,
 	 *     label: string,
 	 *     description: string|null,
-	 *     enabled: bool
+	 *     enabled: bool,
+	 *     assignedTo: string|null
 	 * }> The shaped catalog.
 	 */
-	private function catalog_for_js(): array {
+	private function catalog_for_js( int $schedule_id ): array {
 		return array_map(
-			static fn ( Destination_Option $option ): array => [
-				'type'        => $option->type(),
-				'key'         => $option->key(),
-				'label'       => $option->label(),
-				'description' => $option->description(),
-				'enabled'     => $option->enabled(),
-			],
+			function ( Destination_Option $option ) use ( $schedule_id ): array {
+				$owner = $this->schedule_service->destination_owner( $option->type(), $option->key(), $schedule_id );
+
+				return [
+					'type'        => $option->type(),
+					'key'         => $option->key(),
+					'label'       => $option->label(),
+					'description' => $option->description(),
+					'enabled'     => $option->enabled(),
+					'assignedTo'  => $owner?->name(),
+				];
+			},
 			$this->destination_catalog->all()
 		);
 	}
@@ -304,13 +312,8 @@ final class Schedules_Controller {
 	}
 
 	/**
-	 * Replaces every destination assigned to a schedule.
-	 *
-	 * No validation service: the one rule here (the destination must currently exist in
-	 * WooCommerce) is answered entirely by `Destination_Catalog_Service::find()`, so there
-	 * is no business rule left for a service to hold - see docs/technical/data-layer.md. An
-	 * entry the catalog no longer recognises is silently dropped rather than failing the
-	 * whole save.
+	 * Replaces every destination assigned to a schedule, rejecting the batch when any of
+	 * them is already assigned to a different schedule.
 	 */
 	public function ajax_save_schedule_destinations(): void {
 		$this->verify_ajax_request();
@@ -327,17 +330,17 @@ final class Schedules_Controller {
 				continue;
 			}
 
-			$type = sanitize_text_field( $entry['type'] );
-			$key  = sanitize_text_field( $entry['key'] );
-
-			if ( null === $this->destination_catalog->find( $type, $key ) ) {
-				continue;
-			}
-
-			$destinations[] = new Schedule_Destination( $schedule_id, $type, $key );
+			$destinations[] = [
+				'type' => sanitize_text_field( $entry['type'] ),
+				'key'  => sanitize_text_field( $entry['key'] ),
+			];
 		}
 
-		$this->destinations->replace_for_schedule( $schedule_id, $destinations );
+		try {
+			$this->schedule_service->assign_destinations( $schedule_id, $destinations );
+		} catch ( Validation_Exception $exception ) {
+			wp_send_json_error( [ 'message' => $exception->getMessage() ] );
+		}
 
 		wp_send_json_success();
 	}

@@ -384,11 +384,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const items = catalog.filter(option => option.type === type && option.enabled && !isAssigned(option.type, option.key));
       if (!items.length) return '';
 
-      const optionsHtml = items.map(option => `
-        <option value="${FCS.escapeHtml(option.type)}|${FCS.escapeHtml(option.key)}" data-type="${FCS.escapeHtml(option.type)}" data-key="${FCS.escapeHtml(option.key)}">
-          ${FCS.escapeHtml(option.label)}${option.description ? ` (${FCS.escapeHtml(option.description)})` : ''}
-        </option>
-      `).join('');
+      // An already-claimed destination stays visible, disabled, and names the schedule
+      // that has it - hiding it outright would just leave an admin wondering where it went.
+      const optionsHtml = items.map(option => {
+        const label = option.assignedTo
+          ? `${option.label} — ${window.fcsAdmin.i18n.destinationAlreadyAssigned.replace('{schedule}', option.assignedTo)}`
+          : `${option.label}${option.description ? ` (${option.description})` : ''}`;
+
+        return `
+          <option value="${FCS.escapeHtml(option.type)}|${FCS.escapeHtml(option.key)}" data-type="${FCS.escapeHtml(option.type)}" data-key="${FCS.escapeHtml(option.key)}" ${option.assignedTo ? 'disabled' : ''}>
+            ${FCS.escapeHtml(label)}
+          </option>
+        `;
+      }).join('');
 
       return `<optgroup label="${FCS.escapeHtml(groups[type])}">${optionsHtml}</optgroup>`;
     }).join('');
@@ -464,7 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!selected) return;
 
     const option = catalog.find(o => o.type === selected.dataset.type && o.key === selected.dataset.key);
-    if (!option) return;
+    if (!option || option.assignedTo) return;
 
     destinations.push({ type: option.type, key: option.key, label: option.label, available: true });
     renderDestinations();
