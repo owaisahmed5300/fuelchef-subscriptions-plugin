@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend;
 
-use FuelChef\Subscriptions\Services\Checkout_Presence;
+use FuelChef\Subscriptions\Services\Checkout\Checkout_Presence_Service;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,7 +28,7 @@ final class Cache_Exclusion {
 	 * Creates the cache-exclusion handler.
 	 */
 	public function __construct(
-		private Checkout_Presence $checkout
+		private Checkout_Presence_Service $checkout
 	) {
 	}
 

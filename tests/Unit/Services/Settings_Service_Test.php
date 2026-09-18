@@ -9,16 +9,16 @@ namespace FuelChef\Subscriptions\Tests\Unit\Services;
 
 use Brain\Monkey\Actions;
 use Brain\Monkey\Functions;
-use FuelChef\Subscriptions\Services\Settings_Store;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Tests\TestCase;
 use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 use Mockery;
 
 /**
- * @covers \FuelChef\Subscriptions\Services\Settings_Store
+ * @covers \FuelChef\Subscriptions\Services\Settings_Service
  */
-final class Settings_Store_Test extends TestCase {
+final class Settings_Service_Test extends TestCase {
 
 
 	protected function setUp(): void {
@@ -33,7 +33,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_returns_defaults_when_no_option_is_stored(): void {
 		Functions\when( 'get_option' )->justReturn( [] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( 1, $settings->cutoff_days() );
 		$this->assertSame( '17:00:00', $settings->cutoff_time() );
@@ -70,7 +70,7 @@ final class Settings_Store_Test extends TestCase {
 			]
 		);
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( 2, $settings->cutoff_days() );
 		$this->assertSame( '23:30:00', $settings->cutoff_time() );
@@ -91,7 +91,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_falls_back_to_the_default_minimum_order_amount_when_the_stored_one_is_negative(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'minimum_order_amount' => -10.0 ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( 0.0, $settings->minimum_order_amount() );
 	}
@@ -99,7 +99,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_falls_back_to_the_default_minimum_cart_quantity_when_the_stored_one_is_negative(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'minimum_cart_quantity' => -1 ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( 0, $settings->minimum_cart_quantity() );
 	}
@@ -107,7 +107,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_falls_back_to_the_default_cutoff_time_when_the_stored_one_is_not_a_valid_time(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'cutoff_time' => 'not-a-time' ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( '17:00:00', $settings->cutoff_time() );
 	}
@@ -115,7 +115,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_falls_back_to_the_default_applicability_when_the_stored_one_is_unknown(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'subscribe_applicability' => 'every_third_order' ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( Subscribe_Applicability::INITIAL_AND_RENEWALS, $settings->subscribe_applicability() );
 	}
@@ -123,7 +123,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_falls_back_to_the_default_discount_when_the_stored_one_is_out_of_range(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'subscribe_discount_percent' => 150 ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( 5, $settings->subscribe_discount_percent() );
 	}
@@ -131,7 +131,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_falls_back_to_the_default_cutoff_days_when_the_stored_one_is_negative(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'cutoff_days' => -1 ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( 1, $settings->cutoff_days() );
 	}
@@ -139,7 +139,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_falls_back_to_the_default_max_fulfilment_window_when_the_stored_one_is_not_positive(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'max_fulfilment_window_days' => 0 ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( 60, $settings->max_fulfilment_window_days() );
 	}
@@ -149,7 +149,7 @@ final class Settings_Store_Test extends TestCase {
 			[ 'max_fulfilment_window_days' => Settings::MAX_FULFILMENT_WINDOW_DAYS + 1 ]
 		);
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( 60, $settings->max_fulfilment_window_days() );
 	}
@@ -157,7 +157,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_falls_back_to_the_default_fulfilment_date_label_when_the_stored_one_is_blank(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'fulfilment_date_label' => '   ' ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( 'Fulfilment date', $settings->fulfilment_date_label() );
 	}
@@ -165,7 +165,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_falls_back_to_the_default_fulfilment_date_label_when_the_stored_one_is_too_long(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'fulfilment_date_label' => str_repeat( 'a', 191 ) ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( 'Fulfilment date', $settings->fulfilment_date_label() );
 	}
@@ -173,7 +173,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_keeps_an_empty_stored_fulfilment_date_description(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'fulfilment_date_description' => '' ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( '', $settings->fulfilment_date_description() );
 	}
@@ -181,7 +181,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_falls_back_to_an_empty_fulfilment_date_description_when_the_stored_one_is_too_long(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'fulfilment_date_description' => str_repeat( 'a', 301 ) ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( '', $settings->fulfilment_date_description() );
 	}
@@ -189,7 +189,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_falls_back_to_an_empty_logged_out_message_when_the_stored_one_is_too_long(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'logged_out_message' => str_repeat( 'a', 301 ) ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( '', $settings->logged_out_message() );
 	}
@@ -197,7 +197,7 @@ final class Settings_Store_Test extends TestCase {
 	public function test_get_falls_back_to_an_empty_fulfilment_window_message_when_the_stored_one_is_too_long(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'fulfilment_window_message' => str_repeat( 'a', 301 ) ] );
 
-		$settings = ( new Settings_Store() )->get();
+		$settings = ( new Settings_Service() )->get();
 
 		$this->assertSame( '', $settings->fulfilment_window_message() );
 	}
@@ -225,7 +225,7 @@ final class Settings_Store_Test extends TestCase {
 				]
 			);
 
-		( new Settings_Store() )->save(
+		( new Settings_Service() )->save(
 			new Settings(
 				2,
 				'23:30:00',
@@ -252,7 +252,7 @@ final class Settings_Store_Test extends TestCase {
 			->once()
 			->with( Mockery::type( Settings::class ) );
 
-		( new Settings_Store() )->save(
+		( new Settings_Service() )->save(
 			new Settings( 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS, 60, 'Fulfilment date', '', 'Subscribe & Save {percent}%', '' )
 		);
 	}

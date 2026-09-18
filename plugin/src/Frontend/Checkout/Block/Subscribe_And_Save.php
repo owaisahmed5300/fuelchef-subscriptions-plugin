@@ -9,9 +9,9 @@ namespace FuelChef\Subscriptions\Frontend\Checkout\Block;
 
 use FuelChef\Subscriptions\Frontend\Checkout\Block\Concerns\Reads_Persisted_Field;
 use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save as Classic_Subscribe_And_Save;
-use FuelChef\Subscriptions\Services\Settings_Store;
-use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
-use FuelChef\Subscriptions\Services\Subscribe_Eligibility_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Discount_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Eligibility_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use WC_Order;
 use WC_Order_Item_Fee;
 
@@ -60,7 +60,7 @@ final class Subscribe_And_Save {
 	 * Creates the discount handler.
 	 */
 	public function __construct(
-		private Settings_Store $settings,
+		private Settings_Service $settings,
 		private Classic_Subscribe_And_Save $classic,
 		private Subscribe_Discount_Service $discount_service,
 		private Subscribe_Eligibility_Service $eligibility_service

@@ -18,9 +18,9 @@ use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
-use FuelChef\Subscriptions\Services\Destination_Catalog;
 use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
-use FuelChef\Subscriptions\Services\Schedule_Service;
+use FuelChef\Subscriptions\Services\Scheduling\Destination_Catalog_Service;
+use FuelChef\Subscriptions\Services\Scheduling\Schedule_Service;
 use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Utils\Renderer;
 use FuelChef\Subscriptions\Values\Day_Of_Week;
@@ -30,8 +30,6 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Renders the Schedules screen and handles its ajax actions.
- *
- * Not unit-tested - glue code; see docs/guidelines/03-testing.md.
  */
 final class Schedules_Controller {
 
@@ -49,7 +47,7 @@ final class Schedules_Controller {
 		private Schedule_Weekday_Repository $weekdays,
 		private Blackout_Repository $blackouts,
 		private Schedule_Destination_Repository $destinations,
-		private Destination_Catalog $destination_catalog,
+		private Destination_Catalog_Service $destination_catalog,
 		private Renderer $renderer
 	) {
 	}
@@ -309,8 +307,8 @@ final class Schedules_Controller {
 	 * Replaces every destination assigned to a schedule.
 	 *
 	 * No validation service: the one rule here (the destination must currently exist in
-	 * WooCommerce) is answered entirely by `Destination_Catalog::find()`, so there is no
-	 * business rule left for a service to hold - see docs/technical/data-layer.md. An
+	 * WooCommerce) is answered entirely by `Destination_Catalog_Service::find()`, so there
+	 * is no business rule left for a service to hold - see docs/technical/data-layer.md. An
 	 * entry the catalog no longer recognises is silently dropped rather than failing the
 	 * whole save.
 	 */

@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend\Checkout;
 
-use FuelChef\Subscriptions\Services\Checkout_Presence;
-use FuelChef\Subscriptions\Services\Settings_Store;
-use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
-use FuelChef\Subscriptions\Services\Subscribe_Eligibility_Service;
+use FuelChef\Subscriptions\Services\Checkout\Checkout_Presence_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Discount_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Eligibility_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Utils\Renderer;
 use FuelChef\Subscriptions\Values\Settings;
@@ -62,11 +62,11 @@ final class Subscribe_And_Save {
 	 * Creates the discount handler.
 	 */
 	public function __construct(
-		private Settings_Store $settings,
+		private Settings_Service $settings,
 		private Renderer $renderer,
 		private Subscribe_Discount_Service $discount_service,
 		private Subscribe_Eligibility_Service $eligibility_service,
-		private Checkout_Presence $checkout_presence
+		private Checkout_Presence_Service $checkout_presence
 	) {
 	}
 

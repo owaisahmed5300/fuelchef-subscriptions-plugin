@@ -5,16 +5,16 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\Services;
+namespace FuelChef\Subscriptions\Tests\Unit\Services\Checkout;
 
 use Brain\Monkey\Functions;
-use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Discount_Service;
 use FuelChef\Subscriptions\Tests\TestCase;
 use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
 /**
- * @covers \FuelChef\Subscriptions\Services\Subscribe_Discount_Service
+ * @covers \FuelChef\Subscriptions\Services\Checkout\Subscribe_Discount_Service
  */
 final class Subscribe_Discount_Service_Test extends TestCase {
 

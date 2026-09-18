@@ -13,11 +13,11 @@ use FuelChef\Subscriptions\Frontend\Checkout\Block\Fulfilment_Date_Field as Bloc
 use FuelChef\Subscriptions\Frontend\Checkout\Block\Subscribe_And_Save as Block_Subscribe_And_Save;
 use FuelChef\Subscriptions\Frontend\Checkout\Fulfilment_Date_Field;
 use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save;
-use FuelChef\Subscriptions\Services\Checkout_Presence;
-use FuelChef\Subscriptions\Services\Current_Fulfilment_Window;
-use FuelChef\Subscriptions\Services\Settings_Store;
-use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
-use FuelChef\Subscriptions\Services\Subscribe_Eligibility_Service;
+use FuelChef\Subscriptions\Services\Checkout\Checkout_Presence_Service;
+use FuelChef\Subscriptions\Services\Checkout\Current_Fulfilment_Window_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Discount_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Eligibility_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Utils\Renderer;
 
@@ -41,39 +41,39 @@ final class Provider implements ServiceProvider {
 	public function register( Base_Container $container ): void {
 		$container
 			->singleton( Fulfilment_Date_Field::class )
-			->addParameter( Current_Fulfilment_Window::class, true )
-			->addParameter( Settings_Store::class, true )
+			->addParameter( Current_Fulfilment_Window_Service::class, true )
+			->addParameter( Settings_Service::class, true )
 			->addParameter( Renderer::class, true );
 
 		$container
 			->singleton( Subscribe_And_Save::class )
-			->addParameter( Settings_Store::class, true )
+			->addParameter( Settings_Service::class, true )
 			->addParameter( Renderer::class, true )
 			->addParameter( Subscribe_Discount_Service::class, true )
 			->addParameter( Subscribe_Eligibility_Service::class, true )
-			->addParameter( Checkout_Presence::class, true );
+			->addParameter( Checkout_Presence_Service::class, true );
 
 		$container
 			->singleton( Block_Fulfilment_Date_Field::class )
-			->addParameter( Current_Fulfilment_Window::class, true )
-			->addParameter( Settings_Store::class, true )
+			->addParameter( Current_Fulfilment_Window_Service::class, true )
+			->addParameter( Settings_Service::class, true )
 			->addParameter( Clock::class, true );
 
 		$container
 			->singleton( Block_Subscribe_And_Save::class )
-			->addParameter( Settings_Store::class, true )
+			->addParameter( Settings_Service::class, true )
 			->addParameter( Subscribe_And_Save::class, true )
 			->addParameter( Subscribe_Discount_Service::class, true )
 			->addParameter( Subscribe_Eligibility_Service::class, true );
 
 		$container
 			->singleton( Assets::class )
-			->addParameter( Settings_Store::class, true )
-			->addParameter( Checkout_Presence::class, true );
+			->addParameter( Settings_Service::class, true )
+			->addParameter( Checkout_Presence_Service::class, true );
 
 		$container
 			->singleton( Cache_Exclusion::class )
-			->addParameter( Checkout_Presence::class, true );
+			->addParameter( Checkout_Presence_Service::class, true );
 	}
 
 	/**

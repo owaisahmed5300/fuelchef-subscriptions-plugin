@@ -22,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
  * missing or no longer valid (an old plugin version, hand-edited data) falls back to its
  * default rather than failing to load the settings page.
  */
-final class Settings_Store {
+final class Settings_Service {
 
 
 	/**

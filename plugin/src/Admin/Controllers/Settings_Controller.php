@@ -12,9 +12,9 @@ use FuelChef\Subscriptions\Admin\Concerns\Reads_Request_Fields;
 use FuelChef\Subscriptions\Admin\Concerns\Verifies_Ajax_Request;
 use FuelChef\Subscriptions\Admin\Menu;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
-use FuelChef\Subscriptions\Services\Blackout_Service;
 use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
-use FuelChef\Subscriptions\Services\Settings_Store;
+use FuelChef\Subscriptions\Services\Scheduling\Blackout_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Utils\Renderer;
 use FuelChef\Subscriptions\Values\Settings;
@@ -25,8 +25,6 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Renders the Settings screen and handles its ajax actions.
- *
- * Not unit-tested - glue code; see docs/guidelines/03-testing.md.
  */
 final class Settings_Controller {
 
@@ -39,7 +37,7 @@ final class Settings_Controller {
 	 * Creates the controller.
 	 */
 	public function __construct(
-		private Settings_Store $settings_store,
+		private Settings_Service $settings_service,
 		private Blackout_Service $blackout_service,
 		private Blackout_Repository $blackout_repository,
 		private Renderer $renderer
@@ -78,7 +76,7 @@ final class Settings_Controller {
 		$html = $this->renderer->render(
 			'admin/settings',
 			[
-				'settings'        => $this->settings_store->get(),
+				'settings'        => $this->settings_service->get(),
 				'applicabilities' => Subscribe_Applicability::all(),
 				'currency_symbol' => get_woocommerce_currency_symbol(),
 			]
@@ -115,7 +113,7 @@ final class Settings_Controller {
 			wp_send_json_error( [ 'message' => $exception->getMessage() ] );
 		}
 
-		$this->settings_store->save( $settings );
+		$this->settings_service->save( $settings );
 
 		wp_send_json_success();
 	}

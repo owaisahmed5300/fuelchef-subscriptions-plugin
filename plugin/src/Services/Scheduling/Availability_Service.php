@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Services;
+namespace FuelChef\Subscriptions\Services\Scheduling;
 
 use DateTimeImmutable;
 use FuelChef\Subscriptions\Entities\Schedule;
@@ -14,6 +14,7 @@ use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Values\DateTime;
 use FuelChef\Subscriptions\Values\Settings;
@@ -36,7 +37,7 @@ final class Availability_Service {
 	public function __construct(
 		private Schedule_Weekday_Repository $weekdays,
 		private Blackout_Repository $blackouts,
-		private Settings_Store $settings,
+		private Settings_Service $settings,
 		private Clock $clock,
 		private Schedule_Destination_Repository $destinations,
 		private Schedule_Repository $schedules

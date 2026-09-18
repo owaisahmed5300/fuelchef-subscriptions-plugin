@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Services;
+namespace FuelChef\Subscriptions\Services\Scheduling;
 
 use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Utils\Str;
@@ -23,7 +23,7 @@ defined( 'ABSPATH' ) || exit;
  * Zones and pickup locations only; `Repositories\Schedule_Destination_Repository` holds
  * what's actually assigned.
  */
-final class Destination_Catalog {
+final class Destination_Catalog_Service {
 
 
 	/**

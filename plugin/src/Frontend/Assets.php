@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Frontend;
 
 use FuelChef\Subscriptions\Frontend\Checkout\Block\Fulfilment_Date_Field as Block_Fulfilment_Date_Field;
-use FuelChef\Subscriptions\Services\Checkout_Presence;
-use FuelChef\Subscriptions\Services\Settings_Store;
+use FuelChef\Subscriptions\Services\Checkout\Checkout_Presence_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Utils\Locale;
 use FuelChef\Subscriptions\Values\Settings;
 
@@ -33,8 +33,8 @@ final class Assets {
 	 * Creates the asset handler.
 	 */
 	public function __construct(
-		private Settings_Store $settings,
-		private Checkout_Presence $checkout
+		private Settings_Service $settings,
+		private Checkout_Presence_Service $checkout
 	) {
 	}
 

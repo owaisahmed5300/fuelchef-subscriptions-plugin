@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\Services;
+namespace FuelChef\Subscriptions\Tests\Unit\Services\Scheduling;
 
 use Brain\Monkey\Functions;
 use FuelChef\Subscriptions\Database\Transaction_Manager;
@@ -14,12 +14,12 @@ use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
 use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
-use FuelChef\Subscriptions\Services\Schedule_Service;
+use FuelChef\Subscriptions\Services\Scheduling\Schedule_Service;
 use FuelChef\Subscriptions\Tests\Unit\Repositories\Repository_TestCase;
 use Mockery;
 
 /**
- * @covers \FuelChef\Subscriptions\Services\Schedule_Service
+ * @covers \FuelChef\Subscriptions\Services\Scheduling\Schedule_Service
  */
 final class Schedule_Service_Test extends Repository_TestCase {
 

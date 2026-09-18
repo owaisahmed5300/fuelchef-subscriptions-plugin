@@ -10,8 +10,8 @@ namespace FuelChef\Subscriptions\Frontend\Checkout\Block;
 use Automattic\WooCommerce\StoreApi\Exceptions\RouteException;
 use DateTimeImmutable;
 use FuelChef\Subscriptions\Frontend\Checkout\Block\Concerns\Reads_Persisted_Field;
-use FuelChef\Subscriptions\Services\Current_Fulfilment_Window;
-use FuelChef\Subscriptions\Services\Settings_Store;
+use FuelChef\Subscriptions\Services\Checkout\Current_Fulfilment_Window_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Values\DateTime;
@@ -72,8 +72,8 @@ final class Fulfilment_Date_Field {
 	 * Creates the field handler.
 	 */
 	public function __construct(
-		private Current_Fulfilment_Window $window,
-		private Settings_Store $settings,
+		private Current_Fulfilment_Window_Service $window,
+		private Settings_Service $settings,
 		private Clock $clock
 	) {
 	}

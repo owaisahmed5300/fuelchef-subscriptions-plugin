@@ -63,13 +63,17 @@ rather than trusting it — a filter can hand back anything.
 
 A service holds business logic; it never touches `$wpdb` directly. Most orchestrate this
 plugin's own repositories, but a service's job is "hold the business logic for a
-concern," not narrowly "sit in front of a repository" - `Destination_Catalog` and
-`Chosen_Shipping_Destination` are services that interpret WooCommerce's own data (shipping
-zones, pickup locations, the customer's chosen rate) into this plugin's domain vocabulary,
-with no repository underneath them at all. Add one only when there is an actual business
-rule or cross-repository operation to hold - a single repository call with no validation
-belongs directly in the controller instead (see `Schedule_Destination_Repository::
+concern," not narrowly "sit in front of a repository" - `Scheduling\Destination_Catalog_Service`
+and `Checkout\Chosen_Shipping_Destination_Service` are services that interpret WooCommerce's
+own data (shipping zones, pickup locations, the customer's chosen rate) into this plugin's
+domain vocabulary, with no repository underneath them at all. Add one only when there is an
+actual business rule or cross-repository operation to hold - a single repository call with
+no validation belongs directly in the controller instead (see `Schedule_Destination_Repository::
 replace_for_schedule()`, called straight from the controller for exactly this reason).
+
+Every concrete class directly under `Services\` ends in `_Service`, and is grouped into a
+domain subnamespace (`Scheduling\`, `Checkout\`) once more than one class belongs there -
+`Settings_Service` stays flat since nothing else shares a "Settings" concern.
 
 - **Validation failures** are `Services\Exceptions\Validation_Exception` - one class,
   reused for every business-rule rejection (invalid date, duplicate date, blank name,
@@ -91,8 +95,8 @@ replace_for_schedule()`, called straight from the controller for exactly this re
 
 A setting is not a database row, so it does not go through the Entity/Repository/Service
 abstraction above - but it is not a directory of its own either. `Values\Settings` and
-`Services\Settings_Store` sit alongside every other value object and service instead:
-a settings feature this small (one value object, one store) does not earn a directory
+`Services\Settings_Service` sit alongside every other value object and service instead:
+a settings feature this small (one value object, one service) does not earn a directory
 that exists to hold exactly two files and nothing else could ever join - see "Directory
 layout" below.
 
@@ -101,15 +105,13 @@ layout" below.
   `Subscribe_Applicability`) and throws
   `InvalidArgumentException` on the same "caller's own bug" basis as an entity constructor
   does.
-- `Services\Settings_Store` wraps `get_option()`/`update_option()` under one option key.
+- `Services\Settings_Service` wraps `get_option()`/`update_option()` under one option key.
   Its `get()` never throws: a missing or no-longer-valid stored value (an old plugin
   version, hand-edited option data) falls back to a default instead of breaking the
   settings screen. `save()` fires `fuelchef_subscriptions/settings/updated`. No custom
-  `wp_cache` layer - WordPress's own options cache already covers this. Registered in
-  `Services\Provider` alongside the other services, which is what it already was in
-  practice before the move - every consumer already reached it through that provider.
+  `wp_cache` layer - WordPress's own options cache already covers this.
 - A new setting gets a field on `Values\Settings` (with its own validation branch), a
-  default in `Services\Settings_Store`, and - if its valid values are a fixed set - a
+  default in `Services\Settings_Service`, and - if its valid values are a fixed set - a
   `Values\*` enum-shaped class alongside `Subscribe_Applicability`/`Day_Of_Week`.
 
 ## Directory layout
@@ -122,19 +124,20 @@ respectively - single-class directories that existed only because "settings" and
 going to join either. Folded into the directories that already fit what each class *is*:
 `Renderer` is a small stateless utility, alongside `Clock`/`Narrow`/`Str`;
 `Settings` is a value object, alongside `Destination_Option`/`DateTime`;
-`Settings_Store` is a service, alongside `Availability_Service`/`Schedule_Service` - and
-was already registered in `Services\Provider`, so the move just made the namespace match
-where it already lived operationally.
+`Settings_Service` is a service, flat in `Services\` since no second "Settings" class has
+joined it - `Scheduling\`/`Checkout\` earned their own subnamespace only once several
+services shared each concern (see "Services" above).
 
 The same reasoning retired the top-level `WooCommerce\` namespace: this whole plugin is a
 WooCommerce plugin, so "the parts that talk to WooCommerce" was never a real boundary
-distinct from "business logic" - `Destination_Catalog` and `Chosen_Shipping_Destination`
-are services (see "Services" above) and live in `Services\` like every other one. It also
-moved `Current_Delivery_Window` out of `Frontend\Checkout\` into `Services\` as
-`Current_Fulfilment_Window`, and `Subscribe_And_Save::discount_amount()` into its own
-`Services\Subscribe_Discount_Service` - both held real business logic that had been
-sitting in the `Frontend\` controller layer instead of `Services\`, which is what
-"Frontend checkout" below now describes. And `Utils\Input` and `Utils\Row_Caster` merged
+distinct from "business logic" - `Scheduling\Destination_Catalog_Service` and
+`Checkout\Chosen_Shipping_Destination_Service` are services (see "Services" above) and live
+in `Services\` like every other one. It also moved `Current_Delivery_Window` out of
+`Frontend\Checkout\` into `Services\Checkout\` as `Current_Fulfilment_Window_Service`, and
+`Subscribe_And_Save::discount_amount()` into its own `Services\Checkout\Subscribe_Discount_Service`
+- both held real business logic that had been sitting in the `Frontend\` controller layer
+instead of `Services\`, which is what "Frontend checkout" below now describes. And
+`Utils\Input` and `Utils\Row_Caster` merged
 into one `Utils\Narrow`: both narrowed a `mixed` value from an untyped source (a
 superglobal, a `$wpdb` row) to a known PHP type with the identical method set - two
 classes doing the same job for two different callers, not two different jobs.
@@ -148,11 +151,8 @@ subdirectory for the same reason `Templating\`/`Settings\` did, and now sits dir
 asset registration around it.
 
 - A controller's `render()` builds its page's data from repositories/services and passes
-  it to `Utils\Renderer::render()`. An admin screen has no theme-override story, unlike the
-  frontend checkout, which renders through `Utils\Wc_Template_Renderer` instead - a thin
-  wrapper around WooCommerce's own `wc_get_template_html()`, so a theme can override one of
-  those templates at `yourtheme/fuelchef-subscriptions/<template>.php`, the same convention
-  WooCommerce's own templates use. Data the page's own **script** needs (the calendar, the
+  it to `Utils\Renderer::render()`, the same renderer the frontend checkout uses (see
+  "Frontend checkout" below). Data the page's own **script** needs (the calendar, the
   weekly-hours table, the destination list) goes through `wp_localize_script()` instead of
   an inline `<script>` block with embedded PHP - simpler, and avoids fighting WPCS's rules
   on PHP tags mixed into HTML.
@@ -176,26 +176,27 @@ asset registration around it.
 surfaces' fulfilment date field and subscribe-and-save checkbox live here, registered by
 `Frontend\Provider`. Both are controller-shaped: they ask a `Services\` class what to
 show, and render, validate and persist strictly within what that already decided. The
-business logic behind them - `Services\Current_Fulfilment_Window` (schedule + eligible
-dates for whatever destination the customer currently has chosen) and `Services\
-Subscribe_Discount_Service::discount_amount()` (the discount's own business rule) - is
-registered by `Services\Provider` instead, and shared by classic and block checkout's own
-field classes rather than duplicated - see "Block checkout" below for the block-specific
-pieces (`Frontend\Checkout\Block\*`) that consume them.
+business logic behind them - `Services\Checkout\Current_Fulfilment_Window_Service` (schedule
++ eligible dates for whatever destination the customer currently has chosen) and
+`Services\Checkout\Subscribe_Discount_Service::discount_amount()` (the discount's own
+business rule) - is registered by `Services\Provider` instead, and shared by classic and
+block checkout's own field classes rather than duplicated - see "Block checkout" below for
+the block-specific pieces (`Frontend\Checkout\Block\*`) that consume them.
 
-- `Services\Checkout_Presence` detects whether the classic checkout shortcode
-  (`has_shortcode()`) or the Checkout block (`has_block()`) is present on the current page,
-  memoized per request. This is the only signal `Frontend\Assets` and `Frontend\
-  Cache_Exclusion` key off - never `is_checkout()`, which only matches the page configured
-  under WooCommerce > Settings > Advanced and misses either one sitting anywhere else.
-  `Assets::enqueue()` loads shared assets when either is present, then classic-only or
+- `Services\Checkout\Checkout_Presence_Service` detects whether the classic checkout
+  shortcode (`has_shortcode()`) or the Checkout block (`has_block()`) is present on the
+  current page, memoized per request. This is the only signal `Frontend\Assets` and
+  `Frontend\Cache_Exclusion` key off - never `is_checkout()`, which only matches the page
+  configured under WooCommerce > Settings > Advanced and misses either one sitting anywhere
+  else. `Assets::enqueue()` loads shared assets when either is present, then classic-only or
   block-only assets based on which one actually is. `Cache_Exclusion` marks the page
   uncacheable (`DONOTCACHEPAGE` + `nocache_headers()`) on the same signal, since
   WooCommerce's own cache exclusion only covers its configured checkout page.
 
-- `Services\Chosen_Shipping_Destination` turns whatever shipping rate the customer has
-  currently chosen into the `(type, key)` pair `Destination_Catalog` and
-  `Availability_Service` already understand. A pickup rate (`pickup_location:2`) carries
+- `Services\Checkout\Chosen_Shipping_Destination_Service` turns whatever shipping rate the
+  customer has currently chosen into the `(type, key)` pair
+  `Services\Scheduling\Destination_Catalog_Service` and `Availability_Service` already
+  understand. A pickup rate (`pickup_location:2`) carries
   its own key; any other rate belongs to whichever zone matches the package's destination
   address, via `WC_Shipping_Zones::get_zone_matching_package()` - the real WooCommerce
   lookup a package's own rates already come from, not a re-derivation from the rate ID.
@@ -209,9 +210,9 @@ pieces (`Frontend\Checkout\Block\*`) that consume them.
   custom REST route has nothing upstream to do it at all) - confirmed the hard way, see
   "Block checkout" below.
 - `Frontend\Checkout\Fulfilment_Date_Field` is the controller-shaped piece: it asks
-  `Current_Fulfilment_Window` what schedule and dates apply, and renders, validates and
-  persists strictly within what that already decided. Not unit-tested for the same reason
-  `Admin\Controllers\*` are not - see "Testing" below.
+  `Current_Fulfilment_Window_Service` what schedule and dates apply, and renders, validates
+  and persists strictly within what that already decided. Not unit-tested for the same
+  reason `Admin\Controllers\*` are not - see "Testing" below.
 - **Why it hooks `woocommerce_review_order_after_shipping`, inside the order review
   `<table>`, and renders a `<tr>` rather than a `<div>`.** An earlier version rendered
   outside the order review table entirely, on `woocommerce_checkout_after_customer_details`,
@@ -232,7 +233,7 @@ pieces (`Frontend\Checkout\Block\*`) that consume them.
   (WooCommerce serializes the whole checkout form into it before the table re-renders, this
   field's own input included) into `$captured_date`; `render()`'s `restored_date()` then
   restores it into the new row's `value` attribute - but only once
-  `Current_Fulfilment_Window::is_eligible_date()` confirms it is still eligible for whatever
+  `Current_Fulfilment_Window_Service::is_eligible_date()` confirms it is still eligible for whatever
   destination the refresh just resolved to, so a selection made valid, then invalidated by a
   later change the customer never noticed, is not silently restored. Because the row now
   carries fresh eligible dates and window data as `data-*` attributes on every refresh,
@@ -272,7 +273,7 @@ pieces (`Frontend\Checkout\Block\*`) that consume them.
   `is_checked_in_request()` its own `render()`/`maybe_apply_discount()` already relied on,
   rather than reading `$data` either. Every request either hook runs in has already passed
   WooCommerce's own nonce check before these classes are ever reached.
-- `Services\Subscribe_Discount_Service::discount_amount()` is the one piece of this
+- `Services\Checkout\Subscribe_Discount_Service::discount_amount()` is the one piece of this
   feature with a real business rule (the `Subscribe_Applicability::RENEWAL_ONLY` gate) and
   is unit-tested; `Subscribe_And_Save::maybe_apply_discount()` around it is the thin,
   untested glue that reads the request and calls `WC_Cart::add_fee()`.
@@ -299,8 +300,8 @@ call sites, not worth its own service or enum.
 
 `Frontend\Checkout\Block\*` is the Checkout block's own fulfilment date field and
 subscribe-and-save discount, registered via `woocommerce_register_additional_checkout_
-field()`. It shares `Services\Current_Fulfilment_Window` and `Services\
-Subscribe_Discount_Service::discount_amount()` with classic checkout, but the two checkout
+field()`. It shares `Services\Checkout\Current_Fulfilment_Window_Service` and
+`Services\Checkout\Subscribe_Discount_Service::discount_amount()` with classic checkout, but the two checkout
 surfaces need genuinely different integration code around them - confirmed by reading the
 installed WooCommerce Blocks source directly, not assumed from its own docs
 (`docs/woocommerce-reference/` describes a `date` field type that, as of the installed
@@ -337,9 +338,9 @@ never per-date exclusion, which this field needs for closed weekdays and blackou
   itself rejects an empty `options` array - `CheckoutFields::process_select_field()`) and
   leaves the real list to the same REST route. That route has nothing upstream to load
   the cart or calculate shipping for it (a bare REST request is its own, otherwise-empty
-  request), so it calls `wc_load_cart()` itself before asking `Current_Fulfilment_Window`
-  anything - `Chosen_Shipping_Destination` handles the shipping calculation part of that
-  itself, per the note above.
+  request), so it calls `wc_load_cart()` itself before asking `Current_Fulfilment_Window_Service`
+  anything - `Chosen_Shipping_Destination_Service` handles the shipping calculation part of
+  that itself, per the note above.
 - **`validate()` alone does not stop an order with no date at all - `validate_order()`
   backstops it.** Confirmed against the installed source
   (`StoreApi\Routes\V1\Checkout::process_order()`): WooCommerce skips calling

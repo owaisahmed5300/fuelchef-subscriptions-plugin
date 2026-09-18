@@ -5,21 +5,21 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\Services;
+namespace FuelChef\Subscriptions\Tests\Unit\Services\Checkout;
 
 use Brain\Monkey\Functions;
-use FuelChef\Subscriptions\Services\Checkout_Presence;
+use FuelChef\Subscriptions\Services\Checkout\Checkout_Presence_Service;
 use FuelChef\Subscriptions\Tests\TestCase;
 use WP_Post;
 
 /**
- * @covers \FuelChef\Subscriptions\Services\Checkout_Presence
+ * @covers \FuelChef\Subscriptions\Services\Checkout\Checkout_Presence_Service
  */
-final class Checkout_Presence_Test extends TestCase {
+final class Checkout_Presence_Service_Test extends TestCase {
 
 
-	private function subject(): Checkout_Presence {
-		return new Checkout_Presence();
+	private function subject(): Checkout_Presence_Service {
+		return new Checkout_Presence_Service();
 	}
 
 	public function test_has_classic_shortcode_is_true_when_the_post_content_has_it(): void {

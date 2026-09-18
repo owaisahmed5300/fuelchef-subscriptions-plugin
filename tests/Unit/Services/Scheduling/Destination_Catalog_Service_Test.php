@@ -5,19 +5,19 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\Services;
+namespace FuelChef\Subscriptions\Tests\Unit\Services\Scheduling;
 
 use Brain\Monkey\Functions;
-use FuelChef\Subscriptions\Services\Destination_Catalog;
+use FuelChef\Subscriptions\Services\Scheduling\Destination_Catalog_Service;
 use FuelChef\Subscriptions\Tests\TestCase;
 use FuelChef\Subscriptions\Values\Destination_Type;
 use WC_Shipping_Zone;
 use WC_Shipping_Zones;
 
 /**
- * @covers \FuelChef\Subscriptions\Services\Destination_Catalog
+ * @covers \FuelChef\Subscriptions\Services\Scheduling\Destination_Catalog_Service
  */
-final class Destination_Catalog_Test extends TestCase {
+final class Destination_Catalog_Service_Test extends TestCase {
 
 
 	protected function setUp(): void {
@@ -45,7 +45,7 @@ final class Destination_Catalog_Test extends TestCase {
 			],
 		];
 
-		$options = ( new Destination_Catalog() )->for_type( Destination_Type::SHIPPING_ZONE );
+		$options = ( new Destination_Catalog_Service() )->for_type( Destination_Type::SHIPPING_ZONE );
 
 		$this->assertCount( 1, $options );
 		$this->assertSame( Destination_Type::SHIPPING_ZONE, $options[0]->type() );
@@ -60,7 +60,7 @@ final class Destination_Catalog_Test extends TestCase {
 		Functions\when( 'esc_html__' )->returnArg( 1 );
 		Functions\when( '__' )->returnArg( 1 );
 
-		$options = ( new Destination_Catalog() )->for_type( Destination_Type::SHIPPING_ZONE );
+		$options = ( new Destination_Catalog_Service() )->for_type( Destination_Type::SHIPPING_ZONE );
 
 		$this->assertCount( 1, $options );
 		$this->assertSame( '0', $options[0]->key() );
@@ -82,7 +82,7 @@ final class Destination_Catalog_Test extends TestCase {
 			}
 		);
 
-		$options = ( new Destination_Catalog() )->for_type( Destination_Type::PICKUP_LOCATION );
+		$options = ( new Destination_Catalog_Service() )->for_type( Destination_Type::PICKUP_LOCATION );
 
 		$this->assertCount( 1, $options );
 		$this->assertSame( Destination_Type::PICKUP_LOCATION, $options[0]->type() );
@@ -103,7 +103,7 @@ final class Destination_Catalog_Test extends TestCase {
 			}
 		);
 
-		$options = ( new Destination_Catalog() )->for_type( Destination_Type::PICKUP_LOCATION );
+		$options = ( new Destination_Catalog_Service() )->for_type( Destination_Type::PICKUP_LOCATION );
 
 		$this->assertFalse( $options[0]->enabled() );
 	}
@@ -119,11 +119,11 @@ final class Destination_Catalog_Test extends TestCase {
 			}
 		);
 
-		$this->assertSame( [], ( new Destination_Catalog() )->for_type( Destination_Type::PICKUP_LOCATION ) );
+		$this->assertSame( [], ( new Destination_Catalog_Service() )->for_type( Destination_Type::PICKUP_LOCATION ) );
 	}
 
 	public function test_find_returns_null_when_nothing_matches(): void {
-		$this->assertNull( ( new Destination_Catalog() )->find( Destination_Type::SHIPPING_ZONE, '99' ) );
+		$this->assertNull( ( new Destination_Catalog_Service() )->find( Destination_Type::SHIPPING_ZONE, '99' ) );
 	}
 
 	public function test_find_returns_the_matching_option(): void {
@@ -131,7 +131,7 @@ final class Destination_Catalog_Test extends TestCase {
 			5 => [ 'zone_id' => 5, 'zone_name' => 'Karachi', 'formatted_zone_location' => '' ],
 		];
 
-		$found = ( new Destination_Catalog() )->find( Destination_Type::SHIPPING_ZONE, '5' );
+		$found = ( new Destination_Catalog_Service() )->find( Destination_Type::SHIPPING_ZONE, '5' );
 
 		$this->assertNotNull( $found );
 		$this->assertSame( 'Karachi', $found->label() );
@@ -142,7 +142,7 @@ final class Destination_Catalog_Test extends TestCase {
 			5 => [ 'zone_id' => 5, 'zone_name' => 'Karachi', 'formatted_zone_location' => '' ],
 		];
 
-		$grouped = ( new Destination_Catalog() )->grouped();
+		$grouped = ( new Destination_Catalog_Service() )->grouped();
 
 		$this->assertCount( 1, $grouped[ Destination_Type::SHIPPING_ZONE ] );
 		$this->assertSame( [], $grouped[ Destination_Type::PICKUP_LOCATION ] );
@@ -153,7 +153,7 @@ final class Destination_Catalog_Test extends TestCase {
 			5 => [ 'zone_id' => 5, 'zone_name' => 'Karachi', 'formatted_zone_location' => '' ],
 		];
 
-		$catalog = new Destination_Catalog();
+		$catalog = new Destination_Catalog_Service();
 		$first   = $catalog->all();
 
 		WC_Shipping_Zones::$zones = [];

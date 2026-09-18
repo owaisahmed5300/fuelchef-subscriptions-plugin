@@ -5,16 +5,16 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\Services;
+namespace FuelChef\Subscriptions\Tests\Unit\Services\Scheduling;
 
 use Brain\Monkey\Functions;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
-use FuelChef\Subscriptions\Services\Blackout_Service;
 use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
+use FuelChef\Subscriptions\Services\Scheduling\Blackout_Service;
 use FuelChef\Subscriptions\Tests\Unit\Repositories\Repository_TestCase;
 
 /**
- * @covers \FuelChef\Subscriptions\Services\Blackout_Service
+ * @covers \FuelChef\Subscriptions\Services\Scheduling\Blackout_Service
  */
 final class Blackout_Service_Test extends Repository_TestCase {
 

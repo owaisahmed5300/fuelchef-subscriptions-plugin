@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Services;
+namespace FuelChef\Subscriptions\Services\Checkout;
 
 use WP_Post;
 
@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
  * the page WooCommerce itself is configured to treat as checkout under WooCommerce >
  * Settings > Advanced, since either can legitimately appear on a different page.
  */
-final class Checkout_Presence {
+final class Checkout_Presence_Service {
 
 
 	/**
