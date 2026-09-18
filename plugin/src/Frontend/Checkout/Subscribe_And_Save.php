@@ -11,7 +11,7 @@ use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
 use FuelChef\Subscriptions\Services\Subscribe_Eligibility_Service;
 use FuelChef\Subscriptions\Utils\Narrow;
-use FuelChef\Subscriptions\Utils\Renderer;
+use FuelChef\Subscriptions\Utils\Wc_Template_Renderer;
 use FuelChef\Subscriptions\Values\Settings;
 use WC_Cart;
 use WC_Order;
@@ -55,7 +55,7 @@ final class Subscribe_And_Save {
 	 */
 	public function __construct(
 		private Settings_Store $settings,
-		private Renderer $renderer,
+		private Wc_Template_Renderer $renderer,
 		private Subscribe_Discount_Service $discount_service,
 		private Subscribe_Eligibility_Service $eligibility_service
 	) {
@@ -87,7 +87,7 @@ final class Subscribe_And_Save {
 
 		if ( ! is_user_logged_in() ) {
 			$html = $this->renderer->render(
-				'frontend/checkout/subscribe-and-save-logged-out',
+				'checkout/subscribe-and-save-logged-out',
 				[
 					'message'   => $settings->logged_out_message_resolved(),
 					'login_url' => $this->login_url(),
@@ -101,7 +101,7 @@ final class Subscribe_And_Save {
 		$eligible = $this->is_cart_eligible( $cart, $settings );
 
 		$html = $this->renderer->render(
-			'frontend/checkout/subscribe-and-save',
+			'checkout/subscribe-and-save',
 			[
 				'eligible'           => $eligible,
 				'checked'            => $eligible && $this->is_checked_in_request(),

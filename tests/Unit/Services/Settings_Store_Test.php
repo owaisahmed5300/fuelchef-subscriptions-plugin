@@ -65,6 +65,7 @@ final class Settings_Store_Test extends TestCase {
 				'minimum_cart_quantity'       => 3,
 				'ineligible_message'          => 'Add more to unlock this.',
 				'logged_out_message'          => 'Log in to unlock this.',
+				'fulfilment_window_message'   => 'Open between {start} and {end}.',
 			]
 		);
 
@@ -83,6 +84,7 @@ final class Settings_Store_Test extends TestCase {
 		$this->assertSame( 3, $settings->minimum_cart_quantity() );
 		$this->assertSame( 'Add more to unlock this.', $settings->ineligible_message() );
 		$this->assertSame( 'Log in to unlock this.', $settings->logged_out_message() );
+		$this->assertSame( 'Open between {start} and {end}.', $settings->fulfilment_window_message() );
 	}
 
 	public function test_get_falls_back_to_the_default_minimum_order_amount_when_the_stored_one_is_negative(): void {
@@ -191,6 +193,14 @@ final class Settings_Store_Test extends TestCase {
 		$this->assertSame( '', $settings->logged_out_message() );
 	}
 
+	public function test_get_falls_back_to_an_empty_fulfilment_window_message_when_the_stored_one_is_too_long(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'fulfilment_window_message' => str_repeat( 'a', 301 ) ] );
+
+		$settings = ( new Settings_Store() )->get();
+
+		$this->assertSame( '', $settings->fulfilment_window_message() );
+	}
+
 	public function test_save_persists_every_field_under_one_option(): void {
 		Functions\expect( 'update_option' )
 			->once()
@@ -210,6 +220,7 @@ final class Settings_Store_Test extends TestCase {
 					'minimum_cart_quantity'       => 3,
 					'ineligible_message'          => 'Add more to unlock this.',
 					'logged_out_message'          => 'Log in to unlock this.',
+					'fulfilment_window_message'   => 'Open between {start} and {end}.',
 				]
 			);
 
@@ -227,7 +238,8 @@ final class Settings_Store_Test extends TestCase {
 				minimum_order_amount: 50.0,
 				minimum_cart_quantity: 3,
 				ineligible_message: 'Add more to unlock this.',
-				logged_out_message: 'Log in to unlock this.'
+				logged_out_message: 'Log in to unlock this.',
+				fulfilment_window_message: 'Open between {start} and {end}.'
 			)
 		);
 	}

@@ -26,7 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
         minimum_order_amount: document.getElementById('minimumOrderAmount').value,
         minimum_cart_quantity: document.getElementById('minimumCartQuantity').value,
         ineligible_message: document.getElementById('ineligibleMessage').value,
-        logged_out_message: document.getElementById('loggedOutMessage').value
+        logged_out_message: document.getElementById('loggedOutMessage').value,
+        fulfilment_window_message: document.getElementById('fulfilmentWindowMessage').value
       }).done((response) => {
         if (!response.success) {
           FCS.toast(response.data && response.data.message ? response.data.message : window.fcsAdmin.i18n.couldNotSaveSettings, 'error');

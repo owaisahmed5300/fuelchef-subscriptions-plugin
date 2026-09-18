@@ -265,6 +265,32 @@ $currency_symbol = $data['currency_symbol'];
 								?>
 							</p>
 						</div>
+
+						<div class="fcs-field">
+							<label for="fulfilmentWindowMessage">
+								<?php esc_html_e( 'Fulfilment window message (optional)', 'fuelchef-subscriptions' ); ?>
+							</label>
+							<?php
+							$fulfilment_window_message_placeholder = __(
+								'Fulfilment available between {start} and {end}.',
+								'fuelchef-subscriptions'
+							);
+							?>
+							<textarea
+								class="fcs-textarea"
+								id="fulfilmentWindowMessage"
+								maxlength="300"
+								placeholder="<?php echo esc_attr( $fulfilment_window_message_placeholder ); ?>"
+							><?php echo esc_textarea( $settings->fulfilment_window_message() ); ?></textarea>
+							<p class="fcs-field__hint">
+								<?php
+								esc_html_e(
+									'Shown once a date is chosen. Use {start} and {end} anywhere you want the fulfilment hours to appear. Leave blank to use the default wording.',
+									'fuelchef-subscriptions'
+								);
+								?>
+							</p>
+						</div>
 					</div>
 				</div>
 

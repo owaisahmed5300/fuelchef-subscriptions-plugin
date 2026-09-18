@@ -17,6 +17,7 @@ use FuelChef\Subscriptions\Repositories\Provider as Repositories_Provider;
 use FuelChef\Subscriptions\Services\Provider as Services_Provider;
 use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Utils\Renderer;
+use FuelChef\Subscriptions\Utils\Wc_Template_Renderer;
 use wpdb;
 
 defined( 'ABSPATH' ) || exit;
@@ -64,6 +65,7 @@ final class Container {
 			$container
 				->singleton( Renderer::class )
 				->addParameter( FUELCHEF_SUBSCRIPTIONS_DIR . 'templates' );
+			$container->singleton( Wc_Template_Renderer::class );
 
 			$container->provider( new Repositories_Provider() );
 			$container->provider( new Services_Provider() );

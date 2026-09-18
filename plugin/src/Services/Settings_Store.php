@@ -58,7 +58,8 @@ final class Settings_Store {
 			minimum_order_amount: $this->minimum_order_amount( $this->raw( $stored, 'minimum_order_amount' ) ),
 			minimum_cart_quantity: $this->minimum_cart_quantity( $this->raw( $stored, 'minimum_cart_quantity' ) ),
 			ineligible_message: $this->description( $this->raw( $stored, 'ineligible_message' ) ),
-			logged_out_message: $this->description( $this->raw( $stored, 'logged_out_message' ) )
+			logged_out_message: $this->description( $this->raw( $stored, 'logged_out_message' ) ),
+			fulfilment_window_message: $this->description( $this->raw( $stored, 'fulfilment_window_message' ) )
 		);
 	}
 
@@ -91,6 +92,7 @@ final class Settings_Store {
 				'minimum_cart_quantity'       => $settings->minimum_cart_quantity(),
 				'ineligible_message'          => $settings->ineligible_message(),
 				'logged_out_message'          => $settings->logged_out_message(),
+				'fulfilment_window_message'   => $settings->fulfilment_window_message(),
 			]
 		);
 

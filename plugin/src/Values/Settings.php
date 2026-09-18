@@ -68,6 +68,10 @@ final class Settings {
 	 * @param string $logged_out_message Shown instead of Subscribe & Save when the
 	 *                                   customer is not logged in, or an empty string to
 	 *                                   show the default wording.
+	 * @param string $fulfilment_window_message Shown under the fulfilment date field once a
+	 *                                          date is chosen, or an empty string to show
+	 *                                          the default wording. May contain the
+	 *                                          placeholders `{start}` and `{end}`.
 	 */
 	public function __construct(
 		private int $cutoff_days,
@@ -82,7 +86,8 @@ final class Settings {
 		private float $minimum_order_amount = 0.0,
 		private int $minimum_cart_quantity = 0,
 		private string $ineligible_message = '',
-		private string $logged_out_message = ''
+		private string $logged_out_message = '',
+		private string $fulfilment_window_message = ''
 	) {
 		if ( $cutoff_days < 0 ) {
 			throw new InvalidArgumentException( esc_html__( 'Cutoff days cannot be negative.', 'fuelchef-subscriptions' ) );
@@ -160,8 +165,8 @@ final class Settings {
 	}
 
 	/**
-	 * Rejects an over-length ineligible-cart or logged-out message. Either may be blank -
-	 * that means the store shows its default wording.
+	 * Rejects an over-length ineligible-cart, logged-out or fulfilment-window message.
+	 * Any of the three may be blank - that means the store shows its default wording.
 	 */
 	private function validate_eligibility_messages(): void {
 		if ( strlen( $this->ineligible_message ) > self::MAX_DESCRIPTION_LENGTH ) {
@@ -170,6 +175,10 @@ final class Settings {
 
 		if ( strlen( $this->logged_out_message ) > self::MAX_DESCRIPTION_LENGTH ) {
 			throw new InvalidArgumentException( esc_html__( 'Logged-out subscription message is too long.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( strlen( $this->fulfilment_window_message ) > self::MAX_DESCRIPTION_LENGTH ) {
+			throw new InvalidArgumentException( esc_html__( 'Fulfilment window message is too long.', 'fuelchef-subscriptions' ) );
 		}
 	}
 
@@ -307,5 +316,27 @@ final class Settings {
 		return '' !== $this->logged_out_message
 			? $this->logged_out_message
 			: esc_html__( 'Log in to your account to unlock Subscribe & Save.', 'fuelchef-subscriptions' );
+	}
+
+	/**
+	 * The message shown under the fulfilment date field once a date is chosen, exactly as
+	 * stored. Empty when the store shows the default wording - see
+	 * {@see self::fulfilment_window_message_resolved()}.
+	 */
+	public function fulfilment_window_message(): string {
+		return $this->fulfilment_window_message;
+	}
+
+	/**
+	 * The message shown under the fulfilment date field once a date is chosen, with
+	 * `{start}` and `{end}` replaced by the chosen date's fulfilment window, falling back to
+	 * a sensible default when the store has not customised it.
+	 */
+	public function fulfilment_window_message_resolved( string $start, string $end ): string {
+		$message = '' !== $this->fulfilment_window_message
+			? $this->fulfilment_window_message
+			: esc_html__( 'Fulfilment available between {start} and {end}.', 'fuelchef-subscriptions' );
+
+		return str_replace( [ '{start}', '{end}' ], [ $start, $end ], $message );
 	}
 }

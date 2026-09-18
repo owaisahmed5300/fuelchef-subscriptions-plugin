@@ -45,7 +45,7 @@ jQuery(function ($) {
       return;
     }
 
-    $caption.text(i18n.fulfilmentWindow.replace('%1$s', fulfilmentWindow.start).replace('%2$s', fulfilmentWindow.end));
+    $caption.text(i18n.fulfilmentWindow.replace('{start}', fulfilmentWindow.start).replace('{end}', fulfilmentWindow.end));
     $caption.removeAttr('hidden');
   }
 
@@ -91,9 +91,11 @@ jQuery(function ($) {
 
     // <label for="fcs_fulfilment_date"> in the template targets this input, but
     // altInput: true swaps in a separate visible input (this one keeps the raw value,
-    // hidden) - move the id to the one the customer actually sees and interacts with.
+    // hidden) - move the id and its description association to the one the customer
+    // actually sees, focuses and interacts with.
     instance.altInput.id = $input.attr('id');
-    $input.removeAttr('id');
+    instance.altInput.setAttribute('aria-describedby', $input.attr('aria-describedby') || '');
+    $input.removeAttr('id aria-describedby');
 
     updateWindowCaption($input.val());
     $(document.body).trigger('fcs:fulfilment-date-changed', [$input.val()]);

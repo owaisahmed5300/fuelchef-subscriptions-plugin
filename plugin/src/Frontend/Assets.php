@@ -11,6 +11,7 @@ use FuelChef\Subscriptions\Frontend\Checkout\Block\Fulfilment_Date_Field as Bloc
 use FuelChef\Subscriptions\Services\Checkout_Presence;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Locale;
+use FuelChef\Subscriptions\Values\Settings;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -98,7 +99,7 @@ final class Assets {
 				'isLoggedIn'                => is_user_logged_in(),
 				'loggedOutMessage'          => $settings->logged_out_message_resolved(),
 				'loginUrl'                  => wp_login_url( wc_get_checkout_url() ),
-				'i18n'                      => $this->strings(),
+				'i18n'                      => $this->strings( $settings ),
 			]
 		);
 	}
@@ -207,13 +208,16 @@ final class Assets {
 	 *
 	 * @return array<string, string|list<string>> The strings, keyed by name.
 	 */
-	private function strings(): array {
+	private function strings( Settings $settings ): array {
 		return [
 			'chooseDate'            => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
 			'logIn'                 => esc_html__( 'Log in', 'fuelchef-subscriptions' ),
 			'noFulfilmentDateMatch' => esc_html__( 'No fulfilment dates are available for this location.', 'fuelchef-subscriptions' ),
-			/* translators: %1$s: opening time, %2$s: closing time. Resolved client-side. */
-			'fulfilmentWindow'      => esc_html__( 'Fulfilment available between %1$s and %2$s.', 'fuelchef-subscriptions' ),
+			// The store's configured (or default) wording, still carrying the literal
+			// {start}/{end} placeholders for the enhancement scripts to fill in per date -
+			// passing the placeholder names themselves back in as the substitution values
+			// reuses the same resolution/fallback logic without actually substituting yet.
+			'fulfilmentWindow'      => $settings->fulfilment_window_message_resolved( '{start}', '{end}' ),
 			/* translators: %s: weekday name, e.g. "Thursday". Resolved client-side. */
 			'recurringDayNotice'    => esc_html__( 'Your subscription will renew every %s.', 'fuelchef-subscriptions' ),
 			'monthNames'            => array_values( Locale::current()->month ),
