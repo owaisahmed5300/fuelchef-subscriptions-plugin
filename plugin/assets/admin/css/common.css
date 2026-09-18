@@ -907,6 +907,10 @@
    rendering means no z-index is needed to sit above the rest of the admin page. */
 .fcs-admin .fcs-popover {
     position: fixed;
+    /* The native Popover API's UA stylesheet defaults this to `auto` - since the arrow
+       below is a child that deliberately renders outside this box's edge, `auto` reads
+       that as real scrollable overflow and clips/scrolls it instead of letting it show. */
+    overflow: visible;
     margin: 0;
     width: 320px;
     padding: 16px;
@@ -1026,7 +1030,7 @@
 }
 
 .fcs-admin .fcs-popover--arrow-up .fcs-popover__arrow {
-    top: -8px;
+    top: -16px;
     border-bottom-color: var(--fcs-color-border);
 }
 
@@ -1036,7 +1040,7 @@
 }
 
 .fcs-admin .fcs-popover--arrow-down .fcs-popover__arrow {
-    bottom: -8px;
+    bottom: -16px;
     border-top-color: var(--fcs-color-border);
 }
 
