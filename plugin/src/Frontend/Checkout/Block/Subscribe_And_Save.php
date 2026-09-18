@@ -93,14 +93,20 @@ final class Subscribe_And_Save {
 
 		woocommerce_register_additional_checkout_field(
 			[
-				'id'         => self::FIELD_ID,
+				'id'                         => self::FIELD_ID,
 				// Not esc_html__(): the Checkout block renders this as a plain React text
 				// node, not raw HTML, so an HTML-escaped string (e.g. one containing "&")
 				// shows its literal entity instead of being decoded.
-				'label'      => $this->settings->get()->subscribe_save_label_resolved(),
-				'location'   => 'order',
-				'type'       => 'checkbox',
-				'attributes' => [
+				'label'                      => $this->settings->get()->subscribe_save_label_resolved(),
+				'location'                   => 'order',
+				'type'                       => 'checkbox',
+				// An `order`-location field is customer-facing by default - WooCommerce
+				// renders every one of them into "Additional information" on the
+				// order-received page, My Account and order emails. This one is an
+				// internal choice the discount logic reads back, not something a
+				// customer needs to see stated back at them.
+				'show_in_order_confirmation' => false,
+				'attributes'                 => [
 					self::DATA_ATTRIBUTE => '1',
 				],
 			]
