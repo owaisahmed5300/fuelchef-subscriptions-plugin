@@ -65,6 +65,9 @@ final class Settings {
 	 * @param string $ineligible_message Shown instead of Subscribe & Save when the cart
 	 *                                   does not meet the minimums, or an empty string to
 	 *                                   show the default wording.
+	 * @param string $logged_out_message Shown instead of Subscribe & Save when the
+	 *                                   customer is not logged in, or an empty string to
+	 *                                   show the default wording.
 	 */
 	public function __construct(
 		private int $cutoff_days,
@@ -78,7 +81,8 @@ final class Settings {
 		private string $subscribe_save_description,
 		private float $minimum_order_amount = 0.0,
 		private int $minimum_cart_quantity = 0,
-		private string $ineligible_message = ''
+		private string $ineligible_message = '',
+		private string $logged_out_message = ''
 	) {
 		if ( $cutoff_days < 0 ) {
 			throw new InvalidArgumentException( esc_html__( 'Cutoff days cannot be negative.', 'fuelchef-subscriptions' ) );
@@ -118,13 +122,10 @@ final class Settings {
 			throw new InvalidArgumentException( esc_html__( 'Minimum cart quantity cannot be negative.', 'fuelchef-subscriptions' ) );
 		}
 
-		if ( strlen( $ineligible_message ) > self::MAX_DESCRIPTION_LENGTH ) {
-			throw new InvalidArgumentException( esc_html__( 'Ineligible subscription message is too long.', 'fuelchef-subscriptions' ) );
-		}
-
 		// Reads the promoted properties above, already assigned by this point - not their
 		// local parameter names, since this validates the finished object, not the call.
 		$this->validate_checkout_copy();
+		$this->validate_eligibility_messages();
 	}
 
 	/**
@@ -155,6 +156,20 @@ final class Settings {
 
 		if ( strlen( $this->subscribe_save_description ) > self::MAX_DESCRIPTION_LENGTH ) {
 			throw new InvalidArgumentException( esc_html__( 'Subscribe & Save description is too long.', 'fuelchef-subscriptions' ) );
+		}
+	}
+
+	/**
+	 * Rejects an over-length ineligible-cart or logged-out message. Either may be blank -
+	 * that means the store shows its default wording.
+	 */
+	private function validate_eligibility_messages(): void {
+		if ( strlen( $this->ineligible_message ) > self::MAX_DESCRIPTION_LENGTH ) {
+			throw new InvalidArgumentException( esc_html__( 'Ineligible subscription message is too long.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( strlen( $this->logged_out_message ) > self::MAX_DESCRIPTION_LENGTH ) {
+			throw new InvalidArgumentException( esc_html__( 'Logged-out subscription message is too long.', 'fuelchef-subscriptions' ) );
 		}
 	}
 
@@ -273,5 +288,24 @@ final class Settings {
 		return '' !== $this->ineligible_message
 			? $this->ineligible_message
 			: esc_html__( 'Add more to your cart to unlock Subscribe & Save.', 'fuelchef-subscriptions' );
+	}
+
+	/**
+	 * The message shown instead of Subscribe & Save when the customer is not logged in,
+	 * exactly as stored. Empty when the store shows the default wording - see
+	 * {@see self::logged_out_message_resolved()}.
+	 */
+	public function logged_out_message(): string {
+		return $this->logged_out_message;
+	}
+
+	/**
+	 * The message shown instead of Subscribe & Save when the customer is not logged in,
+	 * falling back to a sensible default when the store has not customised it.
+	 */
+	public function logged_out_message_resolved(): string {
+		return '' !== $this->logged_out_message
+			? $this->logged_out_message
+			: esc_html__( 'Log in to your account to unlock Subscribe & Save.', 'fuelchef-subscriptions' );
 	}
 }

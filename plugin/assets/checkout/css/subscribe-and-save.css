@@ -38,6 +38,19 @@
 	color: #8a5b00;
 }
 
+.fcs-subscribe-and-save-logged-out {
+	margin: 0.4em 0 0.6em;
+	font-size: 0.9em;
+	line-height: 1.4;
+	color: #646970;
+}
+
+.fcs-subscribe-and-save-logged-out__link {
+	margin-left: 0.35em;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
 .fcs-recurring-day-notice {
 	margin: 0.4em 0 0;
 	font-size: 0.9em;

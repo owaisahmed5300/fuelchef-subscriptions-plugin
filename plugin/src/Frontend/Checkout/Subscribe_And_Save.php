@@ -21,7 +21,8 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Adds the "Subscribe & Save" checkbox to classic checkout, and the cart discount it
  * unlocks. Only offered to a logged-in customer whose cart meets the store's configured
- * minimum order amount and quantity - an ineligible cart sees a message instead.
+ * minimum order amount and quantity - a logged-out customer sees a message with a Log in
+ * link instead, and a logged-in customer with an ineligible cart sees a different message.
  *
  * Reads nothing of its own beyond the checkbox's current value, read straight from the
  * current request on every use rather than cached on the instance. Block checkout has no
@@ -71,14 +72,11 @@ final class Subscribe_And_Save {
 
 	/**
 	 * Renders the checkbox for a logged-in, eligible customer, checked when the current
-	 * request already has it checked - or the ineligible message when the cart does not
-	 * meet the store's configured minimums.
+	 * request already has it checked - the logged-out message when the customer has no
+	 * account, or the ineligible message when the cart does not meet the store's
+	 * configured minimums.
 	 */
 	public function render(): void {
-		if ( ! is_user_logged_in() ) {
-			return;
-		}
-
 		$cart = WC()->cart;
 
 		if ( null === $cart ) {
@@ -86,6 +84,20 @@ final class Subscribe_And_Save {
 		}
 
 		$settings = $this->settings->get();
+
+		if ( ! is_user_logged_in() ) {
+			$html = $this->renderer->render(
+				'frontend/checkout/subscribe-and-save-logged-out',
+				[
+					'message'   => $settings->logged_out_message_resolved(),
+					'login_url' => $this->login_url(),
+				]
+			);
+
+			echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			return;
+		}
+
 		$eligible = $this->is_cart_eligible( $cart, $settings );
 
 		$html = $this->renderer->render(
@@ -173,6 +185,14 @@ final class Subscribe_And_Save {
 		if ( null !== WC()->session ) {
 			WC()->session->set( self::SESSION_KEY, $checked );
 		}
+	}
+
+	/**
+	 * The login URL for a logged-out customer's "Log in" link, redirecting back to
+	 * checkout once signed in.
+	 */
+	private function login_url(): string {
+		return wp_login_url( wc_get_checkout_url() );
 	}
 
 	/**
