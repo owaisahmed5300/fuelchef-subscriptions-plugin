@@ -77,6 +77,7 @@ final class Availability_Service_Test extends Repository_TestCase {
 
 		Functions\when( 'wp_timezone' )->justReturn( new DateTimeZone( 'UTC' ) );
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 	}
 
 	/**

@@ -25,8 +25,9 @@ final class Settings_Store_Test extends TestCase {
 		parent::setUp();
 
 		// The default fulfilment-date and subscribe-and-save labels are translated at read
-		// time, so every get() call reaches esc_html__() even when nothing else is stored.
+		// time, so every get() call reaches __() even when nothing else is stored.
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 	}
 
 	public function test_get_returns_defaults_when_no_option_is_stored(): void {
@@ -41,7 +42,7 @@ final class Settings_Store_Test extends TestCase {
 		$this->assertSame( 60, $settings->max_fulfilment_window_days() );
 		$this->assertSame( 'Fulfilment date', $settings->fulfilment_date_label() );
 		$this->assertSame( '', $settings->fulfilment_date_description() );
-		$this->assertSame( 'Subscribe & Save {percent}%', $settings->subscribe_save_label() );
+		$this->assertSame( 'Subscribe for {percent}% off weekly delivery', $settings->subscribe_save_label() );
 		$this->assertSame( '', $settings->subscribe_save_description() );
 		$this->assertSame( 0.0, $settings->minimum_order_amount() );
 		$this->assertSame( 0, $settings->minimum_cart_quantity() );

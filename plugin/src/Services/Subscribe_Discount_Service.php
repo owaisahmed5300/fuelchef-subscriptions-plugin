@@ -13,8 +13,8 @@ use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Calculates the subscribe-and-save discount, shared by classic and block checkout's own
- * "Subscribe & Save" field classes rather than duplicated - both apply the same business
+ * Calculates the subscribe discount, shared by classic and block checkout's own
+ * subscribe-discount field classes rather than duplicated - both apply the same business
  * rule, at two different moments (a live cart total, and the final order).
  */
 final class Subscribe_Discount_Service {

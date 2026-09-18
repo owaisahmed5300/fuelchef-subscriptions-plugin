@@ -20,9 +20,11 @@
  *   state itself never changes without a full page reload, so it is only ever applied
  *   once, at bind time - `Block\Subscribe_And_Save::apply_discount()` is the authoritative
  *   gate either way; this is only a live preview of the same rule.
- * - Tells the customer which weekday future renewals will fall on, once both this
- *   checkbox and the fulfilment date field (block-fulfilment-date-field.js) have a
- *   value - the two fields are otherwise unaware of each other.
+ * - Tells the customer when their order will be delivered, once the fulfilment date field
+ *   (block-fulfilment-date-field.js) has a value - a one-off date normally, or which
+ *   weekday it recurs on once this checkbox is also checked. Shown regardless of whether
+ *   this checkbox is even visible (a logged-out or ineligible customer never sees it), so
+ *   every customer knows when their order is coming.
  */
 
 jQuery(function ($) {
@@ -189,15 +191,15 @@ jQuery(function ($) {
     applyEligibility($checkbox, lastEligible);
   }
 
-  function recurringDayNoticeElement($checkbox) {
+  function deliveryNoticeElement($checkbox) {
     const $anchor = ineligibleMessageElement($checkbox);
-    let $notice = $anchor.siblings('.fcs-recurring-day-notice');
+    let $notice = $anchor.siblings('.fcs-delivery-notice');
 
     if ($notice.length) {
       return $notice;
     }
 
-    $notice = $('<p class="fcs-recurring-day-notice" aria-live="polite" hidden></p>');
+    $notice = $('<p class="fcs-delivery-notice" aria-live="polite" hidden></p>');
     $anchor.after($notice);
 
     return $notice;
@@ -208,24 +210,28 @@ jQuery(function ($) {
   // unconditional .text() write is itself a childList mutation - one that would retrigger
   // the very observer that called this, looping forever. Confirmed the hard way, a real
   // browser tab crash once a date and the checkbox were both set.
-  function updateRecurringDayNotice($checkbox) {
+  function updateDeliveryNotice($checkbox) {
     if (typeof window.fcsCheckoutShared === 'undefined') {
       return;
     }
 
-    const $notice = recurringDayNoticeElement($checkbox);
+    const $notice = deliveryNoticeElement($checkbox);
     const $dateField = $('[data-fcs-block-fulfilment-date]');
     const date = $dateField.length ? $dateField.val() : '';
 
-    if (!date || !$checkbox.is(':checked')) {
+    if (!date) {
       if (!$notice.prop('hidden')) {
         $notice.prop('hidden', true);
       }
       return;
     }
 
-    const weekday = window.fcsCheckoutShared.weekdayNameForDate(date, window.fcsCheckout.i18n.dayNames);
-    const message = window.fcsCheckout.i18n.recurringDayNotice.replace('%s', weekday);
+    const formattedDate = window.fcsCheckoutShared.formatDisplayDate(date, window.fcsCheckout.i18n.monthNames);
+    const message = $checkbox.is(':checked')
+      ? window.fcsCheckout.i18n.recurringDeliveryNotice
+          .replace('%1$s', window.fcsCheckoutShared.weekdayNameForDate(date, window.fcsCheckout.i18n.dayNames))
+          .replace('%2$s', formattedDate)
+      : window.fcsCheckout.i18n.singleDeliveryNotice.replace('%s', formattedDate);
 
     if ($notice.prop('hidden') || $notice.text() !== message) {
       $notice.text(message).prop('hidden', false);
@@ -235,18 +241,22 @@ jQuery(function ($) {
   function bind($checkbox) {
     addDescription($checkbox);
 
-    // Subscribe & Save must always start unchecked, with no discount applied, on every
-    // fresh page view. This runs once, the first time the checkbox appears - not at
-    // script load, since window.wc.blocksCheckout may not exist yet at that point - so
-    // a session value left over from an earlier, abandoned attempt at the same cart
-    // never lingers into a totals preview the customer never asked for.
+    // The subscribe discount must always start unchecked, with no discount applied, on
+    // every fresh page view - it is an explicit choice, never remembered. This runs once, the
+    // first time the checkbox appears - not at script load, since window.wc.blocksCheckout
+    // may not exist yet at that point - so a value left over from an earlier attempt (this
+    // plugin's own session flag, or a value WooCommerce itself pre-filled the field with)
+    // never lingers into a totals preview, or a checked box, the customer never asked for.
+    // Later remounts of the same field (e.g. an eligibility-driven re-render) are left
+    // alone, so a choice already made during this same visit is never silently undone.
     if (!hasReset) {
       hasReset = true;
+      uncheckIfChecked($checkbox);
       syncChecked(false);
     }
 
     applyState($checkbox);
-    updateRecurringDayNotice($checkbox);
+    updateDeliveryNotice($checkbox);
 
     if ($checkbox.data('fcsBound')) {
       return;
@@ -254,13 +264,13 @@ jQuery(function ($) {
 
     $checkbox.data('fcsBound', true).on('change', function () {
       syncChecked(this.checked);
-      updateRecurringDayNotice($checkbox);
+      updateDeliveryNotice($checkbox);
     });
 
     // The fulfilment date field mounts and changes independently of this one; a
     // delegated listener catches it whether it appears before or after this checkbox.
     $(document.body).on('change', '[data-fcs-block-fulfilment-date]', function () {
-      updateRecurringDayNotice($checkbox);
+      updateDeliveryNotice($checkbox);
     });
   }
 

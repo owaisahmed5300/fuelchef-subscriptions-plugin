@@ -23,6 +23,7 @@ final class Settings_Test extends TestCase {
 		parent::setUp();
 
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 	}
 
 	/**

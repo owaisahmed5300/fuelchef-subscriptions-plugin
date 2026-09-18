@@ -1,11 +1,8 @@
 <?php
 /**
- * Classic checkout subscribe-and-save checkbox.
+ * Classic checkout subscribe-discount checkbox.
  *
- * This template can be overridden by copying it to
- * yourtheme/fuelchef-subscriptions/checkout/subscribe-and-save.php.
- *
- * @var bool $eligible Whether the cart currently meets the store's Subscribe & Save minimums.
+ * @var bool $eligible Whether the cart currently meets the store's subscribe-discount minimums.
  * @var bool $checked Whether the checkbox should render checked.
  * @var string $label The checkbox's label.
  * @var string $description The checkbox's help text, empty to show none.
@@ -37,5 +34,3 @@ woocommerce_form_field(
 	],
 	$checked ? '1' : ''
 );
-?>
-<p id="fcsRecurringDayNotice" class="fcs-recurring-day-notice" aria-live="polite" hidden></p>

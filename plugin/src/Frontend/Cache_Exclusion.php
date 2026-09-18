@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
  * WooCommerce's own cache exclusion only ever covers the page configured under
  * WooCommerce > Settings > Advanced, so a page that merely embeds the checkout shortcode or
  * block elsewhere would otherwise be cached like any other page - freezing one customer's
- * cart contents, login state and Subscribe & Save eligibility into a full-page cache and
+ * cart contents, login state and subscribe-discount eligibility into a full-page cache and
  * serving them to every later visitor.
  */
 final class Cache_Exclusion {

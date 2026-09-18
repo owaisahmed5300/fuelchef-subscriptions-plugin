@@ -31,7 +31,9 @@ trait Verifies_Ajax_Request {
 		}
 
 		wp_send_json_error(
-			[ 'message' => esc_html__( 'You do not have permission to do this.', 'fuelchef-subscriptions' ) ],
+			// __(), not esc_html__(): sent as JSON and displayed as plain text by an admin
+			// toast - see `Validation_Exception`'s class docblock for the full reasoning.
+			[ 'message' => __( 'You do not have permission to do this.', 'fuelchef-subscriptions' ) ],
 			403
 		);
 	}

@@ -5,9 +5,6 @@
  *
  * A `<tr>`, not a `<p>` - see fulfilment-date-field.php for why.
  *
- * This template can be overridden by copying it to
- * yourtheme/fuelchef-subscriptions/checkout/fulfilment-date-no-match.php.
- *
  * @var string $label The field's label.
  */
 

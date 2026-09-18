@@ -107,17 +107,26 @@ final class Settings_Store {
 	/**
 	 * The default fulfilment date checkout field label, translated once here rather than
 	 * hardcoded in `Settings`, which has no access to WordPress i18n context at call time.
+	 *
+	 * Deliberately `__()`, not `esc_html__()`: classic checkout renders a label through
+	 * `woocommerce_form_field()`'s own `wp_kses_post()`, and block checkout renders it as
+	 * a plain React text node - both expect raw text and escape (or don't need to escape)
+	 * it themselves, so a pre-escaped value here would show a literal HTML entity instead
+	 * of the character it represents. The store's own customised label, read via
+	 * `label()` below, is raw for the same reason.
 	 */
 	private function default_fulfilment_date_label(): string {
-		return esc_html__( 'Fulfilment date', 'fuelchef-subscriptions' );
+		return __( 'Fulfilment date', 'fuelchef-subscriptions' );
 	}
 
 	/**
-	 * The default subscribe-and-save checkbox label.
+	 * The default subscribe-discount checkbox label. See
+	 * {@see self::default_fulfilment_date_label()} for why this is `__()`, not
+	 * `esc_html__()`.
 	 */
 	private function default_subscribe_save_label(): string {
 		/* translators: {percent} is replaced with the discount percentage at render time, not a PHP placeholder. */
-		return esc_html__( 'Subscribe & Save {percent}%', 'fuelchef-subscriptions' );
+		return __( 'Subscribe for {percent}% off weekly delivery', 'fuelchef-subscriptions' );
 	}
 
 	/**

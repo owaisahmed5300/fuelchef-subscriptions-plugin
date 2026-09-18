@@ -1,9 +1,6 @@
 <?php
 /**
- * Classic checkout subscribe-and-save logged-out message.
- *
- * This template can be overridden by copying it to
- * yourtheme/fuelchef-subscriptions/checkout/subscribe-and-save-logged-out.php.
+ * Classic checkout subscribe-discount logged-out message.
  *
  * @var string $message The logged-out message.
  * @var string $login_url The login URL, redirecting back to checkout once signed in.

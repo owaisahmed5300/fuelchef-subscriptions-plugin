@@ -39,6 +39,7 @@ jQuery(function ($) {
   let currentSelect = null;
   let currentWindows = {};
   let lastDestinationKey = null;
+  let hasReset = false;
   let refetchTimer = null;
 
   function fieldWrapper($select) {
@@ -270,6 +271,17 @@ jQuery(function ($) {
   function attach($select) {
     currentSelect = $select;
     lastDestinationKey = currentDestinationKey();
+
+    // The fulfilment date is an explicit choice, never remembered - it must always start
+    // blank on a fresh page view, even if WooCommerce itself (or a stale value from an
+    // earlier attempt) initialised the field with something else. This runs once, the
+    // first time the field mounts; a later remount of the same field (e.g. an
+    // eligibility-driven re-render) is left alone, so a date already chosen during this
+    // same visit is never silently cleared.
+    if (!hasReset) {
+      hasReset = true;
+      $select.val('');
+    }
 
     disableGroupHeadings($select);
     addDescription($select);

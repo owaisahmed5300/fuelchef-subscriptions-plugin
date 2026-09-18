@@ -5,9 +5,6 @@
  * A `<tr>`, not `woocommerce_form_field()`'s own `<p>` markup - only `<tr>` is valid
  * directly inside the `<tfoot>` this renders in.
  *
- * This template can be overridden by copying it to
- * yourtheme/fuelchef-subscriptions/checkout/fulfilment-date-field.php.
- *
  * @var list<string> $eligible_dates Eligible dates for the chosen destination, `Y-m-d`.
  * @var array<string, array{start: string, end: string}> $windows Fulfilment windows, keyed by date.
  * @var string $label The field's label.

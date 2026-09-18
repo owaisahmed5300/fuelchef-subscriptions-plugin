@@ -140,8 +140,8 @@ final class Assets {
 		);
 
 		wp_enqueue_script(
-			'fcs-recurring-day-notice',
-			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/recurring-day-notice.js',
+			'fcs-delivery-notice',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/checkout/js/delivery-notice.js',
 			[ 'jquery', 'fcs-checkout-shared' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION,
 			true
@@ -151,9 +151,9 @@ final class Assets {
 	/**
 	 * Enqueues the assets only the Checkout block's own fields need - the block's shared
 	 * "Order information" wrapper styling, the fulfilment date field's native <select>
-	 * styling and enhancement script, and the Subscribe & Save checkbox's own script.
-	 * Block checkout's own recurring-day notice lives inside that last script, unlike
-	 * classic checkout's separate fcs-recurring-day-notice.
+	 * styling and enhancement script, and the subscribe-discount checkbox's own script.
+	 * Block checkout's own delivery notice lives inside that last script, unlike classic
+	 * checkout's separate fcs-delivery-notice.
 	 */
 	private function enqueue_block(): void {
 		wp_enqueue_style(
@@ -206,24 +206,32 @@ final class Assets {
 	 * hardcoded in JavaScript. Month and weekday names reuse WordPress's own translated
 	 * locale data instead of asking translators for the same strings again.
 	 *
+	 * Every value is `__()`, not `esc_html__()`: each one is only ever inserted client-side
+	 * through jQuery `.text()` or `setAttribute()`, neither of which decodes an HTML
+	 * entity - a pre-escaped string would show a literal "&amp;" instead of "&". See
+	 * `Values\Settings::ineligible_message_resolved()` for the same reasoning on the
+	 * settings-driven strings this localizes alongside these.
+	 *
 	 * @return array<string, string|list<string>> The strings, keyed by name.
 	 */
 	private function strings( Settings $settings ): array {
 		return [
-			'chooseDate'            => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
-			'logIn'                 => esc_html__( 'Log in', 'fuelchef-subscriptions' ),
-			'noFulfilmentDateMatch' => esc_html__( 'No fulfilment dates are available for this location.', 'fuelchef-subscriptions' ),
+			'chooseDate'              => __( 'Choose a date', 'fuelchef-subscriptions' ),
+			'logIn'                   => __( 'Log in', 'fuelchef-subscriptions' ),
+			'noFulfilmentDateMatch'   => __( 'No fulfilment dates are available for this location.', 'fuelchef-subscriptions' ),
 			// The store's configured (or default) wording, still carrying the literal
 			// {start}/{end} placeholders for the enhancement scripts to fill in per date -
 			// passing the placeholder names themselves back in as the substitution values
 			// reuses the same resolution/fallback logic without actually substituting yet.
-			'fulfilmentWindow'      => $settings->fulfilment_window_message_resolved( '{start}', '{end}' ),
-			/* translators: %s: weekday name, e.g. "Thursday". Resolved client-side. */
-			'recurringDayNotice'    => esc_html__( 'Your subscription will renew every %s.', 'fuelchef-subscriptions' ),
-			'monthNames'            => array_values( Locale::current()->month ),
-			'monthNamesShort'       => array_values( Locale::current()->month_abbrev ),
-			'dayNames'              => array_values( Locale::current()->weekday ),
-			'dayNamesShort'         => array_values( Locale::current()->weekday_abbrev ),
+			'fulfilmentWindow'        => $settings->fulfilment_window_message_resolved( '{start}', '{end}' ),
+			/* translators: %s: the chosen fulfilment date, e.g. "14 October 2026". Resolved client-side. */
+			'singleDeliveryNotice'    => __( 'Your order will be delivered on %s.', 'fuelchef-subscriptions' ),
+			/* translators: %1$s: weekday name, e.g. "Thursday". %2$s: the first fulfilment date, e.g. "14 October 2026". Both resolved client-side. */
+			'recurringDeliveryNotice' => __( 'Your meals will be delivered every %1$s, starting %2$s.', 'fuelchef-subscriptions' ),
+			'monthNames'              => array_values( Locale::current()->month ),
+			'monthNamesShort'         => array_values( Locale::current()->month_abbrev ),
+			'dayNames'                => array_values( Locale::current()->weekday ),
+			'dayNamesShort'           => array_values( Locale::current()->weekday_abbrev ),
 		];
 	}
 }

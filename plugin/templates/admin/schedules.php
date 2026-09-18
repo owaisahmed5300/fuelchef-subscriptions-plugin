@@ -20,10 +20,7 @@ use FuelChef\Subscriptions\Entities\Schedule;
 
 defined( 'ABSPATH' ) || exit;
 
-$base_url           = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
-$schedules          = $data['schedules'];
-$selected           = $data['selected'];
-$destination_counts = $data['destination_counts'];
+$base_url = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
 ?>
 <div class="wrap">
 	<div class="fcs-admin fcs-wrap fcs-editor-shell">

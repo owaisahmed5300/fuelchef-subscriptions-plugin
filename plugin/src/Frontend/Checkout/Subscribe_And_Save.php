@@ -7,11 +7,12 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend\Checkout;
 
+use FuelChef\Subscriptions\Services\Checkout_Presence;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
 use FuelChef\Subscriptions\Services\Subscribe_Eligibility_Service;
 use FuelChef\Subscriptions\Utils\Narrow;
-use FuelChef\Subscriptions\Utils\Wc_Template_Renderer;
+use FuelChef\Subscriptions\Utils\Renderer;
 use FuelChef\Subscriptions\Values\Settings;
 use WC_Cart;
 use WC_Order;
@@ -19,15 +20,22 @@ use WC_Order;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Adds the "Subscribe & Save" checkbox to classic checkout, and the cart discount it
+ * Adds the subscribe-discount checkbox to classic checkout, and the cart discount it
  * unlocks. Only offered to a logged-in customer whose cart meets the store's configured
  * minimum order amount and quantity - a logged-out customer sees a message with a Log in
  * link instead, and a logged-in customer with an ineligible cart sees a different message.
+ * Regardless of any of that, {@see self::render()} always renders the delivery-date notice
+ * first - every customer who has chosen a fulfilment date is told when their order arrives,
+ * whether or not they can see (or check) the discount checkbox at all.
  *
- * Reads nothing of its own beyond the checkbox's current value, read straight from the
- * current request on every use rather than cached on the instance. Block checkout has no
- * `$_POST` at all - its own checkbox drives this cart-level fee through
- * {@see self::set_session_checked()} instead, called by `Block\Subscribe_And_Save`'s
+ * The checkbox is never pre-checked from a previous visit - it is an explicit choice made
+ * fresh on every checkout attempt, never remembered. {@see self::render()} reflects only
+ * the current request's own posted value, and {@see self::reset_session_on_fresh_visit()}
+ * clears the session flag block checkout relies on (see below) the moment a customer lands
+ * on checkout, before anything can read a stale value left over from an earlier attempt.
+ *
+ * Block checkout has no `$_POST` at all - its own checkbox drives this cart-level fee
+ * through {@see self::set_session_checked()} instead, called by `Block\Subscribe_And_Save`'s
  * Store API update callback.
  */
 final class Subscribe_And_Save {
@@ -55,9 +63,10 @@ final class Subscribe_And_Save {
 	 */
 	public function __construct(
 		private Settings_Store $settings,
-		private Wc_Template_Renderer $renderer,
+		private Renderer $renderer,
 		private Subscribe_Discount_Service $discount_service,
-		private Subscribe_Eligibility_Service $eligibility_service
+		private Subscribe_Eligibility_Service $eligibility_service,
+		private Checkout_Presence $checkout_presence
 	) {
 	}
 
@@ -65,16 +74,33 @@ final class Subscribe_And_Save {
 	 * Hooks this discount into the classic checkout lifecycle.
 	 */
 	public function register(): void {
+		add_action( 'template_redirect', [ $this, 'reset_session_on_fresh_visit' ] );
 		add_action( 'woocommerce_review_order_before_submit', [ $this, 'render' ] );
 		add_action( 'woocommerce_cart_calculate_fees', [ $this, 'maybe_apply_discount' ] );
 		add_action( 'woocommerce_checkout_create_order', [ $this, 'persist' ], 10, 2 );
 	}
 
 	/**
-	 * Renders the checkbox for a logged-in, eligible customer, checked when the current
-	 * request already has it checked - the logged-out message when the customer has no
-	 * account, or the ineligible message when the cart does not meet the store's
-	 * configured minimums.
+	 * Clears block checkout's session flag the moment a customer lands on checkout, so a
+	 * value left over from an earlier, separate checkout attempt never leaks into this one.
+	 * Runs on `template_redirect` - a real page load, never `update_order_review`'s ajax
+	 * refresh or the Store API's own requests - so it never fights a choice the customer
+	 * has already made during the current visit.
+	 */
+	public function reset_session_on_fresh_visit(): void {
+		if ( $this->checkout_presence->has_either() ) {
+			$this->set_session_checked( false );
+		}
+	}
+
+	/**
+	 * Always renders the delivery-date notice marker first - `assets/checkout/js/delivery-notice.js`
+	 * fills it in once a fulfilment date is chosen, whether or not this customer can even
+	 * see the checkbox below. Then the checkbox for a logged-in, eligible customer, checked
+	 * only when the current request's own posted data already has it checked - never from
+	 * session, so a fresh page load always renders unchecked - the logged-out message when
+	 * the customer has no account, or the ineligible message when the cart does not meet
+	 * the store's configured minimums.
 	 */
 	public function render(): void {
 		$cart = WC()->cart;
@@ -83,11 +109,13 @@ final class Subscribe_And_Save {
 			return;
 		}
 
+		echo $this->renderer->render( 'frontend/checkout/delivery-notice' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
 		$settings = $this->settings->get();
 
 		if ( ! is_user_logged_in() ) {
 			$html = $this->renderer->render(
-				'checkout/subscribe-and-save-logged-out',
+				'frontend/checkout/subscribe-and-save-logged-out',
 				[
 					'message'   => $settings->logged_out_message_resolved(),
 					'login_url' => $this->login_url(),
@@ -101,10 +129,10 @@ final class Subscribe_And_Save {
 		$eligible = $this->is_cart_eligible( $cart, $settings );
 
 		$html = $this->renderer->render(
-			'checkout/subscribe-and-save',
+			'frontend/checkout/subscribe-and-save',
 			[
 				'eligible'           => $eligible,
-				'checked'            => $eligible && $this->is_checked_in_request(),
+				'checked'            => $eligible && $this->checked_in_posted_data(),
 				'label'              => $settings->subscribe_save_label_resolved(),
 				'description'        => $settings->subscribe_save_description_resolved(),
 				'ineligible_message' => $settings->ineligible_message_resolved(),
@@ -138,7 +166,7 @@ final class Subscribe_And_Save {
 		}
 
 		$cart->add_fee(
-			esc_html__( 'Subscribe & Save discount', 'fuelchef-subscriptions' ),
+			esc_html__( 'Subscribe Discount', 'fuelchef-subscriptions' ),
 			-$amount
 		);
 	}
@@ -197,11 +225,12 @@ final class Subscribe_And_Save {
 
 	/**
 	 * Whether the checkbox is checked in the current request - read from `post_data` on
-	 * an `update_order_review` AJAX refresh, the field directly on a final classic
-	 * checkout submission, or {@see self::SESSION_KEY} when neither `$_POST` source is
-	 * present at all, which is always true for block checkout's own Store API requests.
+	 * an `update_order_review` AJAX refresh, or the field directly on a final classic
+	 * checkout submission. False when neither `$_POST` source is present at all, rather
+	 * than falling back to anything remembered - used by {@see self::render()}, which must
+	 * never show the checkbox pre-checked from an earlier attempt.
 	 */
-	private function is_checked_in_request(): bool {
+	private function checked_in_posted_data(): bool {
 		if ( isset( $_POST['post_data'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$post_data = Narrow::string( wp_unslash( $_POST['post_data'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
@@ -210,8 +239,19 @@ final class Subscribe_And_Save {
 			return '' !== Narrow::string( $parsed[ self::FIELD_NAME ] ?? null );
 		}
 
-		if ( isset( $_POST[ self::FIELD_NAME ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			return true;
+		return isset( $_POST[ self::FIELD_NAME ] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	}
+
+	/**
+	 * Whether the checkbox is checked in the current request - {@see self::checked_in_posted_data()},
+	 * or {@see self::SESSION_KEY} when neither `$_POST` source is present at all, which is
+	 * always true for block checkout's own Store API requests. Safe to fall back to session
+	 * here (unlike `render()`): {@see self::reset_session_on_fresh_visit()} guarantees that
+	 * value only ever reflects a choice made during the customer's current checkout visit.
+	 */
+	private function is_checked_in_request(): bool {
+		if ( isset( $_POST['post_data'] ) || isset( $_POST[ self::FIELD_NAME ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			return $this->checked_in_posted_data();
 		}
 
 		return null !== WC()->session && (bool) WC()->session->get( self::SESSION_KEY, false );

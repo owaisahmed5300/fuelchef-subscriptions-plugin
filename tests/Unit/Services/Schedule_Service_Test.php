@@ -67,6 +67,7 @@ final class Schedule_Service_Test extends Repository_TestCase {
 
 	public function test_create_rejects_a_blank_name(): void {
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 
 		$this->expectException( Validation_Exception::class );
 
@@ -96,6 +97,7 @@ final class Schedule_Service_Test extends Repository_TestCase {
 
 	public function test_rename_rejects_a_blank_name(): void {
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 
 		$this->expectException( Validation_Exception::class );
 
@@ -138,6 +140,7 @@ final class Schedule_Service_Test extends Repository_TestCase {
 
 	public function test_update_weekday_rejects_an_invalid_start_time(): void {
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 		Functions\when( 'esc_html' )->returnArg( 1 );
 
 		$this->expectException( Validation_Exception::class );
@@ -147,6 +150,7 @@ final class Schedule_Service_Test extends Repository_TestCase {
 
 	public function test_update_weekday_rejects_an_invalid_end_time(): void {
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 		Functions\when( 'esc_html' )->returnArg( 1 );
 
 		$this->expectException( Validation_Exception::class );
@@ -156,6 +160,7 @@ final class Schedule_Service_Test extends Repository_TestCase {
 
 	public function test_update_weekday_rejects_an_end_time_that_is_not_after_the_start_time(): void {
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 		Functions\when( 'esc_html' )->returnArg( 1 );
 
 		$this->expectException( Validation_Exception::class );
@@ -168,6 +173,7 @@ final class Schedule_Service_Test extends Repository_TestCase {
 		$wpdb->shouldReceive( 'get_results' )->once()->andReturn( [] );
 
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 
 		$this->expectException( Validation_Exception::class );
 
@@ -220,6 +226,7 @@ final class Schedule_Service_Test extends Repository_TestCase {
 		$wpdb->shouldReceive( 'update' )->once()->andReturn( 1 );
 
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 		Functions\when( 'esc_html' )->returnArg( 1 );
 
 		$this->expectException( Validation_Exception::class );
@@ -316,6 +323,7 @@ final class Schedule_Service_Test extends Repository_TestCase {
 		$wpdb->shouldReceive( 'get_results' )->once()->andReturn( [] );
 
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 
 		$this->expectException( Validation_Exception::class );
 

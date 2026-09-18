@@ -19,9 +19,6 @@ use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
 defined( 'ABSPATH' ) || exit;
 
-$settings        = $data['settings'];
-$applicabilities = $data['applicabilities'];
-$currency_symbol = $data['currency_symbol'];
 ?>
 <div class="wrap">
 	<div class="fcs-admin fcs-wrap fcs-editor-shell">
@@ -297,14 +294,14 @@ $currency_symbol = $data['currency_symbol'];
 				<div class="fcs-card">
 					<div class="fcs-card__header">
 						<h2 class="fcs-card__title">
-							<?php esc_html_e( 'Subscribe & Save', 'fuelchef-subscriptions' ); ?>
+							<?php esc_html_e( 'Subscribe Discount', 'fuelchef-subscriptions' ); ?>
 						</h2>
 					</div>
 					<div class="fcs-card__body">
 						<p class="fcs-card__intro">
 							<?php
 							esc_html_e(
-								'Configure the discount a customer gets for subscribing at checkout, and the wording shown next to the Subscribe & Save checkbox.',
+								'Configure the discount a customer gets for subscribing to weekly delivery at checkout, and the wording shown next to the checkbox.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -357,7 +354,7 @@ $currency_symbol = $data['currency_symbol'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Use {percent} anywhere you want the current discount to appear, e.g. "Subscribe & Save {percent}%".',
+									'Use {percent} anywhere you want the current discount to appear, e.g. "Subscribe for {percent}% off weekly delivery".',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -370,7 +367,7 @@ $currency_symbol = $data['currency_symbol'];
 							</label>
 							<?php
 							$subscribe_save_description_placeholder = __(
-								'e.g. Get {percent}% off this order and every renewal.',
+								'e.g. Get {percent}% off every scheduled delivery.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -408,7 +405,7 @@ $currency_symbol = $data['currency_symbol'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Cart subtotal required before Subscribe & Save is offered. 0 means no restriction.',
+									'Cart subtotal required before the subscribe discount is offered. 0 means no restriction.',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -429,7 +426,7 @@ $currency_symbol = $data['currency_symbol'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Cart items required before Subscribe & Save is offered. 0 means no restriction.',
+									'Cart items required before the subscribe discount is offered. 0 means no restriction.',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -449,7 +446,7 @@ $currency_symbol = $data['currency_symbol'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Shown instead of Subscribe & Save when the cart doesn\'t qualify. Leave blank to use the default wording.',
+									'Shown instead of the subscribe discount when the cart doesn\'t qualify. Leave blank to use the default wording.',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -469,7 +466,7 @@ $currency_symbol = $data['currency_symbol'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Shown instead of Subscribe & Save when the customer isn\'t logged in, next to a Log in link. Leave blank to use the default wording.',
+									'Shown instead of the subscribe discount when the customer isn\'t logged in, next to a Log in link. Leave blank to use the default wording.',
 									'fuelchef-subscriptions'
 								);
 								?>

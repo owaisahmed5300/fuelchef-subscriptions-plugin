@@ -38,7 +38,7 @@ final class Destination_Option {
 		private bool $enabled = true
 	) {
 		if ( ! Destination_Type::is_valid( $type ) ) {
-			throw new InvalidArgumentException( esc_html__( 'Invalid destination type.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Invalid destination type.', 'fuelchef-subscriptions' ) );
 		}
 	}
 

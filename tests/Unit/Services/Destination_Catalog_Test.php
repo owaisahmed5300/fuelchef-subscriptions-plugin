@@ -58,6 +58,7 @@ final class Destination_Catalog_Test extends TestCase {
 		WC_Shipping_Zones::$zone = new WC_Shipping_Zone( 'Rest of the World' );
 
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 
 		$options = ( new Destination_Catalog() )->for_type( Destination_Type::SHIPPING_ZONE );
 

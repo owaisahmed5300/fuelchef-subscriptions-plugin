@@ -18,7 +18,7 @@ use WC_Order_Item_Fee;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Registers the "Subscribe & Save" checkbox for the Checkout block, and applies the same
+ * Registers the subscribe-discount checkbox for the Checkout block, and applies the same
  * discount the classic checkout checkbox unlocks. Only offered to a logged-in customer
  * whose cart is eligible, same as classic checkout's own field - but the field itself
  * stays registered for a logged-out or currently-ineligible customer too, since the
@@ -188,7 +188,7 @@ final class Subscribe_And_Save {
 	 * a raw string.
 	 */
 	private function fee_name(): string {
-		return esc_html__( 'Subscribe & Save discount', 'fuelchef-subscriptions' );
+		return esc_html__( 'Subscribe Discount', 'fuelchef-subscriptions' );
 	}
 
 	/**

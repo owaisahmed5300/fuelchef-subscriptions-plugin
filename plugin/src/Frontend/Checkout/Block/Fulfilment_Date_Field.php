@@ -114,7 +114,9 @@ final class Fulfilment_Date_Field {
 				'location'      => 'order',
 				'type'          => 'select',
 				'required'      => false,
-				'placeholder'   => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
+				// Not esc_html__() either - same reason as 'label' above, a placeholder is a
+				// plain prop, not HTML.
+				'placeholder'   => __( 'Choose a date', 'fuelchef-subscriptions' ),
 				'options'       => $this->window_options(),
 				'attributes'    => [
 					self::DATA_ATTRIBUTE => '1',
@@ -196,7 +198,7 @@ final class Fulfilment_Date_Field {
 
 		$errors->add(
 			'fcs_fulfilment_date',
-			esc_html__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' )
+			__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' )
 		);
 	}
 
@@ -221,7 +223,7 @@ final class Fulfilment_Date_Field {
 
 		throw new RouteException(
 			'fcs_fulfilment_date_required',
-			esc_html__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' ),
+			__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' ),
 			400
 		);
 	}

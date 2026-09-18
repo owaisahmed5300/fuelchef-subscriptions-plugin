@@ -55,14 +55,16 @@ final class Subscribe_Applicability {
 	 * Returns the translated, human-readable label for an applicability value.
 	 *
 	 * Falls back to the value itself when it is not a known one, since this is a display
-	 * helper, not a validator.
+	 * helper, not a validator. Deliberately `__()`, not `esc_html__()`: its only caller
+	 * (the settings screen template) already applies `esc_html()` of its own when echoing
+	 * this - pre-escaping it here would double-escape it.
 	 *
 	 * @param string $applicability Applicability value.
 	 */
 	public static function label( string $applicability ): string {
 		$labels = [
-			self::INITIAL_AND_RENEWALS => esc_html__( 'Initial order + renewals', 'fuelchef-subscriptions' ),
-			self::RENEWAL_ONLY         => esc_html__( 'Renewals only', 'fuelchef-subscriptions' ),
+			self::INITIAL_AND_RENEWALS => __( 'First order and future deliveries', 'fuelchef-subscriptions' ),
+			self::RENEWAL_ONLY         => __( 'Future deliveries only', 'fuelchef-subscriptions' ),
 		];
 
 		return $labels[ $applicability ] ?? $applicability;

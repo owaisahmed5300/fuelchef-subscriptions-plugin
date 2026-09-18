@@ -1,5 +1,5 @@
 /**
- * FuelChef Subscriptions - Subscribe & Save checkout field
+ * FuelChef Subscriptions - Subscribe-discount checkout field
  *
  * Classic checkout renders this via woocommerce_form_field() as a native `form-row`
  * checkbox field, so its rule below only adds the small amount of styling WooCommerce's
@@ -51,10 +51,20 @@
 	white-space: nowrap;
 }
 
-.fcs-recurring-day-notice {
-	margin: 0.4em 0 0;
+/*
+ * Deliberately styled as a highlighted notice, not a plain caption like the description
+ * and help text rules above it - this is the one message on checkout that tells the
+ * customer when their order is arriving, and it was easy to miss as a small grey line
+ * among the rest of the order review's helper text.
+ */
+.fcs-delivery-notice {
+	margin: 0.6em 0 1em;
+	padding: 0.6em 0.85em;
+	background-color: #eef1fd;
+	border: 1px solid #c7d3f7;
+	border-radius: 4px;
 	font-size: 0.9em;
 	font-weight: 600;
 	line-height: 1.4;
-	color: #646970;
+	color: #1d2327;
 }

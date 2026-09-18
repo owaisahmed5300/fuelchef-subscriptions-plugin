@@ -84,6 +84,11 @@ final class Day_Of_Week {
 	/**
 	 * Returns the translated, human-readable label for a day of week.
 	 *
+	 * Deliberately `__()`, not `esc_html__()`, throughout this class: its only current
+	 * caller (`Admin\Assets::strings()`) passes the result to JavaScript, which inserts it
+	 * through `FCS.escapeHtml()` when building an HTML string - a pre-escaped value would
+	 * be escaped twice.
+	 *
 	 * @param int $day_of_week Day of week value.
 	 */
 	public static function label( int $day_of_week ): string {
@@ -91,7 +96,7 @@ final class Day_Of_Week {
 
 		if ( ! isset( $labels[ $day_of_week ] ) ) {
 			throw new InvalidArgumentException(
-				esc_html__( 'Day of week must be between 0 and 6.', 'fuelchef-subscriptions' )
+				__( 'Day of week must be between 0 and 6.', 'fuelchef-subscriptions' )
 			);
 		}
 
@@ -108,7 +113,7 @@ final class Day_Of_Week {
 
 		if ( ! isset( $labels[ $day_of_week ] ) ) {
 			throw new InvalidArgumentException(
-				esc_html__( 'Day of week must be between 0 and 6.', 'fuelchef-subscriptions' )
+				__( 'Day of week must be between 0 and 6.', 'fuelchef-subscriptions' )
 			);
 		}
 
@@ -122,13 +127,13 @@ final class Day_Of_Week {
 	 */
 	private static function labels(): array {
 		return [
-			self::SUNDAY    => esc_html__( 'Sunday', 'fuelchef-subscriptions' ),
-			self::MONDAY    => esc_html__( 'Monday', 'fuelchef-subscriptions' ),
-			self::TUESDAY   => esc_html__( 'Tuesday', 'fuelchef-subscriptions' ),
-			self::WEDNESDAY => esc_html__( 'Wednesday', 'fuelchef-subscriptions' ),
-			self::THURSDAY  => esc_html__( 'Thursday', 'fuelchef-subscriptions' ),
-			self::FRIDAY    => esc_html__( 'Friday', 'fuelchef-subscriptions' ),
-			self::SATURDAY  => esc_html__( 'Saturday', 'fuelchef-subscriptions' ),
+			self::SUNDAY    => __( 'Sunday', 'fuelchef-subscriptions' ),
+			self::MONDAY    => __( 'Monday', 'fuelchef-subscriptions' ),
+			self::TUESDAY   => __( 'Tuesday', 'fuelchef-subscriptions' ),
+			self::WEDNESDAY => __( 'Wednesday', 'fuelchef-subscriptions' ),
+			self::THURSDAY  => __( 'Thursday', 'fuelchef-subscriptions' ),
+			self::FRIDAY    => __( 'Friday', 'fuelchef-subscriptions' ),
+			self::SATURDAY  => __( 'Saturday', 'fuelchef-subscriptions' ),
 		];
 	}
 
@@ -140,19 +145,19 @@ final class Day_Of_Week {
 	private static function short_labels(): array {
 		return [
 			/* translators: Abbreviated weekday name, as short as the language allows. */
-			self::SUNDAY    => esc_html__( 'Sun', 'fuelchef-subscriptions' ),
+			self::SUNDAY    => __( 'Sun', 'fuelchef-subscriptions' ),
 			/* translators: Abbreviated weekday name, as short as the language allows. */
-			self::MONDAY    => esc_html__( 'Mon', 'fuelchef-subscriptions' ),
+			self::MONDAY    => __( 'Mon', 'fuelchef-subscriptions' ),
 			/* translators: Abbreviated weekday name, as short as the language allows. */
-			self::TUESDAY   => esc_html__( 'Tue', 'fuelchef-subscriptions' ),
+			self::TUESDAY   => __( 'Tue', 'fuelchef-subscriptions' ),
 			/* translators: Abbreviated weekday name, as short as the language allows. */
-			self::WEDNESDAY => esc_html__( 'Wed', 'fuelchef-subscriptions' ),
+			self::WEDNESDAY => __( 'Wed', 'fuelchef-subscriptions' ),
 			/* translators: Abbreviated weekday name, as short as the language allows. */
-			self::THURSDAY  => esc_html__( 'Thu', 'fuelchef-subscriptions' ),
+			self::THURSDAY  => __( 'Thu', 'fuelchef-subscriptions' ),
 			/* translators: Abbreviated weekday name, as short as the language allows. */
-			self::FRIDAY    => esc_html__( 'Fri', 'fuelchef-subscriptions' ),
+			self::FRIDAY    => __( 'Fri', 'fuelchef-subscriptions' ),
 			/* translators: Abbreviated weekday name, as short as the language allows. */
-			self::SATURDAY  => esc_html__( 'Sat', 'fuelchef-subscriptions' ),
+			self::SATURDAY  => __( 'Sat', 'fuelchef-subscriptions' ),
 		];
 	}
 }

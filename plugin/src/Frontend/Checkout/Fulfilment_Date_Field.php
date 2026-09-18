@@ -10,7 +10,7 @@ namespace FuelChef\Subscriptions\Frontend\Checkout;
 use FuelChef\Subscriptions\Services\Current_Fulfilment_Window;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Utils\Narrow;
-use FuelChef\Subscriptions\Utils\Wc_Template_Renderer;
+use FuelChef\Subscriptions\Utils\Renderer;
 use WC_Order;
 use WP_Error;
 
@@ -51,7 +51,7 @@ final class Fulfilment_Date_Field {
 	public function __construct(
 		private Current_Fulfilment_Window $window,
 		private Settings_Store $settings,
-		private Wc_Template_Renderer $renderer
+		private Renderer $renderer
 	) {
 	}
 
@@ -92,7 +92,7 @@ final class Fulfilment_Date_Field {
 
 		if ( null === $schedule ) {
 			$html = $this->renderer->render(
-				'checkout/fulfilment-date-no-match',
+				'frontend/checkout/fulfilment-date-no-match',
 				[ 'label' => $settings->fulfilment_date_label() ]
 			);
 
@@ -108,7 +108,7 @@ final class Fulfilment_Date_Field {
 			: null;
 
 		$html = $this->renderer->render(
-			'checkout/fulfilment-date-field',
+			'frontend/checkout/fulfilment-date-field',
 			[
 				'eligible_dates'  => $eligible_dates,
 				'windows'         => $this->window->windows_for_dates( $schedule, $eligible_dates ),
@@ -164,7 +164,7 @@ final class Fulfilment_Date_Field {
 
 		$errors->add(
 			'fcs_fulfilment_date',
-			esc_html__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' )
+			__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' )
 		);
 	}
 

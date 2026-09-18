@@ -23,6 +23,7 @@ final class Subscribe_Eligibility_Service_Test extends TestCase {
 		parent::setUp();
 
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 	}
 
 	private function settings( float $minimum_order_amount, int $minimum_cart_quantity ): Settings {

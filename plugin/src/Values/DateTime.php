@@ -206,7 +206,7 @@ final class DateTime {
 			throw new InvalidArgumentException(
 				sprintf(
 				/* translators: %s: expected date/time format, e.g. Y-m-d H:i:s (not translated). */
-					esc_html__( 'Invalid date/time value. Expected format: %s.', 'fuelchef-subscriptions' ),
+					__( 'Invalid date/time value. Expected format: %s.', 'fuelchef-subscriptions' ),
 					$format
 				)
 			);
