@@ -21,10 +21,10 @@ business logic.
 1. Add the bare table name to `Database\Tables`, and a `CREATE TABLE` method on
    `Database\Installer` (added as a closure in its `schemas()` method — see the existing
    four for the `PRIMARY KEY  (id)` double-space dbDelta quirk).
-2. Add an entity under `Entities\` implementing `Contracts\Entity` (`use
-   Concerns\Has_Id` for its `id()`/`set_id()`); add `Contracts\Timestamped` (`use
-   Concerns\Has_Timestamps`) if it has `date_created`/`date_updated` columns, which every
-   table here does so far.
+2. Add an entity under `Entities\` implementing `Entities\Contracts\Entity` (`use
+   Entities\Concerns\Has_Id` for its `id()`/`set_id()`); add `Entities\Contracts\Timestamped`
+   (`use Entities\Concerns\Has_Timestamps`) if it has `date_created`/`date_updated` columns,
+   which every table here does so far.
 3. Add a repository under `Repositories\` extending
    `Repositories\Abstract_Repository<TheEntity>`. It supplies `$table`,
    `$cache_group`, `hydrate()` and `dehydrate()`; `find()`/`insert()`/`update()`/

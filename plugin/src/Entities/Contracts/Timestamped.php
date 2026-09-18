@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Contracts;
+namespace FuelChef\Subscriptions\Entities\Contracts;
 
 use FuelChef\Subscriptions\Values\DateTime;
 

@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Repositories;
 
-use FuelChef\Subscriptions\Contracts\Entity;
-use FuelChef\Subscriptions\Contracts\Timestamped;
 use FuelChef\Subscriptions\Database\Tables;
+use FuelChef\Subscriptions\Entities\Contracts\Entity;
+use FuelChef\Subscriptions\Entities\Contracts\Timestamped;
 use FuelChef\Subscriptions\Repositories\Exceptions\Entity_Not_Found_Exception;
 use FuelChef\Subscriptions\Repositories\Exceptions\Repository_Exception;
 use FuelChef\Subscriptions\Utils\Clock;
