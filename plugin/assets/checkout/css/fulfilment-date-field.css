@@ -54,3 +54,11 @@
 	font-size: 0.9em;
 	color: #646970;
 }
+
+.fcs-fulfilment-date-no-match {
+	margin: 0;
+	font-size: 0.9em;
+	font-weight: 500;
+	line-height: 1.4;
+	color: #cc1818;
+}

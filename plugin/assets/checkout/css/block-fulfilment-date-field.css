@@ -20,3 +20,11 @@
 [data-fcs-block-fulfilment-date] + .fcs-fulfilment-date-window {
 	margin-top: 5px;
 }
+
+/* The no-match message is inserted as a sibling of the field's own wrapper div (see
+   noMatchMessage() in block-fulfilment-date-field.js), not of the <select> itself -
+   .fcs-fulfilment-date-window above sits inside that wrapper and can use the simpler
+   selector, this can't. */
+.wc-block-components-select-input + .fcs-fulfilment-date-no-match {
+	margin-top: 5px;
+}

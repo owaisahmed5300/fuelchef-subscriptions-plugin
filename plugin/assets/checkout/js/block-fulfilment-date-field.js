@@ -58,6 +58,24 @@ jQuery(function ($) {
     return $caption;
   }
 
+  // A sibling of the field *wrapper*, not of $select itself - $select's own siblings sit
+  // inside that wrapper, and hiding the wrapper for the no-schedule state would hide a
+  // message nested inside it right along with the field. Same dedup-by-siblings pattern
+  // block-subscribe-and-save.js uses for its own ineligible message.
+  function noMatchMessage($select) {
+    const $wrapper = fieldWrapper($select);
+    let $message = $wrapper.siblings('.fcs-fulfilment-date-no-match');
+
+    if ($message.length) {
+      return $message;
+    }
+
+    $message = $('<p class="fcs-fulfilment-date-no-match" hidden></p>').text(i18n.noFulfilmentDateMatch);
+    $wrapper.after($message);
+
+    return $message;
+  }
+
   function addDescription($select) {
     const description = window.fcsCheckout.fulfilmentDateDescription;
 
@@ -92,20 +110,35 @@ jQuery(function ($) {
     }
   }
 
-  // Every real date option already exists (registered server-side); this only enables
-  // the ones the customer's current destination is actually eligible for and disables
-  // the rest, since a submission is validated against the full registered set regardless
-  // of which options this leaves enabled. Group-heading options (value starting with
-  // "__group_") are always left disabled - they are never a real date. The whole field
-  // hides, rather than merely disabling every option, once nothing is resolved yet or
-  // the resolved destination has no schedule - matching classic checkout's own field,
-  // which never renders at all in that case.
-  function applyEligibility($select, hasSchedule, dates, windows) {
-    fieldWrapper($select).toggle( !! hasSchedule );
+  // Three states, matching classic checkout's own field exactly:
+  // - nothing chosen yet (no address, no pickup location): both the field and the
+  //   no-match message stay hidden - silent, since there is nothing to report yet.
+  // - a destination is chosen but no schedule covers it: the field hides and the
+  //   no-match message shows instead, so the customer knows why no date appears.
+  // - a schedule applies: the field shows. Every real date option already exists
+  //   (registered server-side); this only enables the ones the customer's current
+  //   destination is actually eligible for and disables the rest, since a submission is
+  //   validated against the full registered set regardless of which options this leaves
+  //   enabled. Group-heading options (value starting with "__group_") are always left
+  //   disabled - they are never a real date.
+  function applyEligibility($select, destinationChosen, hasSchedule, dates, windows) {
+    const $wrapper = fieldWrapper($select);
+    const $message = noMatchMessage($select);
 
-    if ( ! hasSchedule ) {
+    if ( ! destinationChosen ) {
+      $wrapper.hide();
+      $message.hide();
       return;
     }
+
+    if ( ! hasSchedule ) {
+      $wrapper.hide();
+      $message.show();
+      return;
+    }
+
+    $wrapper.show();
+    $message.hide();
 
     currentWindows = windows && typeof windows === 'object' ? windows : {};
 
@@ -133,14 +166,45 @@ jQuery(function ($) {
     updateWindowCaption($select);
   }
 
+  // The rate the cart store currently shows as selected. Read fresh on every call rather
+  // than cached, since a rate switch updates this store synchronously but WooCommerce's
+  // own session write for "which rate is chosen" is a separate request - passing this
+  // value explicitly (see rate_id below) is what lets the eligible-dates request avoid
+  // racing that write, confirmed live: without it, switching rates could return the
+  // *previous* rate's schedule.
+  function currentSelectedRateId() {
+    const wcData = window.wc && window.wc.wcBlocksData;
+    const wpData = window.wp && window.wp.data;
+
+    if (!wcData || !wpData) {
+      return null;
+    }
+
+    const packages = wpData.select(wcData.cartStore).getShippingRates();
+    const selectedRate = packages[0] && packages[0].shipping_rates
+      ? packages[0].shipping_rates.find(function (rate) { return rate.selected; })
+      : null;
+
+    return selectedRate ? selectedRate.rate_id : null;
+  }
+
   function refetchEligibleDates($select) {
-    fetch(window.fcsCheckout.eligibleDatesUrl, { credentials: 'same-origin' })
+    const rateId = currentSelectedRateId();
+    const url = new URL(window.fcsCheckout.eligibleDatesUrl);
+
+    if (rateId) {
+      url.searchParams.set('rate_id', rateId);
+    }
+
+    fetch(url.toString(), { credentials: 'same-origin' })
       .then(function (response) {
-        return response.ok ? response.json() : { hasSchedule: false, dates: [], windows: {} };
+        return response.ok
+          ? response.json()
+          : { destinationChosen: false, hasSchedule: false, dates: [], windows: {} };
       })
       .then(function (data) {
         if (currentSelect && currentSelect.is($select)) {
-          applyEligibility($select, data.hasSchedule, data.dates, data.windows);
+          applyEligibility($select, data.destinationChosen, data.hasSchedule, data.dates, data.windows);
         }
       })
       .catch(function () {
@@ -162,13 +226,10 @@ jQuery(function ($) {
 
     const packages = wpData.select(wcData.cartStore).getShippingRates();
     const destination = packages[0] && packages[0].destination;
-    const selectedRate = packages[0] && packages[0].shipping_rates
-      ? packages[0].shipping_rates.find(function (rate) { return rate.selected; })
-      : null;
 
     return JSON.stringify([
       destination ? [destination.country, destination.state, destination.city, destination.postcode] : null,
-      selectedRate ? selectedRate.rate_id : null
+      currentSelectedRateId()
     ]);
   }
 

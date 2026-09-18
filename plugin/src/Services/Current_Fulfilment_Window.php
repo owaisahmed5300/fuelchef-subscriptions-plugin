@@ -33,16 +33,34 @@ final class Current_Fulfilment_Window {
 
 	/**
 	 * The schedule that applies to whatever destination the customer has currently
-	 * chosen, or null when nothing chosen yet resolves to one.
+	 * chosen, or null when nothing chosen yet resolves to one, or a schedule covers
+	 * nothing for it - see {@see self::destination_chosen()} to tell those two apart.
+	 *
+	 * @param string|null $explicit_rate_id Forwarded to
+	 *                                      {@see Chosen_Shipping_Destination::resolve()}.
 	 */
-	public function schedule(): ?Schedule {
-		$destination = $this->destination->resolve();
+	public function schedule( ?string $explicit_rate_id = null ): ?Schedule {
+		$destination = $this->destination->resolve( $explicit_rate_id );
 
 		if ( null === $destination ) {
 			return null;
 		}
 
 		return $this->availability->schedule_for_destination( $destination->type(), $destination->key() );
+	}
+
+	/**
+	 * Whether the customer has a shipping address or pickup location resolved to a real
+	 * destination yet, regardless of whether that destination has a schedule. Lets a
+	 * caller tell "nothing chosen yet" (stay silent) apart from "chosen, but nothing can
+	 * fulfil it" (say so) - both of which otherwise collapse into the same null from
+	 * {@see self::schedule()}.
+	 *
+	 * @param string|null $explicit_rate_id Forwarded to
+	 *                                      {@see Chosen_Shipping_Destination::resolve()}.
+	 */
+	public function destination_chosen( ?string $explicit_rate_id = null ): bool {
+		return null !== $this->destination->resolve( $explicit_rate_id );
 	}
 
 	/**

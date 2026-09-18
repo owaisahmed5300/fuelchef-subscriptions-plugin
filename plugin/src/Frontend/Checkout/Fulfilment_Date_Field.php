@@ -78,18 +78,30 @@ final class Fulfilment_Date_Field {
 	}
 
 	/**
-	 * Renders the field's table row, only when a schedule applies to the customer's
-	 * chosen destination.
+	 * Renders the field's table row - nothing at all until a shipping address or pickup
+	 * location resolves to a real destination, a "no fulfilment dates available" row once
+	 * one does but no schedule covers it, and the full date field once one does.
 	 */
 	public function render(): void {
+		if ( ! $this->window->destination_chosen() ) {
+			return;
+		}
+
 		$schedule = $this->window->schedule();
+		$settings = $this->settings->get();
 
 		if ( null === $schedule ) {
+			$html = $this->renderer->render(
+				'frontend/checkout/fulfilment-date-no-match',
+				[ 'label' => $settings->fulfilment_date_label() ]
+			);
+
+			echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
 			return;
 		}
 
 		$eligible_dates = $this->window->eligible_dates( $schedule );
-		$settings       = $this->settings->get();
 		$selected_date  = $this->restored_date( $eligible_dates );
 
 		$html = $this->renderer->render(
@@ -148,7 +160,7 @@ final class Fulfilment_Date_Field {
 
 		$errors->add(
 			'fcs_fulfilment_date',
-			esc_html__( 'Please choose a fulfilment date.', 'fuelchef-subscriptions' )
+			esc_html__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' )
 		);
 	}
 
