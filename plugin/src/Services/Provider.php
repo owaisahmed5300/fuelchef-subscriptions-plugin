@@ -28,8 +28,8 @@ final class Provider implements ServiceProvider {
 	/**
 	 * Registers the shared transaction manager, the schedule, blackout, availability,
 	 * subscribe-discount and subscribe-eligibility services, the settings store, the
-	 * destination catalog and resolver, and the fulfilment window resolver, as singletons
-	 * wired to their dependencies.
+	 * checkout shortcode/block presence detector, the destination catalog and resolver, and
+	 * the fulfilment window resolver, as singletons wired to their dependencies.
 	 */
 	public function register( Base_Container $container ): void {
 		$container
@@ -49,6 +49,8 @@ final class Provider implements ServiceProvider {
 			->addParameter( Blackout_Repository::class, true );
 
 		$container->singleton( Settings_Store::class );
+
+		$container->singleton( Checkout_Presence::class );
 
 		$container
 			->singleton( Availability_Service::class )

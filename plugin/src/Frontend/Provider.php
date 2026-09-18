@@ -13,6 +13,7 @@ use FuelChef\Subscriptions\Frontend\Checkout\Block\Fulfilment_Date_Field as Bloc
 use FuelChef\Subscriptions\Frontend\Checkout\Block\Subscribe_And_Save as Block_Subscribe_And_Save;
 use FuelChef\Subscriptions\Frontend\Checkout\Fulfilment_Date_Field;
 use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save;
+use FuelChef\Subscriptions\Services\Checkout_Presence;
 use FuelChef\Subscriptions\Services\Current_Fulfilment_Window;
 use FuelChef\Subscriptions\Services\Settings_Store;
 use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
@@ -66,12 +67,17 @@ final class Provider implements ServiceProvider {
 
 		$container
 			->singleton( Assets::class )
-			->addParameter( Settings_Store::class, true );
+			->addParameter( Settings_Store::class, true )
+			->addParameter( Checkout_Presence::class, true );
+
+		$container
+			->singleton( Cache_Exclusion::class )
+			->addParameter( Checkout_Presence::class, true );
 	}
 
 	/**
 	 * Hooks the classic and block checkout fields and their discounts into checkout, and
-	 * registers the asset enqueue hook.
+	 * registers the asset enqueue and cache-exclusion hooks.
 	 */
 	public function boot( Base_Container $container ): void {
 		$container->get( Fulfilment_Date_Field::class )->register();
@@ -79,5 +85,6 @@ final class Provider implements ServiceProvider {
 		$container->get( Block_Fulfilment_Date_Field::class )->register();
 		$container->get( Block_Subscribe_And_Save::class )->register();
 		$container->get( Assets::class )->register();
+		$container->get( Cache_Exclusion::class )->register();
 	}
 }
