@@ -1,23 +1,6 @@
-We have separate CSS/JS for Classic and Block Checkout. Please load each version’s assets based on whether its corresponding checkout shortcode or block is present on the current page.
-
-For Classic Checkout, use `has_shortcode()` instead of `is_checkout()` to detect the checkout shortcode. Similarly, detect Block Checkout by checking for the checkout block.
-
-Do not rely on the checkout page configured in WooCommerce Settings. The presence of the corresponding shortcode or block on the current page should be the only condition for loading its assets.
-
-[data-fcs-block-fulfilment-date] + .fcs-fulfilment-date-window should have margin-top: 12px instead 5px.
-
-Please review admin/checkout templates, CSS and JS against accessibility and fix any issue.
-
-Please fix Weekdays open/close switch. Clicking always enabled the day instead making it off when its really marked as off. It has bugs there. Please fix bugs.
-
-Please also avoid sending too many ajax request when a day open/close switch or time change. Instead All changes must require Save Changes button click.
-
-Can we consider make this message also customizable from settings "Fulfilment available between 9:00 am and 7:00 pm." (Hours with dynamic placeholder).
-
-Please remove the grid in settings page checkout fields tab. Keep them stack as they were (like other fields).
-
-Block checkout fields should be cache free. Right now subscribe save option keep appearing due to cache while it suppose to show message. It should remain cache free so as user remove/add quantities it should show field/message conditionally instead being cached.
-
-Please make sure templates/* are editable from theme as well like other WC templates. Please also use official WC templating. use of /* @var to define all variables types for IDE Compat */
-
-Please read instructions and put them in sequence so you can do all of those changes in sequence (faster without back n forth in files) and clean git/PR history and easily do verification once you do those changes.
+Please do best to make use of "esc_html_e", "esc_html__", "esc_attr__", "esc_attr_e" over __()/_e functions. overall in overall output. This ensure security. Also ensure proper HTML output escpaing, no SQL injection or security bad practices. Please be careful that on frontend display we don't see HTML entities rendered so we need safety and make sure text strings on display don't appear weird by start showing raw entities directly instead parse properly so use html() instead text() or do best practices to ensure safety.
+Please multiple destinations (shipping zones and pickup locations). I need many areas in different multiple shipping zones and pickup locations, after that you need to create different schedules and limit them to particular shipping zone or shipping zones or pickup locations. Please make sure we prevent same location to be in multiple schedules to avoid overlap. We should prevent this from happening so a location covered in particular schedule do not be allowed in other schedules. Maximize admin experience especially clear and understandable error messages.
+I need 5-6 schedules for different weekdays, closures so I can do visual tests myself as well. I need to verify change to a shipping address or pickup location on checkout refetch dates matching the schedule.
+Move src\Concerns, src\Contracts to src\Entities\ because those are relevant to entities.
+Consider subnamespaces in Services to group them nicely. Also consider better naming. Make sure consistent naming as some services end with Service while other not.  so maintain one format. Also review whole project to see if we should follow better naming in project.
+Please review php classes to remove over explanations from phpdocs. Currently, too many explaination in classes, method phpdoc. Be specific to what it does. Not what it does not do. Specific phpdoc instead explaining too specific details in class phpdoc. Please make sure to update PHPDocs guideline in docs folder.
