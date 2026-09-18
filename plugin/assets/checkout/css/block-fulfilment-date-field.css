@@ -18,7 +18,7 @@
    classic checkout's table row; block checkout's field wrapper sits closer to it, so this
    overrides just the top value for the block context specifically. */
 [data-fcs-block-fulfilment-date] + .fcs-fulfilment-date-window {
-	margin-top: 5px;
+	margin-top: 12px;
 }
 
 /* The no-match message is inserted as a sibling of the field's own wrapper div (see

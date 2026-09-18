@@ -299,7 +299,10 @@ FCS.createCalendar = function (options) {
         const existing = findByDate(iso);
 
         if (existing) {
-          openPopover(existing, btn.closest('.fcs-calendar__cell'));
+          // Anchor to the date button itself, not the whole cell (which also contains the
+          // reason-preview text below it) - keeps the popover's arrow pointing at the date,
+          // consistent with the anchor createItem() below uses for a freshly-created one.
+          openPopover(existing, btn);
           return;
         }
 
