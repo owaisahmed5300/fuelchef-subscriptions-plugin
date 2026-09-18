@@ -5,8 +5,9 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Services;
+namespace FuelChef\Subscriptions\Services\Checkout;
 
+use FuelChef\Subscriptions\Services\Scheduling\Destination_Catalog_Service;
 use FuelChef\Subscriptions\Values\Destination_Option;
 use FuelChef\Subscriptions\Values\Destination_Type;
 use WC_Shipping_Zones;
@@ -16,10 +17,10 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Resolves the destination the customer's currently chosen shipping rate maps to.
  *
- * Returns it as the `(type, key)` pair `Destination_Catalog` and `Availability_Service`
- * use.
+ * Returns it as the `(type, key)` pair `Destination_Catalog_Service` and
+ * `Availability_Service` use.
  */
-final class Chosen_Shipping_Destination {
+final class Chosen_Shipping_Destination_Service {
 
 
 	/**
@@ -32,7 +33,7 @@ final class Chosen_Shipping_Destination {
 	 * Creates the resolver.
 	 */
 	public function __construct(
-		private Destination_Catalog $catalog
+		private Destination_Catalog_Service $catalog
 	) {
 	}
 

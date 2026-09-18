@@ -15,10 +15,10 @@ use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
-use FuelChef\Subscriptions\Services\Blackout_Service;
-use FuelChef\Subscriptions\Services\Destination_Catalog;
-use FuelChef\Subscriptions\Services\Schedule_Service;
-use FuelChef\Subscriptions\Services\Settings_Store;
+use FuelChef\Subscriptions\Services\Scheduling\Blackout_Service;
+use FuelChef\Subscriptions\Services\Scheduling\Destination_Catalog_Service;
+use FuelChef\Subscriptions\Services\Scheduling\Schedule_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Utils\Renderer;
 
 defined( 'ABSPATH' ) || exit;
@@ -35,7 +35,7 @@ final class Provider implements ServiceProvider {
 	public function register( Base_Container $container ): void {
 		$container
 			->singleton( Settings_Controller::class )
-			->addParameter( Settings_Store::class, true )
+			->addParameter( Settings_Service::class, true )
 			->addParameter( Blackout_Service::class, true )
 			->addParameter( Blackout_Repository::class, true )
 			->addParameter( Renderer::class, true );
@@ -47,7 +47,7 @@ final class Provider implements ServiceProvider {
 			->addParameter( Schedule_Weekday_Repository::class, true )
 			->addParameter( Blackout_Repository::class, true )
 			->addParameter( Schedule_Destination_Repository::class, true )
-			->addParameter( Destination_Catalog::class, true )
+			->addParameter( Destination_Catalog_Service::class, true )
 			->addParameter( Renderer::class, true );
 
 		$container

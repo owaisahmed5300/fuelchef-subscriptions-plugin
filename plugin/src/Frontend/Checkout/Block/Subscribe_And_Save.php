@@ -9,9 +9,9 @@ namespace FuelChef\Subscriptions\Frontend\Checkout\Block;
 
 use FuelChef\Subscriptions\Frontend\Checkout\Block\Concerns\Reads_Persisted_Field;
 use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save as Classic_Subscribe_And_Save;
-use FuelChef\Subscriptions\Services\Settings_Store;
-use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
-use FuelChef\Subscriptions\Services\Subscribe_Eligibility_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Discount_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Eligibility_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use WC_Order;
 use WC_Order_Item_Fee;
 
@@ -19,19 +19,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Registers the subscribe-discount checkbox for the Checkout block, and applies the same
- * discount the classic checkout checkbox unlocks. Only offered to a logged-in customer
- * whose cart is eligible, same as classic checkout's own field - but the field itself
- * stays registered for a logged-out or currently-ineligible customer too, since the
- * Additional Checkout Fields API has no per-request conditional registration.
- * `assets/checkout/js/block-subscribe-and-save.js` toggles it for the logged-out or
- * ineligible message instead, but `apply_discount()` below is the authoritative gate.
- *
- * Two mechanisms apply the discount. `assets/checkout/js/block-subscribe-and-save.js`
- * reports a live cart-total preview through the Store API's `extensionCartUpdate()`,
- * stored in the session via `Classic_Subscribe_And_Save::set_session_checked()` and read
- * by `WC_Cart`'s own recalculations. `apply_discount()` below applies the real discount
- * directly to the order at place-order, since WooCommerce Blocks defers creating the
- * order until then and no cart fee callback runs after that.
+ * discount classic checkout's own checkbox unlocks.
  */
 final class Subscribe_And_Save {
 
@@ -60,7 +48,7 @@ final class Subscribe_And_Save {
 	 * Creates the discount handler.
 	 */
 	public function __construct(
-		private Settings_Store $settings,
+		private Settings_Service $settings,
 		private Classic_Subscribe_And_Save $classic,
 		private Subscribe_Discount_Service $discount_service,
 		private Subscribe_Eligibility_Service $eligibility_service
@@ -134,6 +122,10 @@ final class Subscribe_And_Save {
 	 * value, only when the order is eligible. Idempotent: safe to run more than once for
 	 * the same order. The authoritative eligibility gate - the checkbox's own visibility
 	 * is only a client-side preview of the same rule.
+	 *
+	 * Applies the discount directly to the order rather than through `WC_Cart::add_fee()`:
+	 * WooCommerce Blocks defers creating the order until place-order, and no cart fee
+	 * callback runs after that point.
 	 */
 	public function apply_discount( WC_Order $order ): void {
 		$this->remove_existing_fee( $order );

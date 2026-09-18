@@ -28,6 +28,11 @@ description, or the chat response, never in the file itself.
 - **Em dashes, and stiff or overly formal phrasing.** Write the way you'd explain it to a
   colleague: short sentences, plain words. A comma or a period does what an em dash was
   doing.
+- **What the code doesn't do, or doesn't need.** "Not cached: the range varies too much to
+  reuse a cache entry" earns its place because it heads off a reasonable question about
+  behavior that IS there; "no theme-override support" or "not unit-tested" describes an
+  absence with nothing to explain — delete it, or say it in the PR description if it's
+  worth flagging at all.
 
 ## What good looks like
 
@@ -91,6 +96,26 @@ protected function dehydrate( Entity $entity ): array {
 A one-line getter, a thin factory, or an obvious override that needs no docblock at all
 (nothing PHPCS requires and nothing worth a reader's second look) can stay undocumented.
 The rule is about docblocks that exist, not about forcing one onto every method.
+
+### A class docblock says what it is, not its whole design history
+
+One or two sentences: what the class is responsible for, and the one caveat a reader
+genuinely needs before using it (a precondition, a surprising invariant). It is not the
+place for a method-by-method walkthrough, a log of alternatives that were tried and
+rejected, or every edge case the class handles — those belong on the method that actually
+has the edge case, or nowhere, if the code already shows it.
+
+```php
+/**
+ * Resolves the destination the customer's currently chosen shipping rate maps to.
+ */
+final class Chosen_Shipping_Destination_Service {
+```
+
+Not three paragraphs explaining how pickup rates differ from zone rates, why a bare REST
+request has no packages calculated yet, and what an earlier version of the class used to
+do instead - each of those belongs on the specific method it's actually about, in one
+sentence, only if the method's own code doesn't already make it obvious.
 
 ### Every `@param`, `@return` and `@throws` carries an explanation, and ends with a dot
 

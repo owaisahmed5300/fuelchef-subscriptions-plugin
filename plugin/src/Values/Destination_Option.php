@@ -15,8 +15,9 @@ defined( 'ABSPATH' ) || exit;
  * One destination a schedule could be assigned to: a WooCommerce shipping zone or pickup
  * location, as it currently exists in WooCommerce.
  *
- * Built by `WooCommerce\Destination_Catalog`, never stored - `Repositories\
- * Schedule_Destination_Repository` stores only the `(type, key)` pair this describes.
+ * Built by `Services\Scheduling\Destination_Catalog_Service`, never stored -
+ * `Repositories\Schedule_Destination_Repository` stores only the `(type, key)` pair this
+ * describes.
  */
 final class Destination_Option {
 

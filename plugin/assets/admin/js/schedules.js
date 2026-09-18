@@ -156,22 +156,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function saveName(onSuccess, trigger = null) {
-    FCS.setBusy(trigger, true);
-    FCS.post('fcs_save_schedule', { schedule_id: data.selectedId, name: titleInput.value }).done((response) => {
-      if (!response.success) {
-        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveScheduleName), 'error');
-        return;
-      }
-      if (onSuccess) onSuccess();
-    }).always(() => FCS.setBusy(trigger, false));
-  }
-
+  // No ajax here - a name edit only marks the screen dirty, like a weekday toggle or time
+  // change. It is sent, along with every other pending edit, only when the admin clicks
+  // "Save Schedule" below.
   if (titleInput) {
-    titleInput.addEventListener('change', () => saveName(() => {
-      FCS.State.markClean();
-      FCS.toast(window.fcsAdmin.i18n.scheduleNameSaved);
-    }));
+    titleInput.addEventListener('input', () => FCS.State.markDirty());
   }
 
   function weekdaysPayload() {
@@ -198,10 +187,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     jQuery.when(
       FCS.post('fcs_save_schedule', { schedule_id: data.selectedId, name: titleInput.value }),
-      FCS.post('fcs_save_schedule_weekdays', weekdaysPayload())
-    ).done((nameResult, weekdaysResult) => {
+      FCS.post('fcs_save_schedule_weekdays', weekdaysPayload()),
+      FCS.post('fcs_save_schedule_destinations', destinationsPayload())
+    ).done((nameResult, weekdaysResult, destinationsResult) => {
       const [nameResponse] = nameResult;
       const [weekdaysResponse] = weekdaysResult;
+      const [destinationsResponse] = destinationsResult;
 
       if (!nameResponse.success) {
         FCS.toast(saveMessage(nameResponse, window.fcsAdmin.i18n.couldNotSaveScheduleName), 'error');
@@ -210,6 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!weekdaysResponse.success) {
         FCS.toast(saveMessage(weekdaysResponse, window.fcsAdmin.i18n.couldNotSaveDay), 'error');
+        return;
+      }
+
+      if (!destinationsResponse.success) {
+        FCS.toast(saveMessage(destinationsResponse, window.fcsAdmin.i18n.couldNotSaveDestinations), 'error');
         return;
       }
 
@@ -365,14 +361,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const catalog = data.catalog || [];
   let destinations = data.destinations.slice();
 
-  function saveDestinations() {
-    const payload = {};
+  function destinationsPayload() {
+    const payload = { schedule_id: data.selectedId };
     destinations.forEach((dest, i) => {
       payload[`destinations[${i}][type]`] = dest.type;
       payload[`destinations[${i}][key]`] = dest.key;
     });
 
-    return FCS.post('fcs_save_schedule_destinations', Object.assign({ schedule_id: data.selectedId }, payload));
+    return payload;
   }
 
   function isAssigned(type, key) {
@@ -450,12 +446,15 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }).join('');
 
+    // No ajax here - removing a destination only updates the in-memory list and marks the
+    // screen dirty, like a weekday toggle or a name edit. It is sent, along with every
+    // other pending edit, only when the admin clicks "Save Schedule" below.
     destList.querySelectorAll('[data-index]').forEach(btn => {
       btn.onclick = () => {
         destinations.splice(Number(btn.dataset.index), 1);
         renderDestinations();
         renderCatalogOptions();
-        saveDestinations().done(() => FCS.toast(window.fcsAdmin.i18n.destinationRemoved));
+        FCS.State.markDirty();
       };
     });
   }
@@ -470,13 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
     destinations.push({ type: option.type, key: option.key, label: option.label, available: true });
     renderDestinations();
     renderCatalogOptions();
-    saveDestinations().done((response) => {
-      if (!response.success) {
-        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveDestination), 'error');
-        return;
-      }
-      FCS.toast(window.fcsAdmin.i18n.destinationAdded);
-    });
+    FCS.State.markDirty();
   });
 
   renderDays();

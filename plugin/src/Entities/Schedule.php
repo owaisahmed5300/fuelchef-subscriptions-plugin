@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Entities;
 
-use FuelChef\Subscriptions\Concerns\Has_Id;
-use FuelChef\Subscriptions\Concerns\Has_Timestamps;
-use FuelChef\Subscriptions\Contracts\Entity;
-use FuelChef\Subscriptions\Contracts\Timestamped;
+use FuelChef\Subscriptions\Entities\Concerns\Has_Id;
+use FuelChef\Subscriptions\Entities\Concerns\Has_Timestamps;
+use FuelChef\Subscriptions\Entities\Contracts\Entity;
+use FuelChef\Subscriptions\Entities\Contracts\Timestamped;
 
 defined( 'ABSPATH' ) || exit;
 

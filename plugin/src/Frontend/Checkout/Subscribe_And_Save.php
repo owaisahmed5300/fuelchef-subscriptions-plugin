@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend\Checkout;
 
-use FuelChef\Subscriptions\Services\Checkout_Presence;
-use FuelChef\Subscriptions\Services\Settings_Store;
-use FuelChef\Subscriptions\Services\Subscribe_Discount_Service;
-use FuelChef\Subscriptions\Services\Subscribe_Eligibility_Service;
+use FuelChef\Subscriptions\Services\Checkout\Checkout_Presence_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Discount_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Eligibility_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Utils\Renderer;
 use FuelChef\Subscriptions\Values\Settings;
@@ -21,22 +21,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Adds the subscribe-discount checkbox to classic checkout, and the cart discount it
- * unlocks. Only offered to a logged-in customer whose cart meets the store's configured
- * minimum order amount and quantity - a logged-out customer sees a message with a Log in
- * link instead, and a logged-in customer with an ineligible cart sees a different message.
- * Regardless of any of that, {@see self::render()} always renders the delivery-date notice
- * first - every customer who has chosen a fulfilment date is told when their order arrives,
- * whether or not they can see (or check) the discount checkbox at all.
- *
- * The checkbox is never pre-checked from a previous visit - it is an explicit choice made
- * fresh on every checkout attempt, never remembered. {@see self::render()} reflects only
- * the current request's own posted value, and {@see self::reset_session_on_fresh_visit()}
- * clears the session flag block checkout relies on (see below) the moment a customer lands
- * on checkout, before anything can read a stale value left over from an earlier attempt.
- *
- * Block checkout has no `$_POST` at all - its own checkbox drives this cart-level fee
- * through {@see self::set_session_checked()} instead, called by `Block\Subscribe_And_Save`'s
- * Store API update callback.
+ * unlocks.
  */
 final class Subscribe_And_Save {
 
@@ -62,11 +47,11 @@ final class Subscribe_And_Save {
 	 * Creates the discount handler.
 	 */
 	public function __construct(
-		private Settings_Store $settings,
+		private Settings_Service $settings,
 		private Renderer $renderer,
 		private Subscribe_Discount_Service $discount_service,
 		private Subscribe_Eligibility_Service $eligibility_service,
-		private Checkout_Presence $checkout_presence
+		private Checkout_Presence_Service $checkout_presence
 	) {
 	}
 

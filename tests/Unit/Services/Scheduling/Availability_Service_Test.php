@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\Services;
+namespace FuelChef\Subscriptions\Tests\Unit\Services\Scheduling;
 
 use Brain\Monkey\Functions;
 use DateTimeZone;
@@ -14,13 +14,13 @@ use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
-use FuelChef\Subscriptions\Services\Availability_Service;
-use FuelChef\Subscriptions\Services\Settings_Store;
+use FuelChef\Subscriptions\Services\Scheduling\Availability_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Tests\Unit\Repositories\Repository_TestCase;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
 /**
- * @covers \FuelChef\Subscriptions\Services\Availability_Service
+ * @covers \FuelChef\Subscriptions\Services\Scheduling\Availability_Service
  */
 final class Availability_Service_Test extends Repository_TestCase {
 
@@ -62,7 +62,7 @@ final class Availability_Service_Test extends Repository_TestCase {
 	}
 
 	/**
-	 * Stubs get_option() so a real Settings_Store reports the given cutoff, and
+	 * Stubs get_option() so a real Settings_Service reports the given cutoff, and
 	 * wp_timezone() so DateTime::from_wp() has a real timezone to resolve against.
 	 */
 	private function stub_cutoff( int $days, string $time ): void {
@@ -101,7 +101,7 @@ final class Availability_Service_Test extends Repository_TestCase {
 		return new Availability_Service(
 			new Schedule_Weekday_Repository( $weekday_wpdb, $this->clock() ),
 			new Blackout_Repository( $blackout_wpdb, $this->clock() ),
-			new Settings_Store(),
+			new Settings_Service(),
 			$this->clock(),
 			new Schedule_Destination_Repository( $this->wpdb(), $this->clock() ),
 			new Schedule_Repository( $this->wpdb(), $this->clock() )
@@ -315,7 +315,7 @@ final class Availability_Service_Test extends Repository_TestCase {
 		$service = new Availability_Service(
 			new Schedule_Weekday_Repository( $this->wpdb(), $this->clock() ),
 			new Blackout_Repository( $this->wpdb(), $this->clock() ),
-			new Settings_Store(),
+			new Settings_Service(),
 			$this->clock(),
 			new Schedule_Destination_Repository( $destinations_wpdb, $this->clock() ),
 			new Schedule_Repository( $this->wpdb(), $this->clock() )
@@ -354,7 +354,7 @@ final class Availability_Service_Test extends Repository_TestCase {
 		$service = new Availability_Service(
 			new Schedule_Weekday_Repository( $this->wpdb(), $this->clock() ),
 			new Blackout_Repository( $this->wpdb(), $this->clock() ),
-			new Settings_Store(),
+			new Settings_Service(),
 			$this->clock(),
 			new Schedule_Destination_Repository( $destinations_wpdb, $this->clock() ),
 			new Schedule_Repository( $schedules_wpdb, $this->clock() )

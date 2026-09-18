@@ -14,6 +14,15 @@ use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
+use FuelChef\Subscriptions\Services\Checkout\Checkout_Presence_Service;
+use FuelChef\Subscriptions\Services\Checkout\Chosen_Shipping_Destination_Service;
+use FuelChef\Subscriptions\Services\Checkout\Current_Fulfilment_Window_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Discount_Service;
+use FuelChef\Subscriptions\Services\Checkout\Subscribe_Eligibility_Service;
+use FuelChef\Subscriptions\Services\Scheduling\Availability_Service;
+use FuelChef\Subscriptions\Services\Scheduling\Blackout_Service;
+use FuelChef\Subscriptions\Services\Scheduling\Destination_Catalog_Service;
+use FuelChef\Subscriptions\Services\Scheduling\Schedule_Service;
 use FuelChef\Subscriptions\Utils\Clock;
 use wpdb;
 
@@ -48,15 +57,15 @@ final class Provider implements ServiceProvider {
 			->singleton( Blackout_Service::class )
 			->addParameter( Blackout_Repository::class, true );
 
-		$container->singleton( Settings_Store::class );
+		$container->singleton( Settings_Service::class );
 
-		$container->singleton( Checkout_Presence::class );
+		$container->singleton( Checkout_Presence_Service::class );
 
 		$container
 			->singleton( Availability_Service::class )
 			->addParameter( Schedule_Weekday_Repository::class, true )
 			->addParameter( Blackout_Repository::class, true )
-			->addParameter( Settings_Store::class, true )
+			->addParameter( Settings_Service::class, true )
 			->addParameter( Clock::class, true )
 			->addParameter( Schedule_Destination_Repository::class, true )
 			->addParameter( Schedule_Repository::class, true );
@@ -65,17 +74,17 @@ final class Provider implements ServiceProvider {
 
 		$container->singleton( Subscribe_Eligibility_Service::class );
 
-		$container->singleton( Destination_Catalog::class );
+		$container->singleton( Destination_Catalog_Service::class );
 
 		$container
-			->singleton( Chosen_Shipping_Destination::class )
-			->addParameter( Destination_Catalog::class, true );
+			->singleton( Chosen_Shipping_Destination_Service::class )
+			->addParameter( Destination_Catalog_Service::class, true );
 
 		$container
-			->singleton( Current_Fulfilment_Window::class )
-			->addParameter( Chosen_Shipping_Destination::class, true )
+			->singleton( Current_Fulfilment_Window_Service::class )
+			->addParameter( Chosen_Shipping_Destination_Service::class, true )
 			->addParameter( Availability_Service::class, true )
-			->addParameter( Settings_Store::class, true )
+			->addParameter( Settings_Service::class, true )
 			->addParameter( Clock::class, true );
 	}
 

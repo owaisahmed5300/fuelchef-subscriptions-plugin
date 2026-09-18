@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Concerns;
+namespace FuelChef\Subscriptions\Entities\Concerns;
 
 defined( 'ABSPATH' ) || exit;
 

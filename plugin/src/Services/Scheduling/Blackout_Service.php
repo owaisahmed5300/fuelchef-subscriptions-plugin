@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Services;
+namespace FuelChef\Subscriptions\Services\Scheduling;
 
 use FuelChef\Subscriptions\Entities\Blackout;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;

@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\Services;
+namespace FuelChef\Subscriptions\Tests\Unit\Services\Checkout;
 
 use Brain\Monkey\Functions;
 use DateTimeImmutable;
@@ -15,17 +15,17 @@ use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
-use FuelChef\Subscriptions\Services\Availability_Service;
-use FuelChef\Subscriptions\Services\Chosen_Shipping_Destination;
-use FuelChef\Subscriptions\Services\Current_Fulfilment_Window;
-use FuelChef\Subscriptions\Services\Destination_Catalog;
-use FuelChef\Subscriptions\Services\Settings_Store;
+use FuelChef\Subscriptions\Services\Checkout\Chosen_Shipping_Destination_Service;
+use FuelChef\Subscriptions\Services\Checkout\Current_Fulfilment_Window_Service;
+use FuelChef\Subscriptions\Services\Scheduling\Availability_Service;
+use FuelChef\Subscriptions\Services\Scheduling\Destination_Catalog_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Tests\Unit\Repositories\Repository_TestCase;
 
 /**
- * @covers \FuelChef\Subscriptions\Services\Current_Fulfilment_Window
+ * @covers \FuelChef\Subscriptions\Services\Checkout\Current_Fulfilment_Window_Service
  */
-final class Current_Fulfilment_Window_Test extends Repository_TestCase {
+final class Current_Fulfilment_Window_Service_Test extends Repository_TestCase {
 
 
 	protected function setUp(): void {
@@ -42,23 +42,23 @@ final class Current_Fulfilment_Window_Test extends Repository_TestCase {
 	/**
 	 * @param list<array<string, mixed>> $weekday_rows
 	 */
-	private function window( array $weekday_rows ): Current_Fulfilment_Window {
+	private function window( array $weekday_rows ): Current_Fulfilment_Window_Service {
 		$weekday_wpdb = $this->wpdb();
 		$weekday_wpdb->shouldReceive( 'get_results' )->andReturn( $weekday_rows );
 
 		$availability = new Availability_Service(
 			new Schedule_Weekday_Repository( $weekday_wpdb, $this->clock() ),
 			new Blackout_Repository( $this->wpdb(), $this->clock() ),
-			new Settings_Store(),
+			new Settings_Service(),
 			$this->clock(),
 			new Schedule_Destination_Repository( $this->wpdb(), $this->clock() ),
 			new Schedule_Repository( $this->wpdb(), $this->clock() )
 		);
 
-		return new Current_Fulfilment_Window(
-			new Chosen_Shipping_Destination( new Destination_Catalog() ),
+		return new Current_Fulfilment_Window_Service(
+			new Chosen_Shipping_Destination_Service( new Destination_Catalog_Service() ),
 			$availability,
-			new Settings_Store(),
+			new Settings_Service(),
 			$this->clock()
 		);
 	}
@@ -136,16 +136,16 @@ final class Current_Fulfilment_Window_Test extends Repository_TestCase {
 		$availability = new Availability_Service(
 			new Schedule_Weekday_Repository( $weekday_wpdb, $this->clock() ),
 			new Blackout_Repository( $blackout_wpdb, $this->clock() ),
-			new Settings_Store(),
+			new Settings_Service(),
 			$this->clock(),
 			new Schedule_Destination_Repository( $this->wpdb(), $this->clock() ),
 			new Schedule_Repository( $this->wpdb(), $this->clock() )
 		);
 
-		$window = new Current_Fulfilment_Window(
-			new Chosen_Shipping_Destination( new Destination_Catalog() ),
+		$window = new Current_Fulfilment_Window_Service(
+			new Chosen_Shipping_Destination_Service( new Destination_Catalog_Service() ),
 			$availability,
-			new Settings_Store(),
+			new Settings_Service(),
 			$this->clock()
 		);
 
@@ -184,16 +184,16 @@ final class Current_Fulfilment_Window_Test extends Repository_TestCase {
 		$availability = new Availability_Service(
 			new Schedule_Weekday_Repository( $weekday_wpdb, $this->clock() ),
 			new Blackout_Repository( $blackout_wpdb, $this->clock() ),
-			new Settings_Store(),
+			new Settings_Service(),
 			$this->clock(),
 			new Schedule_Destination_Repository( $this->wpdb(), $this->clock() ),
 			new Schedule_Repository( $this->wpdb(), $this->clock() )
 		);
 
-		$window = new Current_Fulfilment_Window(
-			new Chosen_Shipping_Destination( new Destination_Catalog() ),
+		$window = new Current_Fulfilment_Window_Service(
+			new Chosen_Shipping_Destination_Service( new Destination_Catalog_Service() ),
 			$availability,
-			new Settings_Store(),
+			new Settings_Service(),
 			$this->clock()
 		);
 

@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Repositories;
 
-use FuelChef\Subscriptions\Contracts\Entity;
 use FuelChef\Subscriptions\Database\Tables;
+use FuelChef\Subscriptions\Entities\Contracts\Entity;
 use FuelChef\Subscriptions\Entities\Schedule_Destination;
 use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Values\DateTime;

@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Services;
+namespace FuelChef\Subscriptions\Services\Scheduling;
 
 use FuelChef\Subscriptions\Database\Transaction_Manager;
 use FuelChef\Subscriptions\Entities\Schedule;

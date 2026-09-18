@@ -33,17 +33,6 @@ final class Str {
 	}
 
 	/**
-	 * Determines whether a string is not blank.
-	 *
-	 * @param string|null $value String value.
-	 *
-	 * @return bool True when the value is not blank.
-	 */
-	public static function is_not_blank( ?string $value ): bool {
-		return ! self::is_blank( $value );
-	}
-
-	/**
 	 * Turns a blank string into null.
 	 *
 	 * @param string $value String value.
@@ -87,41 +76,5 @@ final class Str {
 		}
 
 		return null === $length ? substr( $value, $start ) : substr( $value, $start, $length );
-	}
-
-	/**
-	 * Converts a string to lowercase.
-	 *
-	 * Uses multibyte string handling when available and falls back to the
-	 * standard string function otherwise.
-	 *
-	 * @param string $value String value.
-	 *
-	 * @return string Lowercase string.
-	 */
-	public static function lower( string $value ): string {
-		if ( function_exists( 'mb_strtolower' ) ) {
-			return mb_strtolower( $value );
-		}
-
-		return strtolower( $value );
-	}
-
-	/**
-	 * Converts a string to uppercase.
-	 *
-	 * Uses multibyte string handling when available and falls back to the
-	 * standard string function otherwise.
-	 *
-	 * @param string $value String value.
-	 *
-	 * @return string Uppercase string.
-	 */
-	public static function upper( string $value ): string {
-		if ( function_exists( 'mb_strtoupper' ) ) {
-			return mb_strtoupper( $value );
-		}
-
-		return strtoupper( $value );
 	}
 }

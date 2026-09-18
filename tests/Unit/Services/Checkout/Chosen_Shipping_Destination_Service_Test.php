@@ -5,19 +5,19 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Tests\Unit\Services;
+namespace FuelChef\Subscriptions\Tests\Unit\Services\Checkout;
 
-use FuelChef\Subscriptions\Services\Chosen_Shipping_Destination;
-use FuelChef\Subscriptions\Services\Destination_Catalog;
+use FuelChef\Subscriptions\Services\Checkout\Chosen_Shipping_Destination_Service;
+use FuelChef\Subscriptions\Services\Scheduling\Destination_Catalog_Service;
 use FuelChef\Subscriptions\Tests\TestCase;
 use FuelChef\Subscriptions\Values\Destination_Type;
 use WC_Shipping_Zone;
 use WC_Shipping_Zones;
 
 /**
- * @covers \FuelChef\Subscriptions\Services\Chosen_Shipping_Destination
+ * @covers \FuelChef\Subscriptions\Services\Checkout\Chosen_Shipping_Destination_Service
  */
-final class Chosen_Shipping_Destination_Test extends TestCase {
+final class Chosen_Shipping_Destination_Service_Test extends TestCase {
 
 
 	protected function setUp(): void {
@@ -26,8 +26,8 @@ final class Chosen_Shipping_Destination_Test extends TestCase {
 		WC_Shipping_Zones::$matching_zone = null;
 	}
 
-	private function resolver(): Chosen_Shipping_Destination {
-		return new Chosen_Shipping_Destination( new Destination_Catalog() );
+	private function resolver(): Chosen_Shipping_Destination_Service {
+		return new Chosen_Shipping_Destination_Service( new Destination_Catalog_Service() );
 	}
 
 	public function test_type_for_a_pickup_rate_is_pickup_location(): void {

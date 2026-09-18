@@ -5,9 +5,11 @@
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Services;
+namespace FuelChef\Subscriptions\Services\Checkout;
 
 use FuelChef\Subscriptions\Entities\Schedule;
+use FuelChef\Subscriptions\Services\Scheduling\Availability_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Utils\Clock;
 use FuelChef\Subscriptions\Values\DateTime;
 
@@ -17,16 +19,16 @@ defined( 'ABSPATH' ) || exit;
  * Resolves the schedule and eligible fulfilment dates for whatever destination the
  * customer currently has chosen at checkout.
  */
-final class Current_Fulfilment_Window {
+final class Current_Fulfilment_Window_Service {
 
 
 	/**
 	 * Creates the resolver.
 	 */
 	public function __construct(
-		private Chosen_Shipping_Destination $destination,
+		private Chosen_Shipping_Destination_Service $destination,
 		private Availability_Service $availability,
-		private Settings_Store $settings,
+		private Settings_Service $settings,
 		private Clock $clock
 	) {
 	}
@@ -37,7 +39,7 @@ final class Current_Fulfilment_Window {
 	 * nothing for it - see {@see self::destination_chosen()} to tell those two apart.
 	 *
 	 * @param string|null $explicit_rate_id Forwarded to
-	 *                                      {@see Chosen_Shipping_Destination::resolve()}.
+	 *                                      {@see Chosen_Shipping_Destination_Service::resolve()}.
 	 */
 	public function schedule( ?string $explicit_rate_id = null ): ?Schedule {
 		$destination = $this->destination->resolve( $explicit_rate_id );
@@ -57,7 +59,7 @@ final class Current_Fulfilment_Window {
 	 * {@see self::schedule()}.
 	 *
 	 * @param string|null $explicit_rate_id Forwarded to
-	 *                                      {@see Chosen_Shipping_Destination::resolve()}.
+	 *                                      {@see Chosen_Shipping_Destination_Service::resolve()}.
 	 */
 	public function destination_chosen( ?string $explicit_rate_id = null ): bool {
 		return null !== $this->destination->resolve( $explicit_rate_id );

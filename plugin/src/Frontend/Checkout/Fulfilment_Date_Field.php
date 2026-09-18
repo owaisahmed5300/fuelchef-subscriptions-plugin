@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Frontend\Checkout;
 
-use FuelChef\Subscriptions\Services\Current_Fulfilment_Window;
-use FuelChef\Subscriptions\Services\Settings_Store;
+use FuelChef\Subscriptions\Services\Checkout\Current_Fulfilment_Window_Service;
+use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Utils\Renderer;
 use WC_Order;
@@ -49,8 +49,8 @@ final class Fulfilment_Date_Field {
 	 * Creates the field handler.
 	 */
 	public function __construct(
-		private Current_Fulfilment_Window $window,
-		private Settings_Store $settings,
+		private Current_Fulfilment_Window_Service $window,
+		private Settings_Service $settings,
 		private Renderer $renderer
 	) {
 	}
