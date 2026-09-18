@@ -47,12 +47,12 @@ parameters:
       # available PHPStan stub package, so neither the class nor throwing it is known here.
       message: '#^Instantiated class Automattic\\WooCommerce\\StoreApi\\Exceptions\\RouteException not found\.$#'
       identifier: class.notFound
-      count: 1
+      count: 3
       path: plugin/src/Frontend/Checkout/Block/Fulfilment_Date_Field.php
     -
       message: '#^Throwing object of an unknown class Automattic\\WooCommerce\\StoreApi\\Exceptions\\RouteException\.$#'
       identifier: class.notFound
-      count: 1
+      count: 3
       path: plugin/src/Frontend/Checkout/Block/Fulfilment_Date_Field.php
 
 includes:

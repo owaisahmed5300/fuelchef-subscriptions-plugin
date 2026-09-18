@@ -136,8 +136,10 @@ final class Fulfilment_Date_Field {
 	}
 
 	/**
-	 * Rejects checkout when a schedule applies but the posted date is not one it can
-	 * actually fulfil.
+	 * Rejects checkout whenever a fulfilment date cannot be resolved for the order: no
+	 * destination chosen yet, a destination with no schedule covering it, or a schedule
+	 * whose posted date isn't one it can actually fulfil. A fulfilment date is required for
+	 * every order, not just ones where a schedule happens to apply.
 	 *
 	 * Reads `$_POST` directly rather than `$data`: `$data` is built only from WC's
 	 * registered checkout fieldsets, and this field is not one of them.
@@ -146,9 +148,23 @@ final class Fulfilment_Date_Field {
 	 * @param WP_Error             $errors Validation errors, added to by reference.
 	 */
 	public function validate( array $data, WP_Error $errors ): void {
+		if ( ! $this->window->destination_chosen() ) {
+			$errors->add(
+				'fcs_fulfilment_date',
+				esc_html__( 'Add a shipping address or select a pickup location to continue.', 'fuelchef-subscriptions' )
+			);
+
+			return;
+		}
+
 		$schedule = $this->window->schedule();
 
 		if ( null === $schedule ) {
+			$errors->add(
+				'fcs_fulfilment_date',
+				esc_html__( 'We are unable to fulfil orders to this location. Please choose a different address or pickup location.', 'fuelchef-subscriptions' )
+			);
+
 			return;
 		}
 

@@ -327,36 +327,45 @@ never per-date exclusion, which this field needs for closed weekdays and blackou
   request), so it calls `wc_load_cart()` itself before asking `Current_Fulfilment_Window`
   anything - `Chosen_Shipping_Destination` handles the shipping calculation part of that
   itself, per the note above.
+- **A fulfilment date is required for every order, not just ones where a schedule happens
+  to apply** - no destination chosen, a destination with no schedule, or a schedule whose
+  date wasn't picked all reject the order, each with its own message. This is a deliberate
+  policy: the earlier "no schedule = order allowed through without a date" carve-out was
+  removed on user instruction, since a store that cannot resolve a fulfilment date for an
+  order should not be able to take that order at all.
 - **`validate()` alone does not stop an order with no date at all - `validate_order()`
   backstops it.** Confirmed against the installed source
   (`StoreApi\Routes\V1\Checkout::process_order()`): WooCommerce skips calling
   `woocommerce_validate_additional_field` entirely for a field whose posted value is empty
-  when that field is not registered `required: true`, which this one deliberately is not
-  (it must never be required for a destination with no schedule at all, and `required`
-  can only be set once, at `woocommerce_init`, with no per-customer context available to
-  condition it on - the same registration-time constraint the REST route above exists to
-  work around). A customer who never touches the field - or for whom `eligible_dates()`
-  is empty, leaving nothing to touch - reaches place-order with `validate()` never having
-  run at all, which a real, empty-cart-of-dates order placement confirmed the hard way
-  (order #148: placed successfully with no fulfilment date whatsoever). `validate_order()`
-  is the fix: hooked to `woocommerce_store_api_checkout_order_processed`, which always
-  fires exactly once per place-order attempt regardless of any field's own required/empty
-  state - unlike `validate()`, this reads the value `persist_additional_fields_for_order()`
-  already saved to the order itself, rather than the request, and `throw`s
-  `StoreApi\Exceptions\RouteException` to reject the order outright when a schedule
-  applies and nothing eligible was saved. Throwing is the Store API's own documented
-  mechanism here (mirrors classic checkout's `woocommerce_checkout_order_processed`);
+  when that field is not registered `required: true`. This field stays registered
+  `required: false` regardless - `required` can only be set once, at `woocommerce_init`,
+  with no per-customer context available to condition it on (the same registration-time
+  constraint the REST route above exists to work around), and setting it `true` would
+  replace this plugin's destination-specific messages ("add an address", "we can't fulfil
+  this location", "choose a date") with WooCommerce's own generic "this field is required"
+  for every case alike. A customer who never touches the field - or for whom
+  `eligible_dates()` is empty, leaving nothing to touch - reaches place-order with
+  `validate()` never having run at all, which a real, empty-cart-of-dates order placement
+  confirmed the hard way (order #148: placed successfully with no fulfilment date
+  whatsoever). `validate_order()` is the fix: hooked to
+  `woocommerce_store_api_checkout_order_processed`, which always fires exactly once per
+  place-order attempt regardless of any field's own required/empty state - unlike
+  `validate()`, this reads the value `persist_additional_fields_for_order()` already saved
+  to the order itself, rather than the request, and `throw`s
+  `StoreApi\Exceptions\RouteException` to reject the order outright whenever a fulfilment
+  date cannot be resolved for it. Throwing is the Store API's own documented mechanism
+  here (mirrors classic checkout's `woocommerce_checkout_order_processed`);
   `AbstractRoute::get_response()` catches it and converts it to a proper REST error
   response before payment is ever processed, not a fatal error. Classic checkout needed no
   equivalent fix: `Fulfilment_Date_Field::validate()` hooks `woocommerce_after_checkout_
   validation` directly, which always runs for every submission regardless of any
   `required` concept - there is no such gap on that side, confirmed by the same order
-  placement test attempted there instead (correctly blocked, "Please choose a fulfilment
-  date.").
+  placement tests attempted there instead (each correctly blocked with the matching
+  message).
 - **`register_field()` also sets `optionalLabel` to the same text as `label`.** Left at
-  its default, WooCommerce appends "(optional)" to a non-required field's label - true for
-  a destination with no schedule, but misleading everywhere else, since `validate_order()`
-  above still rejects the order without a date whenever a schedule does apply.
+  its default, WooCommerce appends "(optional)" to a non-required field's label -
+  misleading now that `validate_order()` rejects the order without a date in every case,
+  not only when a schedule applies.
 - **`Frontend\Checkout\Block\Concerns\Reads_Persisted_Field`** is a small shared trait,
   not a `Services\` class: reading one of this plugin's own registered fields back off an
   order through `CheckoutFields::get_field_from_object()` is Blocks-integration
