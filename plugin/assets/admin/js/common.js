@@ -105,13 +105,16 @@ FCS.State = {
 };
 
 // Toast Notifications
-FCS.toast = function (msg) {
+FCS.toast = function (msg, type) {
   const el = document.getElementById('fcsToast');
   if (!el) return;
-  el.textContent = msg;
+  const messageEl = el.querySelector('[data-toast-message]');
+  if (messageEl) messageEl.textContent = msg;
+  el.classList.toggle('fcs-toast--error', 'error' === type);
+  el.classList.toggle('fcs-toast--success', 'error' !== type);
   el.classList.add('fcs-toast--show');
   clearTimeout(this._timer);
-  this._timer = setTimeout(() => el.classList.remove('fcs-toast--show'), 2200);
+  this._timer = setTimeout(() => el.classList.remove('fcs-toast--show'), 3000);
 };
 
 // WP Tabs

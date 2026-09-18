@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ineligible_message: document.getElementById('ineligibleMessage').value
       }).done((response) => {
         if (!response.success) {
-          FCS.toast(response.data && response.data.message ? response.data.message : window.fcsAdmin.i18n.couldNotSaveSettings);
+          FCS.toast(response.data && response.data.message ? response.data.message : window.fcsAdmin.i18n.couldNotSaveSettings, 'error');
           return;
         }
         FCS.State.markClean();
@@ -49,14 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
     emptyMessage: window.fcsAdmin.i18n.noGlobalClosures,
     onCreate: (date) => FCS.post('fcs_save_blackout', { date }).then((response) => {
       if (!response.success) {
-        FCS.toast(response.data && response.data.message ? response.data.message : window.fcsAdmin.i18n.couldNotAddDate);
+        FCS.toast(response.data && response.data.message ? response.data.message : window.fcsAdmin.i18n.couldNotAddDate, 'error');
         return null;
       }
       return { id: response.data.id, date: response.data.date, reason: response.data.reason };
     }),
     onSave: (id, reason) => FCS.post('fcs_save_blackout', { blackout_id: id, reason }).then((response) => {
       if (!response.success) {
-        FCS.toast(response.data && response.data.message ? response.data.message : window.fcsAdmin.i18n.couldNotSaveNote);
+        FCS.toast(response.data && response.data.message ? response.data.message : window.fcsAdmin.i18n.couldNotSaveNote, 'error');
         return null;
       }
       return { id: response.data.id, date: response.data.date, reason: response.data.reason };
