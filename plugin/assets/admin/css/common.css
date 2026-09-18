@@ -988,6 +988,28 @@
     margin-top: 12px;
 }
 
+/* Popover actions are a lighter-weight echo of the page's primary/danger buttons,
+   not a second pair of them - smaller, and the destructive one is text-only so it
+   doesn't compete with the solid "Delete schedule"/"Save changes" buttons below. */
+.fcs-admin .fcs-popover__actions .fcs-btn {
+    min-height: var(--fcs-control-height-small);
+    padding: 0 12px;
+    font-size: 12px;
+}
+
+.fcs-admin .fcs-popover__actions .fcs-btn--danger,
+.fcs-admin .fcs-popover__actions .fcs-btn--danger:active {
+    border-color: transparent;
+    background: transparent;
+    color: var(--fcs-color-danger);
+}
+
+.fcs-admin .fcs-popover__actions .fcs-btn--danger:hover {
+    border-color: var(--fcs-color-danger-border);
+    background: var(--fcs-color-danger-bg);
+    color: var(--fcs-color-danger-hover);
+}
+
 /* Arrow: two stacked CSS triangles so the border shows through, like a Gutenberg Popover. */
 .fcs-admin .fcs-popover__arrow,
 .fcs-admin .fcs-popover__arrow::before {
