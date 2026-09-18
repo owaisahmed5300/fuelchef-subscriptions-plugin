@@ -10,16 +10,15 @@ namespace FuelChef\Subscriptions\Repositories;
 use FuelChef\Subscriptions\Database\Tables;
 use FuelChef\Subscriptions\Entities\Contracts\Entity;
 use FuelChef\Subscriptions\Entities\Schedule;
-use FuelChef\Subscriptions\Repositories\Abstracts\Abstract_Entity_Repository;
 use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Values\DateTime;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * @extends Abstract_Entity_Repository<Schedule>
+ * @extends Abstract_Repository<Schedule>
  */
-final class Schedule_Repository extends Abstract_Entity_Repository {
+final class Schedule_Repository extends Abstract_Repository {
 
 
 	/**

@@ -10,16 +10,15 @@ namespace FuelChef\Subscriptions\Repositories;
 use FuelChef\Subscriptions\Database\Tables;
 use FuelChef\Subscriptions\Entities\Blackout;
 use FuelChef\Subscriptions\Entities\Contracts\Entity;
-use FuelChef\Subscriptions\Repositories\Abstracts\Abstract_Entity_Repository;
 use FuelChef\Subscriptions\Utils\Narrow;
 use FuelChef\Subscriptions\Values\DateTime;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * @extends Abstract_Entity_Repository<Blackout>
+ * @extends Abstract_Repository<Blackout>
  */
-final class Blackout_Repository extends Abstract_Entity_Repository {
+final class Blackout_Repository extends Abstract_Repository {
 
 
 	/**

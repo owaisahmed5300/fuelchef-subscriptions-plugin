@@ -1,32 +1,32 @@
 <?php
 /**
- * Abstract entity repository.
+ * Abstract repository.
  */
 
 declare(strict_types=1);
 
-namespace FuelChef\Subscriptions\Repositories\Abstracts;
+namespace FuelChef\Subscriptions\Repositories;
 
 use FuelChef\Subscriptions\Database\Tables;
 use FuelChef\Subscriptions\Entities\Contracts\Entity;
 use FuelChef\Subscriptions\Entities\Contracts\Timestamped;
 use FuelChef\Subscriptions\Repositories\Exceptions\Entity_Not_Found_Exception;
 use FuelChef\Subscriptions\Repositories\Exceptions\Repository_Exception;
+use FuelChef\Subscriptions\Utils\Clock;
 use InvalidArgumentException;
+use wpdb;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Common database access, hydration and caching for one table of entities.
+ * Common database access, hydration and caching for one table.
  *
  * A successful `insert()`, `update()` or `delete()` fires a
  * `fuelchef_subscriptions/{table}/created` (or `updated`, `deleted`) action.
  *
  * @template TEntity of Entity
- *
- * @extends Abstract_Repository<TEntity>
  */
-abstract class Abstract_Entity_Repository extends Abstract_Repository {
+abstract class Abstract_Repository {
 
 
 	/**
@@ -39,6 +39,15 @@ abstract class Abstract_Entity_Repository extends Abstract_Repository {
 	 * subclass.
 	 */
 	protected static string $cache_group = '';
+
+	/**
+	 * Creates a repository.
+	 */
+	public function __construct(
+		protected wpdb $wpdb,
+		protected Clock $clock
+	) {
+	}
 
 	/**
 	 * Builds an entity from a database row.
