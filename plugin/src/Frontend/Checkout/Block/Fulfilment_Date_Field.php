@@ -26,20 +26,6 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Registers the fulfilment date field for the Checkout block's "Order information"
  * section.
- *
- * A native `select`: WooCommerce's `date` field type has no way to exclude individual
- * dates (only a `min`/`max` range), so it cannot express blackout dates or closed
- * weekdays. `options` is fixed at registration time with every calendar date in the
- * lookahead window, since WooCommerce validates a submission against the registered set,
- * not the live DOM; `assets/checkout/js/block-fulfilment-date-field.js` only toggles which
- * options are `disabled`. `validate()` still rejects a date outside the customer's actual
- * eligible set.
- *
- * `validate()` is skipped by WooCommerce entirely when nothing was posted and the field
- * is not `required: true` (which it deliberately is not - it must stay optional for a
- * destination with no schedule). `validate_order()` is the backstop for that gap: it
- * always fires once per place-order attempt and rejects the order if a schedule applies
- * and nothing eligible was ever saved.
  */
 final class Fulfilment_Date_Field {
 
@@ -91,6 +77,13 @@ final class Fulfilment_Date_Field {
 	/**
 	 * Registers the field with the Checkout block, once WooCommerce Blocks itself is
 	 * ready for it.
+	 *
+	 * A native `select`, not the `date` field type: WooCommerce's `date` field has no way
+	 * to exclude individual dates, only a `min`/`max` range, so it cannot express blackout
+	 * dates or closed weekdays. `options` is fixed here with every calendar date in the
+	 * lookahead window, since WooCommerce validates a submission against the registered
+	 * set, not the live DOM - `assets/checkout/js/block-fulfilment-date-field.js` only
+	 * toggles which options are `disabled`.
 	 */
 	public function register_field(): void {
 		if ( ! function_exists( 'woocommerce_register_additional_checkout_field' ) ) {
@@ -204,9 +197,14 @@ final class Fulfilment_Date_Field {
 
 	/**
 	 * Rejects the order outright when a schedule applies but nothing eligible was ever
-	 * saved to it - the backstop for `validate()`; see the class docblock. Throwing
-	 * `RouteException` is the Store API's own way to reject an order from this hook;
-	 * `AbstractRoute::get_response()` converts it to a proper REST error response.
+	 * saved to it.
+	 *
+	 * The backstop for `validate()`, which WooCommerce skips entirely when nothing was
+	 * posted and the field is not `required: true` - which it deliberately is not, since
+	 * it must stay optional for a destination with no schedule. This always fires once per
+	 * place-order attempt regardless. Throwing `RouteException` is the Store API's own way
+	 * to reject an order from this hook; `AbstractRoute::get_response()` converts it to a
+	 * proper REST error response.
 	 */
 	public function validate_order( WC_Order $order ): void {
 		$schedule = $this->window->schedule();
