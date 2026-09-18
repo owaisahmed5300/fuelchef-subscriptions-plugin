@@ -67,7 +67,8 @@ final class Settings {
 	 *                                   show the default wording.
 	 * @param string $logged_out_message Shown instead of Subscribe & Save when the
 	 *                                   customer is not logged in, or an empty string to
-	 *                                   show the default wording.
+	 *                                   show the default wording. May contain a
+	 *                                   `{login_link}` placeholder.
 	 */
 	public function __construct(
 		private int $cutoff_days,
@@ -301,11 +302,13 @@ final class Settings {
 
 	/**
 	 * The message shown instead of Subscribe & Save when the customer is not logged in,
-	 * falling back to a sensible default when the store has not customised it.
+	 * falling back to a sensible default when the store has not customised it. May contain
+	 * a `{login_link}` placeholder, resolved by the caller - not here, since this value
+	 * object has no request context to build an actual URL from.
 	 */
 	public function logged_out_message_resolved(): string {
 		return '' !== $this->logged_out_message
 			? $this->logged_out_message
-			: esc_html__( 'Log in to your account to unlock Subscribe & Save.', 'fuelchef-subscriptions' );
+			: esc_html__( '{login_link} to your account to unlock Subscribe & Save.', 'fuelchef-subscriptions' );
 	}
 }
