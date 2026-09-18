@@ -152,6 +152,9 @@ final class Assets {
 				'minimumOrderAmount'        => $settings->minimum_order_amount(),
 				'minimumCartQuantity'       => $settings->minimum_cart_quantity(),
 				'ineligibleMessage'         => $settings->ineligible_message_resolved(),
+				'isLoggedIn'                => is_user_logged_in(),
+				'loggedOutMessage'          => $settings->logged_out_message_resolved(),
+				'loginUrl'                  => wp_login_url( wc_get_checkout_url() ),
 				'i18n'                      => $this->strings(),
 			]
 		);
@@ -177,6 +180,7 @@ final class Assets {
 	private function strings(): array {
 		return [
 			'chooseDate'            => esc_html__( 'Choose a date', 'fuelchef-subscriptions' ),
+			'logIn'                 => esc_html__( 'Log in', 'fuelchef-subscriptions' ),
 			'noFulfilmentDateMatch' => esc_html__( 'No fulfilment dates are available for this location.', 'fuelchef-subscriptions' ),
 			/* translators: %1$s: opening time, %2$s: closing time. Resolved client-side. */
 			'fulfilmentWindow'      => esc_html__( 'Fulfilment available between %1$s and %2$s.', 'fuelchef-subscriptions' ),

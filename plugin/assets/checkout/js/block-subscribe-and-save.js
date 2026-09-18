@@ -12,12 +12,14 @@
  *   register_update_callback()), so checking or unchecking it updates the order summary
  *   totals immediately - the same way changing the shipping method already does, and
  *   without which the discount would only ever show up after placing the order.
- * - Swaps the checkbox for the store's ineligible message when the live cart falls
- *   below the configured minimums, read reactively from the official `wc/store/cart`
- *   data store (window.wp.data / window.wc.wcBlocksData) rather than a REST round trip -
- *   the cart total and item count are already there on every store update.
- *   `Block\Subscribe_And_Save::apply_discount()` is the authoritative gate; this is only
- *   a live preview of the same rule.
+ * - Swaps the checkbox for the store's logged-out message (with a Log in link) when the
+ *   customer has no account, or its ineligible message when the live cart falls below the
+ *   configured minimums - the latter read reactively from the official `wc/store/cart`
+ *   data store (window.wp.data / window.wc.wcBlocksData) rather than a REST round trip,
+ *   since the cart total and item count are already there on every store update. Login
+ *   state itself never changes without a full page reload, so it is only ever applied
+ *   once, at bind time - `Block\Subscribe_And_Save::apply_discount()` is the authoritative
+ *   gate either way; this is only a live preview of the same rule.
  * - Tells the customer which weekday future renewals will fall on, once both this
  *   checkbox and the fulfilment date field (block-fulfilment-date-field.js) have a
  *   value - the two fields are otherwise unaware of each other.
@@ -36,6 +38,9 @@ jQuery(function ($) {
   const minimumOrderAmount = window.fcsCheckout.minimumOrderAmount;
   const minimumCartQuantity = window.fcsCheckout.minimumCartQuantity;
   const ineligibleMessage = window.fcsCheckout.ineligibleMessage;
+  const isLoggedIn = window.fcsCheckout.isLoggedIn;
+  const loggedOutMessage = window.fcsCheckout.loggedOutMessage;
+  const loginUrl = window.fcsCheckout.loginUrl;
 
   let hasReset = false;
   let lastEligible = null;
@@ -94,7 +99,12 @@ jQuery(function ($) {
     const $label = $checkbox.closest('label');
     const $anchor = $label.length ? $label : $checkbox;
 
-    if ($anchor.next('.fcs-subscribe-and-save-description').length) {
+    // .siblings(), not .next(): the ineligible/logged-out message elements can end up
+    // inserted between the anchor and this description (each is added via the same
+    // $anchor.after(), so insertion order determines final sibling order) - an
+    // immediate-next-only check would miss an already-inserted description and duplicate
+    // it on every MutationObserver tick.
+    if ($anchor.siblings('.fcs-subscribe-and-save-description').length) {
       return;
     }
 
@@ -117,6 +127,34 @@ jQuery(function ($) {
     return $message;
   }
 
+  function loggedOutMessageElement($checkbox) {
+    const $anchor = $checkbox.closest('label').length ? $checkbox.closest('label') : $checkbox;
+    let $message = $anchor.siblings('.fcs-subscribe-and-save-logged-out');
+
+    if ($message.length) {
+      return $message;
+    }
+
+    $message = $('<p class="fcs-subscribe-and-save-logged-out" hidden></p>').text(`${loggedOutMessage} `);
+    $message.append(
+      $('<a class="fcs-subscribe-and-save-logged-out__link"></a>').attr('href', loginUrl).text(window.fcsCheckout.i18n.logIn)
+    );
+    $anchor.after($message);
+
+    return $message;
+  }
+
+  // A real click, not a direct .prop('checked', false) + synthetic change event: this
+  // checkbox is a React-controlled element, and setting the DOM property directly leaves
+  // React's own state still "checked" - confirmed empirically, it gets silently restored
+  // on the next re-render. A native click reaches React's event listener the same way a
+  // real user's click would.
+  function uncheckIfChecked($checkbox) {
+    if ($checkbox.is(':checked')) {
+      $checkbox[0].click();
+    }
+  }
+
   function applyEligibility($checkbox, eligible) {
     const $anchor = $checkbox.closest('label').length ? $checkbox.closest('label') : $checkbox;
     const $description = $anchor.siblings('.fcs-subscribe-and-save-description');
@@ -126,14 +164,29 @@ jQuery(function ($) {
     $description.toggle(eligible);
     $message.toggle(!eligible);
 
-    // A real click, not a direct .prop('checked', false) + synthetic change event:
-    // this checkbox is a React-controlled element, and setting the DOM property
-    // directly leaves React's own state still "checked" - confirmed empirically, it
-    // gets silently restored on the next re-render. A native click reaches React's
-    // event listener the same way a real user's click would.
-    if (!eligible && $checkbox.is(':checked')) {
-      $checkbox[0].click();
+    if (!eligible) {
+      uncheckIfChecked($checkbox);
     }
+  }
+
+  // Logged-out takes priority over cart eligibility - a guest doesn't need to know
+  // whether their cart would otherwise qualify, only that they need an account first.
+  function applyState($checkbox) {
+    const $anchor = $checkbox.closest('label').length ? $checkbox.closest('label') : $checkbox;
+    const $loggedOut = loggedOutMessageElement($checkbox);
+
+    if (!isLoggedIn) {
+      $anchor.hide();
+      $anchor.siblings('.fcs-subscribe-and-save-description').hide();
+      ineligibleMessageElement($checkbox).hide();
+      $loggedOut.show();
+      uncheckIfChecked($checkbox);
+      return;
+    }
+
+    $loggedOut.hide();
+    lastEligible = isCartEligible();
+    applyEligibility($checkbox, lastEligible);
   }
 
   function recurringDayNoticeElement($checkbox) {
@@ -192,8 +245,7 @@ jQuery(function ($) {
       syncChecked(false);
     }
 
-    lastEligible = isCartEligible();
-    applyEligibility($checkbox, lastEligible);
+    applyState($checkbox);
     updateRecurringDayNotice($checkbox);
 
     if ($checkbox.data('fcsBound')) {
@@ -215,11 +267,12 @@ jQuery(function ($) {
   // The subscribe callback fires on every store action, not just a cart-total change -
   // recomputing eligibility is cheap, but re-touching the DOM on every keystroke
   // elsewhere on the page is not, so this only acts when the eligibility verdict itself
-  // actually flips.
+  // actually flips. Login state is checked once at bind time and never changes without a
+  // full page reload, so a logged-out customer's cart-total changes are ignored entirely.
   function onCartStoreChange() {
     const $checkbox = $(SELECTOR);
 
-    if (!$checkbox.length) {
+    if (!$checkbox.length || !isLoggedIn) {
       return;
     }
 

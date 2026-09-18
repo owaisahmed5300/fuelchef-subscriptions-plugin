@@ -19,11 +19,12 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Registers the "Subscribe & Save" checkbox for the Checkout block, and applies the same
- * discount the classic checkout checkbox unlocks. Only offered to a logged-in customer,
- * same as classic checkout's own field. The field stays registered even when the cart is
- * currently ineligible - `assets/checkout/js/block-subscribe-and-save.js` toggles it for
- * an ineligible message instead, since the eligibility rule can only be re-evaluated
- * client-side as the cart changes, but `apply_discount()` below is the authoritative gate.
+ * discount the classic checkout checkbox unlocks. Only offered to a logged-in customer
+ * whose cart is eligible, same as classic checkout's own field - but the field itself
+ * stays registered for a logged-out or currently-ineligible customer too, since the
+ * Additional Checkout Fields API has no per-request conditional registration.
+ * `assets/checkout/js/block-subscribe-and-save.js` toggles it for the logged-out or
+ * ineligible message instead, but `apply_discount()` below is the authoritative gate.
  *
  * Two mechanisms apply the discount. `assets/checkout/js/block-subscribe-and-save.js`
  * reports a live cart-total preview through the Store API's `extensionCartUpdate()`,
@@ -77,11 +78,16 @@ final class Subscribe_And_Save {
 	}
 
 	/**
-	 * Registers the field with the Checkout block for a logged-in customer, once
-	 * WooCommerce Blocks itself is ready for it.
+	 * Registers the field with the Checkout block, once WooCommerce Blocks itself is ready
+	 * for it. Registered unconditionally, even for a logged-out customer - unlike classic
+	 * checkout's plain PHP `echo`, the Additional Checkout Fields API has no per-request
+	 * conditional rendering, so `assets/checkout/js/block-subscribe-and-save.js` swaps the
+	 * checkbox for the logged-out message client-side instead, the same way it already
+	 * swaps it for the ineligible-cart message. `apply_discount()` below is the
+	 * authoritative gate either way.
 	 */
 	public function register_field(): void {
-		if ( ! function_exists( 'woocommerce_register_additional_checkout_field' ) || ! is_user_logged_in() ) {
+		if ( ! function_exists( 'woocommerce_register_additional_checkout_field' ) ) {
 			return;
 		}
 

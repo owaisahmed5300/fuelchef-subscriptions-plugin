@@ -429,6 +429,26 @@ $currency_symbol = $data['currency_symbol'];
 								?>
 							</p>
 						</div>
+
+						<div class="fcs-field">
+							<label for="loggedOutMessage">
+								<?php esc_html_e( 'Logged-out message (optional)', 'fuelchef-subscriptions' ); ?>
+							</label>
+							<textarea
+								class="fcs-textarea"
+								id="loggedOutMessage"
+								maxlength="300"
+								placeholder="<?php echo esc_attr( $settings->logged_out_message_resolved() ); ?>"
+							><?php echo esc_textarea( $settings->logged_out_message() ); ?></textarea>
+							<p class="fcs-field__hint">
+								<?php
+								esc_html_e(
+									'Shown instead of Subscribe & Save when the customer isn\'t logged in, next to a Log in link. Leave blank to use the default wording.',
+									'fuelchef-subscriptions'
+								);
+								?>
+							</p>
+						</div>
 					</div>
 				</div>
 			</section>

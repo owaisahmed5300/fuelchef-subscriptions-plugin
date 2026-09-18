@@ -31,10 +31,10 @@ final class Settings_Test extends TestCase {
 	 * PHP 8.0 (this plugin's floor) cannot combine argument unpacking with named
 	 * arguments in the same call.
 	 *
-	 * @return array{0: int, 1: string, 2: int, 3: string, 4: int, 5: string, 6: string, 7: string, 8: string, 9: float, 10: int, 11: string}
+	 * @return array{0: int, 1: string, 2: int, 3: string, 4: int, 5: string, 6: string, 7: string, 8: string, 9: float, 10: int, 11: string, 12: string}
 	 */
 	private function valid_args(): array {
-		return [ 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS, 60, 'Fulfilment date', '', 'Subscribe & Save {percent}%', '', 0.0, 0, '' ];
+		return [ 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS, 60, 'Fulfilment date', '', 'Subscribe & Save {percent}%', '', 0.0, 0, '', '' ];
 	}
 
 	public function test_accepts_valid_values(): void {
@@ -52,6 +52,7 @@ final class Settings_Test extends TestCase {
 		$this->assertSame( 0.0, $settings->minimum_order_amount() );
 		$this->assertSame( 0, $settings->minimum_cart_quantity() );
 		$this->assertSame( '', $settings->ineligible_message() );
+		$this->assertSame( '', $settings->logged_out_message() );
 	}
 
 	public function test_accepts_custom_eligibility_values(): void {
@@ -59,12 +60,14 @@ final class Settings_Test extends TestCase {
 		$args[9]  = 50.0;
 		$args[10] = 3;
 		$args[11] = 'Add more to unlock this.';
+		$args[12] = 'Log in to unlock this.';
 
 		$settings = new Settings( ...$args );
 
 		$this->assertSame( 50.0, $settings->minimum_order_amount() );
 		$this->assertSame( 3, $settings->minimum_cart_quantity() );
 		$this->assertSame( 'Add more to unlock this.', $settings->ineligible_message() );
+		$this->assertSame( 'Log in to unlock this.', $settings->logged_out_message() );
 	}
 
 	public function test_ineligible_message_resolved_falls_back_to_the_default_when_empty(): void {
@@ -80,6 +83,30 @@ final class Settings_Test extends TestCase {
 		$settings = new Settings( ...$args );
 
 		$this->assertSame( 'Add more to unlock this.', $settings->ineligible_message_resolved() );
+	}
+
+	public function test_logged_out_message_resolved_falls_back_to_the_default_when_empty(): void {
+		$settings = new Settings( ...$this->valid_args() );
+
+		$this->assertNotSame( '', $settings->logged_out_message_resolved() );
+	}
+
+	public function test_logged_out_message_resolved_returns_the_custom_message_when_set(): void {
+		$args     = $this->valid_args();
+		$args[12] = 'Log in to unlock this.';
+
+		$settings = new Settings( ...$args );
+
+		$this->assertSame( 'Log in to unlock this.', $settings->logged_out_message_resolved() );
+	}
+
+	public function test_rejects_a_logged_out_message_over_the_length_limit(): void {
+		$args     = $this->valid_args();
+		$args[12] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
 	}
 
 	public function test_rejects_a_negative_minimum_order_amount(): void {
