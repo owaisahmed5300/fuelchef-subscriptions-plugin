@@ -305,6 +305,32 @@
     width: 88px;
 }
 
+/* Groups a handful of narrow fields (e.g. a percentage, a currency amount, a plain
+   number) into one row on wider screens instead of each claiming a full-width row for a
+   control a fraction of that width - stacks back to single-column below WordPress's own
+   782px admin collapse breakpoint, same as .fcs-inline-field's responsive rule. */
+.fcs-admin .fcs-field-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.fcs-admin .fcs-field-grid:first-child {
+    margin-top: 0;
+}
+
+.fcs-admin .fcs-field-grid .fcs-field {
+    margin-top: 0;
+}
+
+@media (min-width: 783px) {
+    .fcs-admin .fcs-field-grid {
+        grid-template-columns: repeat(3, 1fr);
+        column-gap: 20px;
+    }
+}
+
 .fcs-admin .fcs-field__hint {
     margin: 6px 0 0;
     color: var(--fcs-color-text-secondary);

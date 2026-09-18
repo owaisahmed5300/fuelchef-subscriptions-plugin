@@ -284,20 +284,68 @@ $currency_symbol = $data['currency_symbol'];
 							?>
 						</p>
 
-						<div class="fcs-field">
-							<label for="subscribeDiscountPercent">
-								<?php esc_html_e( 'Discount', 'fuelchef-subscriptions' ); ?>
-							</label>
-							<div class="fcs-percent-input">
+						<div class="fcs-field-grid">
+							<div class="fcs-field">
+								<label for="subscribeDiscountPercent">
+									<?php esc_html_e( 'Discount', 'fuelchef-subscriptions' ); ?>
+								</label>
+								<div class="fcs-percent-input">
+									<input
+										class="fcs-input fcs-input--number"
+										id="subscribeDiscountPercent"
+										type="number"
+										min="0"
+										max="100"
+										value="<?php echo esc_attr( (string) $settings->subscribe_discount_percent() ); ?>"
+									>
+									<span class="fcs-percent-input__suffix">%</span>
+								</div>
+							</div>
+
+							<div class="fcs-field">
+								<label for="minimumOrderAmount">
+									<?php esc_html_e( 'Minimum order amount', 'fuelchef-subscriptions' ); ?>
+								</label>
+								<div class="fcs-currency-input">
+									<span class="fcs-currency-input__prefix"><?php echo esc_html( $currency_symbol ); ?></span>
+									<input
+										class="fcs-input fcs-input--number"
+										id="minimumOrderAmount"
+										type="number"
+										min="0"
+										step="0.01"
+										value="<?php echo esc_attr( (string) $settings->minimum_order_amount() ); ?>"
+									>
+								</div>
+								<p class="fcs-field__hint">
+									<?php
+									esc_html_e(
+										'Cart subtotal required before Subscribe & Save is offered. 0 means no restriction.',
+										'fuelchef-subscriptions'
+									);
+									?>
+								</p>
+							</div>
+
+							<div class="fcs-field">
+								<label for="minimumCartQuantity">
+									<?php esc_html_e( 'Minimum items in cart', 'fuelchef-subscriptions' ); ?>
+								</label>
 								<input
 									class="fcs-input fcs-input--number"
-									id="subscribeDiscountPercent"
+									id="minimumCartQuantity"
 									type="number"
 									min="0"
-									max="100"
-									value="<?php echo esc_attr( (string) $settings->subscribe_discount_percent() ); ?>"
+									value="<?php echo esc_attr( (string) $settings->minimum_cart_quantity() ); ?>"
 								>
-								<span class="fcs-percent-input__suffix">%</span>
+								<p class="fcs-field__hint">
+									<?php
+									esc_html_e(
+										'Cart items required before Subscribe & Save is offered. 0 means no restriction.',
+										'fuelchef-subscriptions'
+									);
+									?>
+								</p>
 							</div>
 						</div>
 
@@ -358,52 +406,6 @@ $currency_symbol = $data['currency_symbol'];
 								<?php
 								esc_html_e(
 									'Shown under the checkbox. Also accepts {percent}. Leave blank to show none.',
-									'fuelchef-subscriptions'
-								);
-								?>
-							</p>
-						</div>
-
-						<div class="fcs-field">
-							<label for="minimumOrderAmount">
-								<?php esc_html_e( 'Minimum order amount', 'fuelchef-subscriptions' ); ?>
-							</label>
-							<div class="fcs-currency-input">
-								<span class="fcs-currency-input__prefix"><?php echo esc_html( $currency_symbol ); ?></span>
-								<input
-									class="fcs-input fcs-input--number"
-									id="minimumOrderAmount"
-									type="number"
-									min="0"
-									step="0.01"
-									value="<?php echo esc_attr( (string) $settings->minimum_order_amount() ); ?>"
-								>
-							</div>
-							<p class="fcs-field__hint">
-								<?php
-								esc_html_e(
-									'Cart subtotal required before Subscribe & Save is offered. 0 means no restriction.',
-									'fuelchef-subscriptions'
-								);
-								?>
-							</p>
-						</div>
-
-						<div class="fcs-field">
-							<label for="minimumCartQuantity">
-								<?php esc_html_e( 'Minimum items in cart', 'fuelchef-subscriptions' ); ?>
-							</label>
-							<input
-								class="fcs-input fcs-input--number"
-								id="minimumCartQuantity"
-								type="number"
-								min="0"
-								value="<?php echo esc_attr( (string) $settings->minimum_cart_quantity() ); ?>"
-							>
-							<p class="fcs-field__hint">
-								<?php
-								esc_html_e(
-									'Cart items required before Subscribe & Save is offered. 0 means no restriction.',
 									'fuelchef-subscriptions'
 								);
 								?>
