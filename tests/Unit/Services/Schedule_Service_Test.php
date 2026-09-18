@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace FuelChef\Subscriptions\Tests\Unit\Services;
 
 use Brain\Monkey\Functions;
+use FuelChef\Subscriptions\Database\Transaction_Manager;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
@@ -27,13 +28,15 @@ final class Schedule_Service_Test extends Repository_TestCase {
 		?Schedule_Repository $schedules = null,
 		?Schedule_Weekday_Repository $weekdays = null,
 		?Blackout_Repository $blackouts = null,
-		?Schedule_Destination_Repository $destinations = null
+		?Schedule_Destination_Repository $destinations = null,
+		?Transaction_Manager $transactions = null
 	): Schedule_Service {
 		return new Schedule_Service(
 			$schedules ?? new Schedule_Repository( $this->wpdb(), $this->clock() ),
 			$weekdays ?? new Schedule_Weekday_Repository( $this->wpdb(), $this->clock() ),
 			$blackouts ?? new Blackout_Repository( $this->wpdb(), $this->clock() ),
-			$destinations ?? new Schedule_Destination_Repository( $this->wpdb(), $this->clock() )
+			$destinations ?? new Schedule_Destination_Repository( $this->wpdb(), $this->clock() ),
+			$transactions ?? new Transaction_Manager( $this->wpdb() )
 		);
 	}
 
@@ -170,6 +173,70 @@ final class Schedule_Service_Test extends Repository_TestCase {
 
 		$this->service( null, new Schedule_Weekday_Repository( $wpdb, $this->clock() ) )
 			->update_weekday( 4, 1, true, '09:00:00', '17:00:00' );
+	}
+
+	public function test_update_weekdays_saves_every_row_in_one_transaction(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'get_results' )->andReturn(
+			[
+				$this->weekday_row( '10', 0 ),
+				$this->weekday_row( '1', 1 ),
+			]
+		);
+		$wpdb->shouldReceive( 'query' )->once()->with( 'START TRANSACTION' )->andReturn( true );
+		$wpdb->shouldReceive( 'query' )->once()->with( 'COMMIT' )->andReturn( true );
+		$wpdb->shouldReceive( 'update' )->twice()->andReturn( 1 );
+
+		$updated = $this->service(
+			null,
+			new Schedule_Weekday_Repository( $wpdb, $this->clock() ),
+			null,
+			null,
+			new Transaction_Manager( $wpdb )
+		)->update_weekdays(
+			4,
+			[
+				[ 'day_of_week' => 0, 'enabled' => true, 'start_time' => '09:00:00', 'end_time' => '17:00:00' ],
+				[ 'day_of_week' => 1, 'enabled' => false, 'start_time' => '10:00:00', 'end_time' => '15:00:00' ],
+			]
+		);
+
+		$this->assertSame( [ 0, 1 ], array_map( static fn ( $weekday ) => $weekday->day_of_week(), $updated ) );
+	}
+
+	public function test_update_weekdays_rolls_back_and_saves_nothing_when_a_row_is_invalid(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'get_results' )->andReturn(
+			[
+				$this->weekday_row( '10', 0 ),
+				$this->weekday_row( '1', 1 ),
+			]
+		);
+		$wpdb->shouldReceive( 'query' )->once()->with( 'START TRANSACTION' )->andReturn( true );
+		$wpdb->shouldReceive( 'query' )->once()->with( 'ROLLBACK' )->andReturn( true );
+		// Only the first, valid row ever reaches update() - the second row's invalid
+		// end time is caught before its own update() call, and the transaction wrapper
+		// rolls back whatever the first row's update() already did.
+		$wpdb->shouldReceive( 'update' )->once()->andReturn( 1 );
+
+		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( 'esc_html' )->returnArg( 1 );
+
+		$this->expectException( Validation_Exception::class );
+
+		$this->service(
+			null,
+			new Schedule_Weekday_Repository( $wpdb, $this->clock() ),
+			null,
+			null,
+			new Transaction_Manager( $wpdb )
+		)->update_weekdays(
+			4,
+			[
+				[ 'day_of_week' => 0, 'enabled' => true, 'start_time' => '09:00:00', 'end_time' => '17:00:00' ],
+				[ 'day_of_week' => 1, 'enabled' => true, 'start_time' => '09:00:00', 'end_time' => '09:00:00' ],
+			]
+		);
 	}
 
 	/**

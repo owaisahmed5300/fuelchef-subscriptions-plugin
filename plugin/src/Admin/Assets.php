@@ -122,7 +122,6 @@ final class Assets {
 			'couldNotSaveSettings'     => esc_html__( 'Could not save settings.', 'fuelchef-subscriptions' ),
 			'settingsSaved'            => esc_html__( 'Settings saved successfully', 'fuelchef-subscriptions' ),
 			'couldNotSaveDay'          => esc_html__( 'Could not save that day.', 'fuelchef-subscriptions' ),
-			'scheduleUpdated'          => esc_html__( 'Schedule updated', 'fuelchef-subscriptions' ),
 			'couldNotSaveScheduleName' => esc_html__( 'Could not save the schedule name.', 'fuelchef-subscriptions' ),
 			'scheduleNameSaved'        => esc_html__( 'Schedule name saved', 'fuelchef-subscriptions' ),
 			'scheduleSaved'            => esc_html__( 'Schedule saved successfully', 'fuelchef-subscriptions' ),
