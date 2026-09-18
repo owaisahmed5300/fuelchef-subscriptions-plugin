@@ -1,9 +1,12 @@
 <?php
 /**
- * Classic checkout subscribe-and-save checkbox.
+ * Classic checkout subscribe-discount checkbox.
  *
- * $data carries `eligible` (bool), `checked` (bool), `label` (string), `description`
- * (string, empty for none) and `ineligible_message` (string).
+ * @var bool $eligible Whether the cart currently meets the store's subscribe-discount minimums.
+ * @var bool $checked Whether the checkbox should render checked.
+ * @var string $label The checkbox's label.
+ * @var string $description The checkbox's help text, empty to show none.
+ * @var string $ineligible_message Shown instead of the checkbox when the cart is not eligible.
  */
 
 declare(strict_types=1);
@@ -11,17 +14,6 @@ declare(strict_types=1);
 use FuelChef\Subscriptions\Frontend\Checkout\Subscribe_And_Save;
 
 defined( 'ABSPATH' ) || exit;
-
-/** @var bool $eligible */
-$eligible = $data['eligible'];
-/** @var bool $checked */
-$checked = $data['checked'];
-/** @var string $label */
-$label = $data['label'];
-/** @var string $description */
-$description = $data['description'];
-/** @var string $ineligible_message */
-$ineligible_message = $data['ineligible_message'];
 
 if ( ! $eligible ) :
 	?>
@@ -42,5 +34,3 @@ woocommerce_form_field(
 	],
 	$checked ? '1' : ''
 );
-?>
-<p id="fcsRecurringDayNotice" class="fcs-recurring-day-notice" aria-live="polite" hidden></p>

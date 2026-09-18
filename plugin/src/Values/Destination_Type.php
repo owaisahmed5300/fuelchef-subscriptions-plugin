@@ -61,8 +61,8 @@ final class Destination_Type {
 	 */
 	public static function label( string $destination_type ): string {
 		$labels = [
-			self::SHIPPING_ZONE   => esc_html__( 'Shipping zone', 'fuelchef-subscriptions' ),
-			self::PICKUP_LOCATION => esc_html__( 'Pickup location', 'fuelchef-subscriptions' ),
+			self::SHIPPING_ZONE   => __( 'Shipping zone', 'fuelchef-subscriptions' ),
+			self::PICKUP_LOCATION => __( 'Pickup location', 'fuelchef-subscriptions' ),
 		];
 
 		return $labels[ $destination_type ] ?? $destination_type;

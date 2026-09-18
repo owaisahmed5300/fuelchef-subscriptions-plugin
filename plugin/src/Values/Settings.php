@@ -58,16 +58,20 @@ final class Settings {
 	 *                                           discount, or an empty string to show none.
 	 *                                           May contain the placeholder `{percent}`.
 	 * @param float  $minimum_order_amount Cart subtotal a customer needs to be offered
-	 *                                     Subscribe & Save. Zero means no restriction.
+	 *                                     the subscribe discount. Zero means no restriction.
 	 * @param int    $minimum_cart_quantity Cart item quantity a customer needs to be
-	 *                                      offered Subscribe & Save. Zero means no
+	 *                                      offered the subscribe discount. Zero means no
 	 *                                      restriction.
-	 * @param string $ineligible_message Shown instead of Subscribe & Save when the cart
-	 *                                   does not meet the minimums, or an empty string to
-	 *                                   show the default wording.
-	 * @param string $logged_out_message Shown instead of Subscribe & Save when the
+	 * @param string $ineligible_message Shown instead of the subscribe discount when the
+	 *                                   cart does not meet the minimums, or an empty string
+	 *                                   to show the default wording.
+	 * @param string $logged_out_message Shown instead of the subscribe discount when the
 	 *                                   customer is not logged in, or an empty string to
 	 *                                   show the default wording.
+	 * @param string $fulfilment_window_message Shown under the fulfilment date field once a
+	 *                                          date is chosen, or an empty string to show
+	 *                                          the default wording. May contain the
+	 *                                          placeholders `{start}` and `{end}`.
 	 */
 	public function __construct(
 		private int $cutoff_days,
@@ -82,44 +86,45 @@ final class Settings {
 		private float $minimum_order_amount = 0.0,
 		private int $minimum_cart_quantity = 0,
 		private string $ineligible_message = '',
-		private string $logged_out_message = ''
+		private string $logged_out_message = '',
+		private string $fulfilment_window_message = ''
 	) {
 		if ( $cutoff_days < 0 ) {
-			throw new InvalidArgumentException( esc_html__( 'Cutoff days cannot be negative.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Cutoff days cannot be negative.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( ! DateTime::is_valid_time( $cutoff_time ) ) {
-			throw new InvalidArgumentException( esc_html__( 'Invalid cutoff time.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Invalid cutoff time.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( $subscribe_discount_percent < 0 || $subscribe_discount_percent > 100 ) {
 			throw new InvalidArgumentException(
-				esc_html__( 'Subscribe discount must be between 0 and 100.', 'fuelchef-subscriptions' )
+				__( 'Subscribe discount must be between 0 and 100.', 'fuelchef-subscriptions' )
 			);
 		}
 
 		if ( ! Subscribe_Applicability::is_valid( $subscribe_applicability ) ) {
-			throw new InvalidArgumentException( esc_html__( 'Invalid subscribe applicability.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Invalid subscribe applicability.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( $max_fulfilment_window_days < 1 ) {
 			throw new InvalidArgumentException(
-				esc_html__( 'Maximum fulfilment window must be at least 1 day.', 'fuelchef-subscriptions' )
+				__( 'Maximum fulfilment window must be at least 1 day.', 'fuelchef-subscriptions' )
 			);
 		}
 
 		if ( $max_fulfilment_window_days > self::MAX_FULFILMENT_WINDOW_DAYS ) {
 			throw new InvalidArgumentException(
-				esc_html__( 'Maximum fulfilment window is too far in the future.', 'fuelchef-subscriptions' )
+				__( 'Maximum fulfilment window is too far in the future.', 'fuelchef-subscriptions' )
 			);
 		}
 
 		if ( $minimum_order_amount < 0.0 ) {
-			throw new InvalidArgumentException( esc_html__( 'Minimum order amount cannot be negative.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Minimum order amount cannot be negative.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( $minimum_cart_quantity < 0 ) {
-			throw new InvalidArgumentException( esc_html__( 'Minimum cart quantity cannot be negative.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Minimum cart quantity cannot be negative.', 'fuelchef-subscriptions' ) );
 		}
 
 		// Reads the promoted properties above, already assigned by this point - not their
@@ -129,47 +134,56 @@ final class Settings {
 	}
 
 	/**
-	 * Rejects a blank or over-length fulfilment date or subscribe-and-save label, or an
+	 * Rejects a blank or over-length fulfilment date or subscribe-discount label, or an
 	 * over-length description. A description may be blank - that means the store shows
 	 * none.
+	 *
+	 * Every message below is `__()`, not `esc_html__()`: a controller catches the
+	 * exception this throws and sends its message to the browser as JSON, displayed as
+	 * plain text by an admin toast - see `Validation_Exception`'s class docblock for the
+	 * full reasoning.
 	 */
 	private function validate_checkout_copy(): void {
 		if ( '' === trim( $this->fulfilment_date_label ) ) {
-			throw new InvalidArgumentException( esc_html__( 'Fulfilment date label cannot be blank.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Fulfilment date label cannot be blank.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( strlen( $this->fulfilment_date_label ) > self::MAX_LABEL_LENGTH ) {
-			throw new InvalidArgumentException( esc_html__( 'Fulfilment date label is too long.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Fulfilment date label is too long.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( strlen( $this->fulfilment_date_description ) > self::MAX_DESCRIPTION_LENGTH ) {
-			throw new InvalidArgumentException( esc_html__( 'Fulfilment date description is too long.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Fulfilment date description is too long.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( '' === trim( $this->subscribe_save_label ) ) {
-			throw new InvalidArgumentException( esc_html__( 'Subscribe & Save label cannot be blank.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Subscribe discount label cannot be blank.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( strlen( $this->subscribe_save_label ) > self::MAX_LABEL_LENGTH ) {
-			throw new InvalidArgumentException( esc_html__( 'Subscribe & Save label is too long.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Subscribe discount label is too long.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( strlen( $this->subscribe_save_description ) > self::MAX_DESCRIPTION_LENGTH ) {
-			throw new InvalidArgumentException( esc_html__( 'Subscribe & Save description is too long.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Subscribe discount description is too long.', 'fuelchef-subscriptions' ) );
 		}
 	}
 
 	/**
-	 * Rejects an over-length ineligible-cart or logged-out message. Either may be blank -
-	 * that means the store shows its default wording.
+	 * Rejects an over-length ineligible-cart, logged-out or fulfilment-window message.
+	 * Any of the three may be blank - that means the store shows its default wording.
 	 */
 	private function validate_eligibility_messages(): void {
 		if ( strlen( $this->ineligible_message ) > self::MAX_DESCRIPTION_LENGTH ) {
-			throw new InvalidArgumentException( esc_html__( 'Ineligible subscription message is too long.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Ineligible subscription message is too long.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( strlen( $this->logged_out_message ) > self::MAX_DESCRIPTION_LENGTH ) {
-			throw new InvalidArgumentException( esc_html__( 'Logged-out subscription message is too long.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Logged-out subscription message is too long.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( strlen( $this->fulfilment_window_message ) > self::MAX_DESCRIPTION_LENGTH ) {
+			throw new InvalidArgumentException( __( 'Fulfilment window message is too long.', 'fuelchef-subscriptions' ) );
 		}
 	}
 
@@ -240,7 +254,7 @@ final class Settings {
 	}
 
 	/**
-	 * The subscribe-and-save checkbox label, with `{percent}` replaced by the current
+	 * The subscribe-discount checkbox label, with `{percent}` replaced by the current
 	 * discount percentage.
 	 */
 	public function subscribe_save_label_resolved(): string {
@@ -248,7 +262,7 @@ final class Settings {
 	}
 
 	/**
-	 * The subscribe-and-save help text, with `{percent}` replaced by the current discount
+	 * The subscribe-discount help text, with `{percent}` replaced by the current discount
 	 * percentage. Empty when the store shows none.
 	 */
 	public function subscribe_save_description_resolved(): string {
@@ -256,7 +270,7 @@ final class Settings {
 	}
 
 	/**
-	 * Cart subtotal a customer needs to be offered Subscribe & Save. Zero means no
+	 * Cart subtotal a customer needs to be offered the subscribe discount. Zero means no
 	 * restriction.
 	 */
 	public function minimum_order_amount(): float {
@@ -264,15 +278,15 @@ final class Settings {
 	}
 
 	/**
-	 * Cart item quantity a customer needs to be offered Subscribe & Save. Zero means no
-	 * restriction.
+	 * Cart item quantity a customer needs to be offered the subscribe discount. Zero means
+	 * no restriction.
 	 */
 	public function minimum_cart_quantity(): int {
 		return $this->minimum_cart_quantity;
 	}
 
 	/**
-	 * The message shown instead of Subscribe & Save when the cart does not meet the
+	 * The message shown instead of the subscribe discount when the cart does not meet the
 	 * minimums, exactly as stored. Empty when the store shows the default wording - see
 	 * {@see self::ineligible_message_resolved()}.
 	 */
@@ -281,18 +295,24 @@ final class Settings {
 	}
 
 	/**
-	 * The message shown instead of Subscribe & Save when the cart does not meet the
+	 * The message shown instead of the subscribe discount when the cart does not meet the
 	 * minimums, falling back to a sensible default when the store has not customised it.
+	 *
+	 * The default is deliberately `__()`, not `esc_html__()`: every consumer of this
+	 * value already escapes it for its own context on the way out (a classic template's
+	 * `esc_html()`, or a block script's jQuery `.text()`) - pre-escaping it here would
+	 * double-escape it, rendering a literal "&amp;" instead of "&". The customised value
+	 * stored via `Settings_Store` is raw for the same reason.
 	 */
 	public function ineligible_message_resolved(): string {
 		return '' !== $this->ineligible_message
 			? $this->ineligible_message
-			: esc_html__( 'Add more to your cart to unlock Subscribe & Save.', 'fuelchef-subscriptions' );
+			: __( 'Add more to your cart to unlock the subscribe discount.', 'fuelchef-subscriptions' );
 	}
 
 	/**
-	 * The message shown instead of Subscribe & Save when the customer is not logged in,
-	 * exactly as stored. Empty when the store shows the default wording - see
+	 * The message shown instead of the subscribe discount when the customer is not logged
+	 * in, exactly as stored. Empty when the store shows the default wording - see
 	 * {@see self::logged_out_message_resolved()}.
 	 */
 	public function logged_out_message(): string {
@@ -300,12 +320,38 @@ final class Settings {
 	}
 
 	/**
-	 * The message shown instead of Subscribe & Save when the customer is not logged in,
-	 * falling back to a sensible default when the store has not customised it.
+	 * The message shown instead of the subscribe discount when the customer is not logged
+	 * in, falling back to a sensible default when the store has not customised it. See
+	 * {@see self::ineligible_message_resolved()} for why the default is `__()`, not
+	 * `esc_html__()`.
 	 */
 	public function logged_out_message_resolved(): string {
 		return '' !== $this->logged_out_message
 			? $this->logged_out_message
-			: esc_html__( 'Log in to your account to unlock Subscribe & Save.', 'fuelchef-subscriptions' );
+			: __( 'Log in to your account to unlock the subscribe discount.', 'fuelchef-subscriptions' );
+	}
+
+	/**
+	 * The message shown under the fulfilment date field once a date is chosen, exactly as
+	 * stored. Empty when the store shows the default wording - see
+	 * {@see self::fulfilment_window_message_resolved()}.
+	 */
+	public function fulfilment_window_message(): string {
+		return $this->fulfilment_window_message;
+	}
+
+	/**
+	 * The message shown under the fulfilment date field once a date is chosen, with
+	 * `{start}` and `{end}` replaced by the chosen date's fulfilment window, falling back to
+	 * a sensible default when the store has not customised it. See
+	 * {@see self::ineligible_message_resolved()} for why the default is `__()`, not
+	 * `esc_html__()`.
+	 */
+	public function fulfilment_window_message_resolved( string $start, string $end ): string {
+		$message = '' !== $this->fulfilment_window_message
+			? $this->fulfilment_window_message
+			: __( 'Fulfilment available between {start} and {end}.', 'fuelchef-subscriptions' );
+
+		return str_replace( [ '{start}', '{end}' ], [ $start, $end ], $message );
 	}
 }

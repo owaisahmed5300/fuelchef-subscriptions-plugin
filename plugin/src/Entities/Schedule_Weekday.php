@@ -67,7 +67,7 @@ final class Schedule_Weekday implements Entity, Timestamped {
 	) {
 		if ( ! Day_Of_Week::is_valid( $day_of_week ) ) {
 			throw new InvalidArgumentException(
-				esc_html__( 'Day of week must be between 0 and 6.', 'fuelchef-subscriptions' )
+				__( 'Day of week must be between 0 and 6.', 'fuelchef-subscriptions' )
 			);
 		}
 

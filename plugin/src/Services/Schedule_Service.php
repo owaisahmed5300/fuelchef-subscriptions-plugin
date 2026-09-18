@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Services;
 
+use FuelChef\Subscriptions\Database\Transaction_Manager;
 use FuelChef\Subscriptions\Entities\Schedule;
 use FuelChef\Subscriptions\Entities\Schedule_Weekday;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
@@ -44,7 +45,8 @@ final class Schedule_Service {
 		private Schedule_Repository $schedules,
 		private Schedule_Weekday_Repository $weekdays,
 		private Blackout_Repository $blackouts,
-		private Schedule_Destination_Repository $destinations
+		private Schedule_Destination_Repository $destinations,
+		private Transaction_Manager $transactions
 	) {
 	}
 
@@ -111,6 +113,38 @@ final class Schedule_Service {
 		$weekday->set_enabled( $enabled )->set_start_time( $start_time )->set_end_time( $end_time );
 
 		return $this->weekdays->update( $weekday );
+	}
+
+	/**
+	 * Updates every weekday row passed in, as one atomic change - the admin screen batches
+	 * every pending weekday edit behind its own "Save Schedule" button rather than saving
+	 * each toggle or time change individually, so this either applies the whole batch or
+	 * rejects it and leaves every row exactly as it was.
+	 *
+	 * @param int                                                                                $schedule_id The schedule every row belongs to.
+	 * @param list<array{day_of_week: int, enabled: bool, start_time: string, end_time: string}> $rows The weekdays to update.
+	 *
+	 * @throws Validation_Exception When any row's times are invalid or out of order, or the
+	 *                               schedule has no row for one of the given days - nothing
+	 *                               in the batch is saved when this is thrown.
+	 *
+	 * @return list<Schedule_Weekday> The updated weekdays, in the order they were given.
+	 */
+	public function update_weekdays( int $schedule_id, array $rows ): array {
+		return $this->transactions->run(
+			function () use ( $schedule_id, $rows ): array {
+				return array_map(
+					fn ( array $row ): Schedule_Weekday => $this->update_weekday(
+						$schedule_id,
+						$row['day_of_week'],
+						$row['enabled'],
+						$row['start_time'],
+						$row['end_time']
+					),
+					$rows
+				);
+			}
+		);
 	}
 
 	/**

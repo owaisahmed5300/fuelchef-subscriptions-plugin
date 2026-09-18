@@ -148,11 +148,14 @@ subdirectory for the same reason `Templating\`/`Settings\` did, and now sits dir
 asset registration around it.
 
 - A controller's `render()` builds its page's data from repositories/services and passes
-  it to `Utils\Renderer::render()` (shared with the frontend checkout, which uses the same
-  class). Data the page's own **script** needs (the calendar, the weekly-hours
-  table, the destination list) goes through `wp_localize_script()` instead of an inline
-  `<script>` block with embedded PHP - simpler, and avoids fighting WPCS's rules on PHP
-  tags mixed into HTML.
+  it to `Utils\Renderer::render()`. An admin screen has no theme-override story, unlike the
+  frontend checkout, which renders through `Utils\Wc_Template_Renderer` instead - a thin
+  wrapper around WooCommerce's own `wc_get_template_html()`, so a theme can override one of
+  those templates at `yourtheme/fuelchef-subscriptions/<template>.php`, the same convention
+  WooCommerce's own templates use. Data the page's own **script** needs (the calendar, the
+  weekly-hours table, the destination list) goes through `wp_localize_script()` instead of
+  an inline `<script>` block with embedded PHP - simpler, and avoids fighting WPCS's rules
+  on PHP tags mixed into HTML.
 - `Utils\Narrow::string()` narrows a `$_POST`/`$_GET` value before it reaches `absint()`/
   `sanitize_text_field()` - PHPStan's strict rules reject passing a superglobal's `mixed`
   value to either directly.
@@ -179,6 +182,16 @@ Subscribe_Discount_Service::discount_amount()` (the discount's own business rule
 registered by `Services\Provider` instead, and shared by classic and block checkout's own
 field classes rather than duplicated - see "Block checkout" below for the block-specific
 pieces (`Frontend\Checkout\Block\*`) that consume them.
+
+- `Services\Checkout_Presence` detects whether the classic checkout shortcode
+  (`has_shortcode()`) or the Checkout block (`has_block()`) is present on the current page,
+  memoized per request. This is the only signal `Frontend\Assets` and `Frontend\
+  Cache_Exclusion` key off - never `is_checkout()`, which only matches the page configured
+  under WooCommerce > Settings > Advanced and misses either one sitting anywhere else.
+  `Assets::enqueue()` loads shared assets when either is present, then classic-only or
+  block-only assets based on which one actually is. `Cache_Exclusion` marks the page
+  uncacheable (`DONOTCACHEPAGE` + `nocache_headers()`) on the same signal, since
+  WooCommerce's own cache exclusion only covers its configured checkout page.
 
 - `Services\Chosen_Shipping_Destination` turns whatever shipping rate the customer has
   currently chosen into the `(type, key)` pair `Destination_Catalog` and

@@ -14,9 +14,10 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Renders a PHP template under `plugin/templates/` and returns the output as a string.
  *
- * Shared by admin screens and the frontend checkout - neither renders HTML directly, so
- * a template is a plain PHP file that reads its data from `$data`, never a magic
- * variable extracted into scope.
+ * Shared by admin screens and the frontend checkout. WooCommerce-style, not a `$data`
+ * array: each key of the given data becomes its own variable in the template's scope
+ * (`'order' => $order` reads back as `$order`), so a template gets IDE autocompletion and
+ * type hints from its own `@var` block instead of `$data['order']` lookups.
  */
 final class Renderer {
 
@@ -38,7 +39,9 @@ final class Renderer {
 	 * @param string               $template Template path, relative to `templates/` and
 	 *                                        without the `.php` extension, e.g.
 	 *                                        `admin/schedules`.
-	 * @param array<string, mixed> $data Data available to the template as `$data`.
+	 * @param array<string, mixed> $data Each entry is extracted into its own variable in
+	 *                                   the template's scope, keyed by name - see the
+	 *                                   class docblock.
 	 *
 	 * @return string The rendered output.
 	 *
@@ -55,8 +58,10 @@ final class Renderer {
 
 		ob_start();
 
-		// $data is not referenced by name here; the included template reads it from scope.
-		( static function ( string $__path, array $data ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		( static function ( string $__path, array $__data ): void {
+			// phpcs:ignore WordPress.PHP.DontExtract.extract_extract -- the whole point of this method: see the class docblock.
+			extract( $__data, EXTR_SKIP );
+
 			include $__path;
 		} )( $path, $data );
 

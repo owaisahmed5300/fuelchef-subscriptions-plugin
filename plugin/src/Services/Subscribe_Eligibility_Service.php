@@ -12,7 +12,7 @@ use FuelChef\Subscriptions\Values\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Decides whether a cart meets the store's minimums to be offered "Subscribe & Save",
+ * Decides whether a cart meets the store's minimums to be offered the subscribe discount,
  * shared by classic and block checkout the same way `Subscribe_Discount_Service` is -
  * both need the same rule at different moments (a live cart, and the final order), so
  * this takes plain values rather than a `WC_Cart` or `WC_Order` directly.

@@ -49,8 +49,8 @@ final class Renderer_Test extends TestCase {
 		$this->assertSame( 'Hello', $output );
 	}
 
-	public function test_render_makes_data_available_as_data(): void {
-		$this->write_template( 'greeting', '<?php echo "Hello, " . $data[\'name\']; ?>' );
+	public function test_render_extracts_data_into_individual_variables(): void {
+		$this->write_template( 'greeting', '<?php echo "Hello, " . $name; ?>' );
 
 		$output = ( new Renderer( $this->base_dir ) )->render( 'greeting', [ 'name' => 'Ada' ] );
 

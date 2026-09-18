@@ -108,7 +108,8 @@ final class Settings_Controller {
 				minimum_order_amount: $this->posted_float( 'minimum_order_amount' ),
 				minimum_cart_quantity: $this->posted_int( 'minimum_cart_quantity' ),
 				ineligible_message: $this->posted_text( 'ineligible_message' ),
-				logged_out_message: $this->posted_text( 'logged_out_message' )
+				logged_out_message: $this->posted_text( 'logged_out_message' ),
+				fulfilment_window_message: $this->posted_text( 'fulfilment_window_message' )
 			);
 		} catch ( InvalidArgumentException $exception ) {
 			wp_send_json_error( [ 'message' => $exception->getMessage() ] );

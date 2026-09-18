@@ -39,6 +39,7 @@ jQuery(function ($) {
   let currentSelect = null;
   let currentWindows = {};
   let lastDestinationKey = null;
+  let hasReset = false;
   let refetchTimer = null;
 
   function fieldWrapper($select) {
@@ -47,11 +48,13 @@ jQuery(function ($) {
     return $wrapper.length ? $wrapper : $select;
   }
 
+  const WINDOW_CAPTION_ID = 'fcsBlockFulfilmentDateWindow';
+
   function windowCaption($select) {
     let $caption = $select.next('.fcs-fulfilment-date-window');
 
     if (!$caption.length) {
-      $caption = $('<p class="fcs-fulfilment-date-window" aria-live="polite" hidden></p>');
+      $caption = $('<p class="fcs-fulfilment-date-window" aria-live="polite" hidden></p>').attr('id', WINDOW_CAPTION_ID);
       $select.after($caption);
     }
 
@@ -70,7 +73,7 @@ jQuery(function ($) {
       return $message;
     }
 
-    $message = $('<p class="fcs-fulfilment-date-no-match" hidden></p>').text(i18n.noFulfilmentDateMatch);
+    $message = $('<p class="fcs-fulfilment-date-no-match" aria-live="polite" hidden></p>').text(i18n.noFulfilmentDateMatch);
     $wrapper.after($message);
 
     return $message;
@@ -78,14 +81,16 @@ jQuery(function ($) {
 
   function addDescription($select) {
     const description = window.fcsCheckout.fulfilmentDateDescription;
+    const descriptionId = 'fcsBlockFulfilmentDateDescription';
 
-    if (!description || $select.siblings('.fcs-fulfilment-date-description').length) {
-      return;
+    if (description && !$select.siblings('.fcs-fulfilment-date-description').length) {
+      $select.after($('<p class="fcs-fulfilment-date-description"></p>').attr('id', descriptionId).text(description));
     }
 
-    const descriptionId = 'fcsBlockFulfilmentDateDescription';
-    $select.after($('<p class="fcs-fulfilment-date-description"></p>').attr('id', descriptionId).text(description));
-    $select.attr('aria-describedby', descriptionId);
+    // The window caption element may not exist in the DOM yet - referencing an id that
+    // doesn't exist yet is harmless, and becomes effective once windowCaption() creates it
+    // with this same id.
+    $select.attr('aria-describedby', description ? `${descriptionId} ${WINDOW_CAPTION_ID}` : WINDOW_CAPTION_ID);
   }
 
   // Writes only when the caption's own text or visibility actually needs to change - a
@@ -103,7 +108,7 @@ jQuery(function ($) {
       return;
     }
 
-    const text = i18n.fulfilmentWindow.replace('%1$s', fulfilmentWindow.start).replace('%2$s', fulfilmentWindow.end);
+    const text = i18n.fulfilmentWindow.replace('{start}', fulfilmentWindow.start).replace('{end}', fulfilmentWindow.end);
 
     if ($caption.prop('hidden') || $caption.text() !== text) {
       $caption.text(text).prop('hidden', false);
@@ -266,6 +271,17 @@ jQuery(function ($) {
   function attach($select) {
     currentSelect = $select;
     lastDestinationKey = currentDestinationKey();
+
+    // The fulfilment date is an explicit choice, never remembered - it must always start
+    // blank on a fresh page view, even if WooCommerce itself (or a stale value from an
+    // earlier attempt) initialised the field with something else. This runs once, the
+    // first time the field mounts; a later remount of the same field (e.g. an
+    // eligibility-driven re-render) is left alone, so a date already chosen during this
+    // same visit is never silently cleared.
+    if (!hasReset) {
+      hasReset = true;
+      $select.val('');
+    }
 
     disableGroupHeadings($select);
     addDescription($select);

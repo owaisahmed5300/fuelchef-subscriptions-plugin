@@ -39,6 +39,7 @@ final class Blackout_Service_Test extends Repository_TestCase {
 
 	public function test_add_rejects_an_invalid_date(): void {
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 		Functions\when( 'esc_html' )->returnArg( 1 );
 
 		$this->expectException( Validation_Exception::class );
@@ -62,6 +63,7 @@ final class Blackout_Service_Test extends Repository_TestCase {
 		);
 
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 		Functions\when( 'esc_html' )->returnArg( 1 );
 
 		$this->expectException( Validation_Exception::class );

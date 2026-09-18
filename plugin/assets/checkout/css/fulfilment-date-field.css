@@ -41,7 +41,7 @@
 }
 
 /* Extra bottom margin, not just top: this is the last thing the customer sees before
-   the Subscribe & Save field further down the order review table, and the two need
+   the subscribe-discount field further down the order review table, and the two need
    visible separation between them. */
 .fcs-fulfilment-date-window {
 	margin: 0.5em 0 1em;

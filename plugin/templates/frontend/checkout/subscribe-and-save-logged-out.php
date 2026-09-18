@@ -1,18 +1,14 @@
 <?php
 /**
- * Classic checkout subscribe-and-save logged-out message.
+ * Classic checkout subscribe-discount logged-out message.
  *
- * $data carries `message` (string) and `login_url` (string).
+ * @var string $message The logged-out message.
+ * @var string $login_url The login URL, redirecting back to checkout once signed in.
  */
 
 declare(strict_types=1);
 
 defined( 'ABSPATH' ) || exit;
-
-/** @var string $message */
-$message = $data['message'];
-/** @var string $login_url */
-$login_url = $data['login_url'];
 ?>
 <p class="fcs-subscribe-and-save-logged-out">
 	<?php echo esc_html( $message ); ?>

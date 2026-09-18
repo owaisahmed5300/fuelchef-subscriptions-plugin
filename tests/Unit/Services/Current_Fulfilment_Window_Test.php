@@ -33,6 +33,7 @@ final class Current_Fulfilment_Window_Test extends Repository_TestCase {
 
 		Functions\when( 'wp_timezone' )->justReturn( new DateTimeZone( 'UTC' ) );
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 		Functions\when( 'get_option' )->alias(
 			static fn ( string $key, mixed $default = false ): mixed => 'time_format' === $key ? 'g:i a' : []
 		);

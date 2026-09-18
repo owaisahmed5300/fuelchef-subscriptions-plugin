@@ -50,7 +50,7 @@ final class Schedule_Destination implements Entity, Timestamped {
 	public function __construct( int $schedule_id, string $destination_type, string $destination_key ) {
 		if ( ! Destination_Type::is_valid( $destination_type ) ) {
 			throw new InvalidArgumentException(
-				esc_html__( 'Invalid destination type.', 'fuelchef-subscriptions' )
+				__( 'Invalid destination type.', 'fuelchef-subscriptions' )
 			);
 		}
 

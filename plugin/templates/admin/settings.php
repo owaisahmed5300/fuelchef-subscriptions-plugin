@@ -19,9 +19,6 @@ use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
 defined( 'ABSPATH' ) || exit;
 
-$settings        = $data['settings'];
-$applicabilities = $data['applicabilities'];
-$currency_symbol = $data['currency_symbol'];
 ?>
 <div class="wrap">
 	<div class="fcs-admin fcs-wrap fcs-editor-shell">
@@ -41,20 +38,20 @@ $currency_symbol = $data['currency_symbol'];
 			</p>
 		</div>
 
-		<nav class="fcs-nav-tabs" aria-label="<?php esc_attr_e( 'Settings Tabs', 'fuelchef-subscriptions' ); ?>">
-			<button type="button" class="fcs-nav-tab fcs-nav-tab--active" data-tab="tab-blackouts">
+		<nav class="fcs-nav-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Settings Tabs', 'fuelchef-subscriptions' ); ?>">
+			<button type="button" id="tab-blackouts-trigger" class="fcs-nav-tab fcs-nav-tab--active" role="tab" aria-selected="true" aria-controls="tab-blackouts" data-tab="tab-blackouts">
 				<?php esc_html_e( 'Global Closures', 'fuelchef-subscriptions' ); ?>
 			</button>
-			<button type="button" class="fcs-nav-tab" data-tab="tab-cutoff">
+			<button type="button" id="tab-cutoff-trigger" class="fcs-nav-tab" role="tab" aria-selected="false" aria-controls="tab-cutoff" data-tab="tab-cutoff">
 				<?php esc_html_e( 'Order Cutoff', 'fuelchef-subscriptions' ); ?>
 			</button>
-			<button type="button" class="fcs-nav-tab" data-tab="tab-checkout-fields">
+			<button type="button" id="tab-checkout-fields-trigger" class="fcs-nav-tab" role="tab" aria-selected="false" aria-controls="tab-checkout-fields" data-tab="tab-checkout-fields">
 				<?php esc_html_e( 'Checkout Fields', 'fuelchef-subscriptions' ); ?>
 			</button>
 		</nav>
 
 		<form id="settingsForm" onsubmit="return false;">
-			<section class="fcs-tab-panel fcs-tab-panel--active" id="tab-blackouts">
+			<section class="fcs-tab-panel fcs-tab-panel--active" id="tab-blackouts" role="tabpanel" aria-labelledby="tab-blackouts-trigger" tabindex="0">
 				<div class="fcs-card">
 					<div class="fcs-card__header">
 						<h2 class="fcs-card__title">
@@ -129,7 +126,7 @@ $currency_symbol = $data['currency_symbol'];
 				</div>
 			</section>
 
-			<section class="fcs-tab-panel" id="tab-cutoff">
+			<section class="fcs-tab-panel" id="tab-cutoff" role="tabpanel" aria-labelledby="tab-cutoff-trigger" tabindex="0">
 				<div class="fcs-card">
 					<div class="fcs-card__header">
 						<h2 class="fcs-card__title">
@@ -183,7 +180,7 @@ $currency_symbol = $data['currency_symbol'];
 				</div>
 			</section>
 
-			<section class="fcs-tab-panel" id="tab-checkout-fields">
+			<section class="fcs-tab-panel" id="tab-checkout-fields" role="tabpanel" aria-labelledby="tab-checkout-fields-trigger" tabindex="0">
 				<div class="fcs-card">
 					<div class="fcs-card__header">
 						<h2 class="fcs-card__title">
@@ -265,20 +262,46 @@ $currency_symbol = $data['currency_symbol'];
 								?>
 							</p>
 						</div>
+
+						<div class="fcs-field">
+							<label for="fulfilmentWindowMessage">
+								<?php esc_html_e( 'Fulfilment window message (optional)', 'fuelchef-subscriptions' ); ?>
+							</label>
+							<?php
+							$fulfilment_window_message_placeholder = __(
+								'Fulfilment available between {start} and {end}.',
+								'fuelchef-subscriptions'
+							);
+							?>
+							<textarea
+								class="fcs-textarea"
+								id="fulfilmentWindowMessage"
+								maxlength="300"
+								placeholder="<?php echo esc_attr( $fulfilment_window_message_placeholder ); ?>"
+							><?php echo esc_textarea( $settings->fulfilment_window_message() ); ?></textarea>
+							<p class="fcs-field__hint">
+								<?php
+								esc_html_e(
+									'Shown once a date is chosen. Use {start} and {end} anywhere you want the fulfilment hours to appear. Leave blank to use the default wording.',
+									'fuelchef-subscriptions'
+								);
+								?>
+							</p>
+						</div>
 					</div>
 				</div>
 
 				<div class="fcs-card">
 					<div class="fcs-card__header">
 						<h2 class="fcs-card__title">
-							<?php esc_html_e( 'Subscribe & Save', 'fuelchef-subscriptions' ); ?>
+							<?php esc_html_e( 'Subscribe Discount', 'fuelchef-subscriptions' ); ?>
 						</h2>
 					</div>
 					<div class="fcs-card__body">
 						<p class="fcs-card__intro">
 							<?php
 							esc_html_e(
-								'Configure the discount a customer gets for subscribing at checkout, and the wording shown next to the Subscribe & Save checkbox.',
+								'Configure the discount a customer gets for subscribing to weekly delivery at checkout, and the wording shown next to the checkbox.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -331,7 +354,7 @@ $currency_symbol = $data['currency_symbol'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Use {percent} anywhere you want the current discount to appear, e.g. "Subscribe & Save {percent}%".',
+									'Use {percent} anywhere you want the current discount to appear, e.g. "Subscribe for {percent}% off weekly delivery".',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -344,7 +367,7 @@ $currency_symbol = $data['currency_symbol'];
 							</label>
 							<?php
 							$subscribe_save_description_placeholder = __(
-								'e.g. Get {percent}% off this order and every renewal.',
+								'e.g. Get {percent}% off every scheduled delivery.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -382,7 +405,7 @@ $currency_symbol = $data['currency_symbol'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Cart subtotal required before Subscribe & Save is offered. 0 means no restriction.',
+									'Cart subtotal required before the subscribe discount is offered. 0 means no restriction.',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -403,7 +426,7 @@ $currency_symbol = $data['currency_symbol'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Cart items required before Subscribe & Save is offered. 0 means no restriction.',
+									'Cart items required before the subscribe discount is offered. 0 means no restriction.',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -423,7 +446,7 @@ $currency_symbol = $data['currency_symbol'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Shown instead of Subscribe & Save when the cart doesn\'t qualify. Leave blank to use the default wording.',
+									'Shown instead of the subscribe discount when the cart doesn\'t qualify. Leave blank to use the default wording.',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -443,7 +466,7 @@ $currency_symbol = $data['currency_symbol'];
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Shown instead of Subscribe & Save when the customer isn\'t logged in, next to a Log in link. Leave blank to use the default wording.',
+									'Shown instead of the subscribe discount when the customer isn\'t logged in, next to a Log in link. Leave blank to use the default wording.',
 									'fuelchef-subscriptions'
 								);
 								?>

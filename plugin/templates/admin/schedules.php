@@ -20,10 +20,7 @@ use FuelChef\Subscriptions\Entities\Schedule;
 
 defined( 'ABSPATH' ) || exit;
 
-$base_url           = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
-$schedules          = $data['schedules'];
-$selected           = $data['selected'];
-$destination_counts = $data['destination_counts'];
+$base_url = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
 ?>
 <div class="wrap">
 	<div class="fcs-admin fcs-wrap fcs-editor-shell">
@@ -51,18 +48,13 @@ $destination_counts = $data['destination_counts'];
 							<?php
 							foreach ( $schedules as $schedule ) :
 								$destination_count = $destination_counts[ (int) $schedule->id() ] ?? 0;
+								$is_active         = null !== $selected && $selected->id() === $schedule->id();
 								?>
 								<li>
 									<a
-										class="fcs-schedule-nav__link
-								<?php
-										echo $selected && $selected->id() === $schedule->id(
-										) ? ' fcs-schedule-nav__link--active' : '';
-								?>
-								"
-										href="
-								<?php echo esc_url( $base_url . '&schedule_id=' . $schedule->id() ); ?>
-								"
+										class="fcs-schedule-nav__link<?php echo $is_active ? ' fcs-schedule-nav__link--active' : ''; ?>"
+										href="<?php echo esc_url( $base_url . '&schedule_id=' . $schedule->id() ); ?>"
+										<?php echo $is_active ? 'aria-current="true"' : ''; ?>
 									>
 										<div>
 											<div class="fcs-schedule-nav__title">
@@ -133,16 +125,16 @@ $destination_counts = $data['destination_counts'];
 						>
 					</div>
 
-					<nav class="fcs-nav-tabs" aria-label="<?php esc_attr_e( 'Schedule Tabs', 'fuelchef-subscriptions' ); ?>">
-						<button type="button" class="fcs-nav-tab fcs-nav-tab--active" data-tab="tab-availability">
+					<nav class="fcs-nav-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Schedule Tabs', 'fuelchef-subscriptions' ); ?>">
+						<button type="button" id="tab-availability-trigger" class="fcs-nav-tab fcs-nav-tab--active" role="tab" aria-selected="true" aria-controls="tab-availability" data-tab="tab-availability">
 							<?php esc_html_e( 'Availability', 'fuelchef-subscriptions' ); ?>
 						</button>
-						<button type="button" class="fcs-nav-tab" data-tab="tab-destinations">
+						<button type="button" id="tab-destinations-trigger" class="fcs-nav-tab" role="tab" aria-selected="false" aria-controls="tab-destinations" data-tab="tab-destinations">
 							<?php esc_html_e( 'Destinations', 'fuelchef-subscriptions' ); ?>
 						</button>
 					</nav>
 
-					<section class="fcs-tab-panel fcs-tab-panel--active" id="tab-availability">
+					<section class="fcs-tab-panel fcs-tab-panel--active" id="tab-availability" role="tabpanel" aria-labelledby="tab-availability-trigger" tabindex="0">
 						<div class="fcs-card">
 							<div class="fcs-card__header">
 								<h2 class="fcs-card__title">
@@ -223,7 +215,7 @@ $destination_counts = $data['destination_counts'];
 						</div>
 					</section>
 
-					<section class="fcs-tab-panel" id="tab-destinations">
+					<section class="fcs-tab-panel" id="tab-destinations" role="tabpanel" aria-labelledby="tab-destinations-trigger" tabindex="0">
 						<div class="fcs-card">
 							<div class="fcs-card__header">
 								<h2 class="fcs-card__title">

@@ -14,8 +14,12 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Thrown when a service rejects input on a business rule, not a programming error.
  *
- * A controller catches this and shows the message to the user, so every message is
- * already translated and safe to display as-is.
+ * A controller catches this and sends the message to the browser as JSON, where an admin
+ * script displays it as plain text (a toast's `.textContent`, never innerHTML). Every
+ * message here is therefore plain, translated text via `__()`, never `esc_html__()` or
+ * `esc_html()` on an interpolated value - pre-escaping it would bake HTML entities into the
+ * string that plain-text display never decodes, so a customer would see a literal
+ * "&quot;" or "&#039;" instead of the character it stands for.
  */
 final class Validation_Exception extends RuntimeException {
 
@@ -23,7 +27,7 @@ final class Validation_Exception extends RuntimeException {
 	 * Creates the exception for a blank name.
 	 */
 	public static function for_blank_name(): self {
-		return new self( esc_html__( 'Name cannot be blank.', 'fuelchef-subscriptions' ) );
+		return new self( __( 'Name cannot be blank.', 'fuelchef-subscriptions' ) );
 	}
 
 	/**
@@ -35,8 +39,8 @@ final class Validation_Exception extends RuntimeException {
 		return new self(
 			sprintf(
 				/* translators: %s: the rejected date value. */
-				esc_html__( '"%s" is not a valid date.', 'fuelchef-subscriptions' ),
-				esc_html( $value )
+				__( '"%s" is not a valid date.', 'fuelchef-subscriptions' ),
+				$value
 			)
 		);
 	}
@@ -50,8 +54,8 @@ final class Validation_Exception extends RuntimeException {
 		return new self(
 			sprintf(
 				/* translators: %s: the duplicate date. */
-				esc_html__( '"%s" is already blacked out.', 'fuelchef-subscriptions' ),
-				esc_html( $value )
+				__( '"%s" is already blacked out.', 'fuelchef-subscriptions' ),
+				$value
 			)
 		);
 	}
@@ -65,8 +69,8 @@ final class Validation_Exception extends RuntimeException {
 		return new self(
 			sprintf(
 				/* translators: %s: the rejected time value. */
-				esc_html__( '"%s" is not a valid time.', 'fuelchef-subscriptions' ),
-				esc_html( $value )
+				__( '"%s" is not a valid time.', 'fuelchef-subscriptions' ),
+				$value
 			)
 		);
 	}
@@ -81,9 +85,9 @@ final class Validation_Exception extends RuntimeException {
 		return new self(
 			sprintf(
 				/* translators: 1: start time, 2: end time. */
-				esc_html__( 'End time (%2$s) must be after start time (%1$s).', 'fuelchef-subscriptions' ),
-				esc_html( $start_time ),
-				esc_html( $end_time )
+				__( 'End time (%2$s) must be after start time (%1$s).', 'fuelchef-subscriptions' ),
+				$start_time,
+				$end_time
 			)
 		);
 	}
@@ -98,7 +102,7 @@ final class Validation_Exception extends RuntimeException {
 		return new self(
 			sprintf(
 				/* translators: %d: the rejected day-of-week value. */
-				esc_html__( '"%d" is not a known day of week.', 'fuelchef-subscriptions' ),
+				__( '"%d" is not a known day of week.', 'fuelchef-subscriptions' ),
 				$value
 			)
 		);

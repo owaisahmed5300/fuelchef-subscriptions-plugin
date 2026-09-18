@@ -23,6 +23,7 @@ final class Settings_Test extends TestCase {
 		parent::setUp();
 
 		Functions\when( 'esc_html__' )->returnArg( 1 );
+		Functions\when( '__' )->returnArg( 1 );
 	}
 
 	/**
@@ -160,6 +161,33 @@ final class Settings_Test extends TestCase {
 		$settings = new Settings( ...$this->valid_args() );
 
 		$this->assertSame( '', $settings->subscribe_save_description_resolved() );
+	}
+
+	public function test_fulfilment_window_message_resolved_replaces_the_start_and_end_placeholders(): void {
+		$args   = $this->valid_args();
+		$args[] = 'Open {start}-{end}';
+
+		$settings = new Settings( ...$args );
+
+		$this->assertSame( 'Open 9:00 am-7:00 pm', $settings->fulfilment_window_message_resolved( '9:00 am', '7:00 pm' ) );
+	}
+
+	public function test_fulfilment_window_message_resolved_falls_back_to_the_default_wording_when_unset(): void {
+		$settings = new Settings( ...$this->valid_args() );
+
+		$this->assertSame(
+			'Fulfilment available between 9:00 am and 7:00 pm.',
+			$settings->fulfilment_window_message_resolved( '9:00 am', '7:00 pm' )
+		);
+	}
+
+	public function test_rejects_a_fulfilment_window_message_over_the_length_limit(): void {
+		$args   = $this->valid_args();
+		$args[] = str_repeat( 'a', 301 );
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
 	}
 
 	public function test_rejects_a_negative_cutoff_days(): void {

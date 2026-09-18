@@ -41,8 +41,20 @@ window.fcsCheckoutShared = (function () {
     return dayNames[date.getDay()];
   }
 
+  /**
+   * A `Y-m-d` date string as a readable "day Month year" string (e.g. "14 October 2026"),
+   * using the site's translated month names - the same parsing approach as
+   * weekdayNameForDate() above, for the same reason.
+   */
+  function formatDisplayDate(dateStr, monthNames) {
+    const parts = dateStr.split('-').map(Number);
+
+    return `${parts[2]} ${monthNames[parts[1] - 1]} ${parts[0]}`;
+  }
+
   return {
     buildFlatpickrLocale: buildFlatpickrLocale,
-    weekdayNameForDate: weekdayNameForDate
+    weekdayNameForDate: weekdayNameForDate,
+    formatDisplayDate: formatDisplayDate
   };
 })();

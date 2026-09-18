@@ -101,8 +101,11 @@ final class Fulfilment_Date_Field {
 			return;
 		}
 
-		$eligible_dates = $this->window->eligible_dates( $schedule );
-		$selected_date  = $this->restored_date( $eligible_dates );
+		$eligible_dates  = $this->window->eligible_dates( $schedule );
+		$selected_date   = $this->restored_date( $eligible_dates );
+		$selected_window = null !== $selected_date
+			? ( $this->window->windows_for_dates( $schedule, [ $selected_date ] )[ $selected_date ] ?? null )
+			: null;
 
 		$html = $this->renderer->render(
 			'frontend/checkout/fulfilment-date-field',
@@ -112,9 +115,10 @@ final class Fulfilment_Date_Field {
 				'label'           => $settings->fulfilment_date_label(),
 				'description'     => $settings->fulfilment_date_description(),
 				'selected_date'   => $selected_date,
-				'selected_window' => null !== $selected_date
-					? ( $this->window->windows_for_dates( $schedule, [ $selected_date ] )[ $selected_date ] ?? null )
-					: null,
+				'selected_window' => $selected_window,
+				'window_message'  => null !== $selected_window
+					? $settings->fulfilment_window_message_resolved( $selected_window['start'], $selected_window['end'] )
+					: '',
 			]
 		);
 
@@ -160,7 +164,7 @@ final class Fulfilment_Date_Field {
 
 		$errors->add(
 			'fcs_fulfilment_date',
-			esc_html__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' )
+			__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' )
 		);
 	}
 

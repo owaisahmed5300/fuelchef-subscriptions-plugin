@@ -142,7 +142,10 @@ final class Destination_Catalog {
 				Destination_Type::SHIPPING_ZONE,
 				(string) self::CATCH_ALL_ZONE_ID,
 				$catch_all->get_zone_name(),
-				esc_html__( 'Everywhere your other zones do not cover.', 'fuelchef-subscriptions' )
+				// __(), not esc_html__(): this reaches the admin destinations screen only
+				// through JavaScript, which escapes it itself via FCS.escapeHtml() when
+				// building the catalog dropdown's HTML.
+				__( 'Everywhere your other zones do not cover.', 'fuelchef-subscriptions' )
 			);
 		}
 

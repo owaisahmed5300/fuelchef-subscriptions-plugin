@@ -60,7 +60,7 @@ final class Schedules_Controller {
 	public function register(): void {
 		add_action( 'wp_ajax_fcs_save_schedule', [ $this, 'ajax_save_schedule' ] );
 		add_action( 'wp_ajax_fcs_delete_schedule', [ $this, 'ajax_delete_schedule' ] );
-		add_action( 'wp_ajax_fcs_save_schedule_weekday', [ $this, 'ajax_save_schedule_weekday' ] );
+		add_action( 'wp_ajax_fcs_save_schedule_weekdays', [ $this, 'ajax_save_schedule_weekdays' ] );
 		add_action( 'wp_ajax_fcs_copy_schedule_weekday', [ $this, 'ajax_copy_schedule_weekday' ] );
 		add_action( 'wp_ajax_fcs_save_schedule_destinations', [ $this, 'ajax_save_schedule_destinations' ] );
 	}
@@ -247,24 +247,44 @@ final class Schedules_Controller {
 	}
 
 	/**
-	 * Updates one weekday's availability, start time and end time.
+	 * Updates every weekday's availability, start time and end time in one batch - the
+	 * screen's own "Save Schedule" button is the only thing that triggers this, never an
+	 * individual toggle or time field, so every pending edit is saved (or rejected)
+	 * together instead of firing one request per change.
 	 */
-	public function ajax_save_schedule_weekday(): void {
+	public function ajax_save_schedule_weekdays(): void {
 		$this->verify_ajax_request();
 
+		$schedule_id = $this->posted_int( 'schedule_id' );
+
+		/** @var array<int, array{day_of_week?: string, enabled?: string, start_time?: string, end_time?: string}> $raw */
+		$raw = wp_unslash( Narrow::array( $_POST['weekdays'] ?? null ) );
+
+		$rows = [];
+
+		foreach ( $raw as $entry ) {
+			if ( ! isset( $entry['day_of_week'], $entry['start_time'], $entry['end_time'] ) ) {
+				continue;
+			}
+
+			$rows[] = [
+				'day_of_week' => absint( $entry['day_of_week'] ),
+				// A checkbox posts '1' when checked and is omitted entirely when not -
+				// this plugin's own JS always sends the key either way, with '' for
+				// unchecked, but isset() alone would be true for both.
+				'enabled'     => '1' === ( $entry['enabled'] ?? '' ),
+				'start_time'  => sanitize_text_field( $entry['start_time'] ),
+				'end_time'    => sanitize_text_field( $entry['end_time'] ),
+			];
+		}
+
 		try {
-			$weekday = $this->schedule_service->update_weekday(
-				$this->posted_int( 'schedule_id' ),
-				$this->posted_int( 'day_of_week' ),
-				isset( $_POST['enabled'] ),
-				$this->posted_text( 'start_time' ),
-				$this->posted_text( 'end_time' )
-			);
+			$weekdays = $this->schedule_service->update_weekdays( $schedule_id, $rows );
 		} catch ( Validation_Exception $exception ) {
 			wp_send_json_error( [ 'message' => $exception->getMessage() ] );
 		}
 
-		wp_send_json_success( $this->weekday_for_js( $weekday ) );
+		wp_send_json_success( [ 'weekdays' => array_map( [ $this, 'weekday_for_js' ], $weekdays ) ] );
 	}
 
 	/**
