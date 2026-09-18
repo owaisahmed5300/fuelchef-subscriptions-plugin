@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
  * The plugin's store-wide settings.
  *
  * A setting is not a database row, so this does not go through the
- * Entity/Repository abstraction - see `Settings_Store`.
+ * Entity/Repository abstraction - see `Settings_Service`.
  */
 final class Settings {
 
@@ -302,7 +302,7 @@ final class Settings {
 	 * value already escapes it for its own context on the way out (a classic template's
 	 * `esc_html()`, or a block script's jQuery `.text()`) - pre-escaping it here would
 	 * double-escape it, rendering a literal "&amp;" instead of "&". The customised value
-	 * stored via `Settings_Store` is raw for the same reason.
+	 * stored via `Settings_Service` is raw for the same reason.
 	 */
 	public function ineligible_message_resolved(): string {
 		return '' !== $this->ineligible_message

@@ -46,10 +46,6 @@ final class Availability_Service {
 
 	/**
 	 * The schedule assigned to a destination, or null when none is.
-	 *
-	 * When more than one schedule is assigned to the same destination - not prevented at
-	 * the data layer, only within one schedule's own destination list - the one with the
-	 * lowest ID wins, since that is the order `find_by_destination()` returns them in.
 	 */
 	public function schedule_for_destination( string $destination_type, string $destination_key ): ?Schedule {
 		$assignments = $this->destinations->find_by_destination( $destination_type, $destination_key );

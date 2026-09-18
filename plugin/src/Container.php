@@ -1,8 +1,6 @@
 <?php
 /**
- * Plugin container.
- *
- * Provides access to the plugin dependency injection container.
+ * Plugin container access.
  */
 
 declare(strict_types=1);
@@ -33,13 +31,13 @@ final class Container {
 	private static Base_Container $container;
 
 	/**
-	 * Constructor.
+	 * No instances. Access is through {@see self::instance()} only.
 	 */
 	private function __construct() {
 	}
 
 	/**
-	 * Get the plugin container instance.
+	 * The plugin's dependency injection container, building it on first access.
 	 */
 	public static function instance(): Base_Container {
 		if ( ! isset( self::$container ) ) {

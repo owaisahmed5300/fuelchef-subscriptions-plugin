@@ -217,8 +217,8 @@ jQuery(function ($) {
       });
   }
 
-  // The destination a chosen rate resolves to (see Chosen_Shipping_Destination on the
-  // PHP side) is exactly what an address change or a different chosen rate can affect;
+  // The destination a chosen rate resolves to (see Chosen_Shipping_Destination_Service on
+  // the PHP side) is exactly what an address change or a different chosen rate can affect;
   // reading it from the cart store's own package data - rather than the raw, possibly
   // incomplete address fields - matches what the server actually keys eligibility on.
   function currentDestinationKey() {
