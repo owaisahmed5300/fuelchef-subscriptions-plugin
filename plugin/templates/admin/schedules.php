@@ -154,12 +154,6 @@ $base_url = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
 							placeholder="<?php echo esc_attr( $schedule_name_placeholder ); ?>"
 							aria-label="<?php echo esc_attr( $schedule_name_placeholder ); ?>"
 						>
-						<button type="button" class="fcs-btn fcs-btn--danger" id="deleteScheduleBtn">
-							<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-								<path d="M2.5 3.5h9M5.5 3.5v-1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1m-5.5 0 .5 8.2a1 1 0 0 0 1 .8h4a1 1 0 0 0 1-.8l.5-8.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-							</svg>
-							<?php esc_html_e( 'Delete Schedule', 'fuelchef-subscriptions' ); ?>
-						</button>
 					</div>
 
 					<nav class="fcs-nav-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Schedule Tabs', 'fuelchef-subscriptions' ); ?>">
@@ -279,6 +273,15 @@ $base_url = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
 							</div>
 						</div>
 					</section>
+
+					<div class="fcs-submit-bar">
+						<button type="button" class="fcs-btn fcs-btn--danger" id="deleteScheduleBtn">
+							<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+								<path d="M2.5 3.5h9M5.5 3.5v-1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1m-5.5 0 .5 8.2a1 1 0 0 0 1 .8h4a1 1 0 0 0 1-.8l.5-8.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+							<?php esc_html_e( 'Delete Schedule', 'fuelchef-subscriptions' ); ?>
+						</button>
+					</div>
 					<?php
 				endif;
 				?>
