@@ -9,7 +9,7 @@ namespace FuelChef\Subscriptions\Admin\Controllers;
 
 use FuelChef\Subscriptions\Admin\Concerns\Presents_Blackouts;
 use FuelChef\Subscriptions\Admin\Concerns\Verifies_Ajax_Request;
-use FuelChef\Subscriptions\Admin\Menu;
+use FuelChef\Subscriptions\Admin\Concerns\Verifies_Page_Access;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
 use FuelChef\Subscriptions\Services\Scheduling\Blackout_Service;
@@ -32,6 +32,7 @@ final class Closures_Controller {
 
 	use Presents_Blackouts;
 	use Verifies_Ajax_Request;
+	use Verifies_Page_Access;
 
 	/**
 	 * Creates the controller.
@@ -55,9 +56,7 @@ final class Closures_Controller {
 	 * Renders the Closures screen.
 	 */
 	public function render(): void {
-		if ( ! current_user_can( Menu::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to access this page.', 'fuelchef-subscriptions' ) );
-		}
+		$this->verify_page_access();
 
 		wp_localize_script(
 			'fcs-admin-closures',

@@ -9,7 +9,7 @@ namespace FuelChef\Subscriptions\Admin\Controllers;
 
 use FuelChef\Subscriptions\Admin\Concerns\Reads_Request_Fields;
 use FuelChef\Subscriptions\Admin\Concerns\Verifies_Ajax_Request;
-use FuelChef\Subscriptions\Admin\Menu;
+use FuelChef\Subscriptions\Admin\Concerns\Verifies_Page_Access;
 use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Utils\Renderer;
 use FuelChef\Subscriptions\Values\Settings;
@@ -26,6 +26,7 @@ final class Settings_Controller {
 
 	use Reads_Request_Fields;
 	use Verifies_Ajax_Request;
+	use Verifies_Page_Access;
 
 	/**
 	 * Creates the controller.
@@ -47,9 +48,7 @@ final class Settings_Controller {
 	 * Renders the Settings screen.
 	 */
 	public function render(): void {
-		if ( ! current_user_can( Menu::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to access this page.', 'fuelchef-subscriptions' ) );
-		}
+		$this->verify_page_access();
 
 		$html = $this->renderer->render(
 			'admin/settings',

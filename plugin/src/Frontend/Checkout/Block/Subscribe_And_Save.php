@@ -155,7 +155,7 @@ final class Subscribe_And_Save {
 	 */
 	private function add_fee( WC_Order $order, float $amount ): void {
 		$fee = new WC_Order_Item_Fee();
-		$fee->set_name( $this->fee_name() );
+		$fee->set_name( Classic_Subscribe_And_Save::fee_name() );
 		$fee->set_tax_status( 'none' );
 		$fee->set_amount( (string) ( -$amount ) );
 		$fee->set_total( (string) ( -$amount ) );
@@ -169,18 +169,10 @@ final class Subscribe_And_Save {
 	 */
 	private function remove_existing_fee( WC_Order $order ): void {
 		foreach ( $order->get_items( 'fee' ) as $item_id => $item ) {
-			if ( $item instanceof WC_Order_Item_Fee && $this->fee_name() === $item->get_name() ) {
+			if ( $item instanceof WC_Order_Item_Fee && Classic_Subscribe_And_Save::fee_name() === $item->get_name() ) {
 				$order->remove_item( $item_id );
 			}
 		}
-	}
-
-	/**
-	 * The discount fee line's name, translated once here rather than compared against
-	 * a raw string.
-	 */
-	private function fee_name(): string {
-		return esc_html__( 'Subscribe Discount', 'fuelchef-subscriptions' );
 	}
 
 	/**

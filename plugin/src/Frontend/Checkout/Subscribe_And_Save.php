@@ -150,10 +150,16 @@ final class Subscribe_And_Save {
 			return;
 		}
 
-		$cart->add_fee(
-			esc_html__( 'Subscribe Discount', 'fuelchef-subscriptions' ),
-			-$amount
-		);
+		$cart->add_fee( self::fee_name(), -$amount );
+	}
+
+	/**
+	 * The discount fee line's name, shared with {@see Block\Subscribe_And_Save}
+	 * so classic and block checkout never drift into naming the same fee
+	 * differently.
+	 */
+	public static function fee_name(): string {
+		return esc_html__( 'Subscribe Discount', 'fuelchef-subscriptions' );
 	}
 
 	/**
