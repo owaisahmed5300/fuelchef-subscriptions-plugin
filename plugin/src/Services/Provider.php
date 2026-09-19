@@ -51,6 +51,7 @@ final class Provider implements ServiceProvider {
 			->addParameter( Schedule_Weekday_Repository::class, true )
 			->addParameter( Blackout_Repository::class, true )
 			->addParameter( Schedule_Destination_Repository::class, true )
+			->addParameter( Destination_Catalog_Service::class, true )
 			->addParameter( Transaction_Manager::class, true );
 
 		$container

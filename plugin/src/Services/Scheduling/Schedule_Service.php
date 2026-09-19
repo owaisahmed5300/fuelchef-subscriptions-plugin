@@ -9,6 +9,7 @@ namespace FuelChef\Subscriptions\Services\Scheduling;
 
 use FuelChef\Subscriptions\Database\Transaction_Manager;
 use FuelChef\Subscriptions\Entities\Schedule;
+use FuelChef\Subscriptions\Entities\Schedule_Destination;
 use FuelChef\Subscriptions\Entities\Schedule_Weekday;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
@@ -46,6 +47,7 @@ final class Schedule_Service {
 		private Schedule_Weekday_Repository $weekdays,
 		private Blackout_Repository $blackouts,
 		private Schedule_Destination_Repository $destinations,
+		private Destination_Catalog_Service $destination_catalog,
 		private Transaction_Manager $transactions
 	) {
 	}
@@ -176,6 +178,72 @@ final class Schedule_Service {
 		}
 
 		return $updated;
+	}
+
+	/**
+	 * Replaces every destination assigned to a schedule, rejecting the whole batch when any
+	 * of them is already assigned to a different schedule. An entry the catalog no longer
+	 * recognises (a zone or pickup location since deleted in WooCommerce) is silently
+	 * dropped rather than failing the save.
+	 *
+	 * @param int                                    $schedule_id The schedule to assign destinations to.
+	 * @param list<array{type: string, key: string}> $destinations Destinations to assign.
+	 *
+	 * @throws Validation_Exception When any destination is already assigned to a different
+	 *                               schedule - nothing is saved when this is thrown.
+	 *
+	 * @return list<Schedule_Destination> The schedule's destinations after saving.
+	 */
+	public function assign_destinations( int $schedule_id, array $destinations ): array {
+		$resolved  = [];
+		$conflicts = [];
+
+		foreach ( $destinations as $destination ) {
+			$option = $this->destination_catalog->find( $destination['type'], $destination['key'] );
+
+			if ( null === $option ) {
+				continue;
+			}
+
+			$owner = $this->destination_owner( $destination['type'], $destination['key'], $schedule_id );
+
+			if ( null !== $owner ) {
+				$conflicts[] = [
+					'label'         => $option->label(),
+					'schedule_name' => $owner->name(),
+				];
+
+				continue;
+			}
+
+			$resolved[] = new Schedule_Destination( $schedule_id, $destination['type'], $destination['key'] );
+		}
+
+		if ( [] !== $conflicts ) {
+			throw Validation_Exception::for_destinations_already_assigned( $conflicts );
+		}
+
+		return $this->transactions->run(
+			function () use ( $schedule_id, $resolved ): array {
+				$this->destinations->replace_for_schedule( $schedule_id, $resolved );
+
+				return $this->destinations->find_by_schedule( $schedule_id );
+			}
+		);
+	}
+
+	/**
+	 * The schedule already assigned to a destination, other than the one given - null when
+	 * none is.
+	 */
+	public function destination_owner( string $destination_type, string $destination_key, int $excluding_schedule_id ): ?Schedule {
+		foreach ( $this->destinations->find_by_destination( $destination_type, $destination_key ) as $assignment ) {
+			if ( $assignment->schedule_id() !== $excluding_schedule_id ) {
+				return $this->schedules->find( $assignment->schedule_id() );
+			}
+		}
+
+		return null;
 	}
 
 	/**

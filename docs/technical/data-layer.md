@@ -26,10 +26,11 @@ business logic.
    (`use Entities\Concerns\Has_Timestamps`) if it has `date_created`/`date_updated` columns,
    which every table here does so far.
 3. Add a repository under `Repositories\` extending
-   `Repositories\Abstract_Repository<TheEntity>`. It supplies `$table`,
-   `$cache_group`, `hydrate()` and `dehydrate()`; `find()`/`insert()`/`update()`/
-   `delete()` come from the base, and fire the actions described in "Hooks" below with no
-   extra work. Register it in `Repositories\Provider`.
+   `Repositories\Abstract_Repository<TheEntity>`. It supplies `$table`, `hydrate()` and
+   `dehydrate()` - the cache group is `cache_group()`'s own `fcs_` plus `$table`, so it
+   never needs declaring separately; `find()`/`insert()`/`update()`/`delete()` come from
+   the base, and fire the actions described in "Hooks" below with no extra work. Register
+   it in `Repositories\Provider`.
 4. Any query beyond `find()` (e.g. `find_by_schedule()`) is the concrete repository's own
    method, caching its own key and clearing it in an `invalidate_related()` override. A
    query whose parameters vary too widely to cache usefully (e.g. a date range) skips
