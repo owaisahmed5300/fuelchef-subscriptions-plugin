@@ -125,11 +125,13 @@ Two established pairs, both deliberate, both worth extending the same way rather
   "Closure" is what a store owner actually calls blocking a date; "Blackout" is the
   internal domain term, accurate but never shown to anyone.
 - **`fulfilment_date_*`/`Fulfilment_Date_Field`/`Current_Fulfilment_Window_Service`
-  (properties, classes, option keys) vs. "Delivery/Pickup Date" (the checkout field's
-  default label, help text, and validation/AJAX messages a customer sees).** "Fulfilment"
-  correctly abstracts over both a shipping zone and a pickup location; a customer has
-  never chosen to "fulfil" anything, so the copy names the two concrete things they
-  actually picked between instead. The "Directory layout" section below, which retired the
+  (properties, classes, option keys) vs. "Delivery date"/"Pickup date" (the checkout
+  field's label, resolved per order via `Settings::date_label_resolved()` and shown in
+  help text and validation/AJAX messages a customer sees).** "Fulfilment" correctly
+  abstracts over both a shipping zone and a pickup location; a customer has never chosen
+  to "fulfil" anything, so the copy names whichever concrete thing they actually picked
+  instead - two labels and two settings fields (`delivery_date_label`/`pickup_date_label`),
+  not one generic "Delivery/Pickup Date" compromise. The "Directory layout" section below, which retired the
   top-level `WooCommerce\` namespace and merged `Utils\Input`/`Utils\Row_Caster`, is the
   same instinct in a different shape: don't let a
   distinction that matters in one place (delivery vs. pickup, to a customer) force a split
@@ -426,6 +428,15 @@ never per-date exclusion, which this field needs for closed weekdays and blackou
   its default, WooCommerce appends "(optional)" to a non-required field's label - true for
   a destination with no schedule, but misleading everywhere else, since `validate_order()`
   above still rejects the order without a date whenever a schedule does apply.
+- **The registered label is always the delivery-context one, for the same
+  registration-time reason `window_options()` above needs a REST route: nothing is known
+  about the customer's destination yet at `woocommerce_init`.** Once one resolves,
+  `assets/checkout/js/block-fulfilment-date-field.js`'s `updateFieldLabel()` corrects the
+  *rendered* label's text to the pickup wording if that is what they chose - a plain text
+  swap on whatever `<label>` it finds in the field's wrapper, not a re-registration (there
+  is no supported way to re-register a field's `label` after the fact). `validate()`/
+  `validate_order()` never have this problem: both only run once a destination is actually
+  resolvable, so they read the real, resolved label directly from `Settings`.
 - **Resetting a registered field's value must fire a real DOM event, not just set the
   property.** Both the date `<select>` and the subscribe checkbox are React-controlled
   components backed by the Checkout block's own additional-fields store - on mount, each

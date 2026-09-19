@@ -115,6 +115,21 @@ jQuery(function ($) {
     }
   }
 
+  // WooCommerce registers this field with the delivery-context label (see
+  // Block\Fulfilment_Date_Field::register_field() for why it can't know any better at
+  // registration time) - this corrects it client-side once a destination resolves.
+  // Read fresh each call rather than cached: a rate switch updates the cart store
+  // synchronously, the same reasoning currentSelectedRateId() below already documents.
+  function updateFieldLabel($select) {
+    const isPickup = window.fcsCheckoutShared.isPickupRateId(window.fcsCheckoutShared.currentSelectedRateId());
+    const text = isPickup ? window.fcsCheckout.pickupDateLabel : window.fcsCheckout.deliveryDateLabel;
+    const $label = fieldWrapper($select).find('label').first();
+
+    if ($label.length && $label.text() !== text) {
+      $label.text(text);
+    }
+  }
+
   // Three states, matching classic checkout's own field exactly:
   // - nothing chosen yet (no address, no pickup location): both the field and the
   //   no-match message stay hidden - silent, since there is nothing to report yet.
@@ -129,6 +144,8 @@ jQuery(function ($) {
   function applyEligibility($select, destinationChosen, hasSchedule, dates, windows) {
     const $wrapper = fieldWrapper($select);
     const $message = noMatchMessage($select);
+
+    updateFieldLabel($select);
 
     if ( ! destinationChosen ) {
       $wrapper.hide();
@@ -276,6 +293,7 @@ jQuery(function ($) {
 
     disableGroupHeadings($select);
     addDescription($select);
+    updateFieldLabel($select);
     $select.on('change', function () {
       updateWindowCaption($select);
     });
