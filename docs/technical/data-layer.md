@@ -170,7 +170,7 @@ asset registration around it.
 - A controller's own ajax actions are registered in its `register()` method, called from
   `Admin\Provider::boot()` - not gated to when its own screen is being viewed, since an
   ajax request to `admin-ajax.php` carries no "current screen". Two screens sharing one
-  underlying resource (the Schedules screen's local blackouts and the Settings screen's
+  underlying resource (the Schedules screen's local blackouts and the Closures screen's
   store-wide ones) share one registered action rather than each registering the same
   `wp_ajax_*` hook, which would run both callbacks on every request.
 
