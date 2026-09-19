@@ -48,6 +48,7 @@ final class Assets {
 		$screen = match ( $page ) {
 			Menu::SETTINGS_SLUG => 'settings',
 			Menu::SCHEDULES_SLUG => 'schedules',
+			Menu::CLOSURES_SLUG => 'closures',
 			default => null,
 		};
 
