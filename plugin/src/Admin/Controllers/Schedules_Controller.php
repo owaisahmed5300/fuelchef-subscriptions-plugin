@@ -10,6 +10,7 @@ namespace FuelChef\Subscriptions\Admin\Controllers;
 use FuelChef\Subscriptions\Admin\Concerns\Presents_Blackouts;
 use FuelChef\Subscriptions\Admin\Concerns\Reads_Request_Fields;
 use FuelChef\Subscriptions\Admin\Concerns\Verifies_Ajax_Request;
+use FuelChef\Subscriptions\Admin\Concerns\Verifies_Page_Access;
 use FuelChef\Subscriptions\Admin\Menu;
 use FuelChef\Subscriptions\Entities\Schedule;
 use FuelChef\Subscriptions\Entities\Schedule_Destination;
@@ -37,6 +38,7 @@ final class Schedules_Controller {
 	use Presents_Blackouts;
 	use Reads_Request_Fields;
 	use Verifies_Ajax_Request;
+	use Verifies_Page_Access;
 
 	/**
 	 * Creates the controller.
@@ -58,7 +60,7 @@ final class Schedules_Controller {
 	public function register(): void {
 		add_action( 'wp_ajax_fcs_save_schedule', [ $this, 'ajax_save_schedule' ] );
 		add_action( 'wp_ajax_fcs_delete_schedule', [ $this, 'ajax_delete_schedule' ] );
-		add_action( 'wp_ajax_fcs_save_schedule_weekdays', [ $this, 'ajax_save_schedule_weekdays' ] );
+		add_action( 'wp_ajax_fcs_save_schedule_weekday', [ $this, 'ajax_save_schedule_weekday' ] );
 		add_action( 'wp_ajax_fcs_copy_schedule_weekday', [ $this, 'ajax_copy_schedule_weekday' ] );
 		add_action( 'wp_ajax_fcs_save_schedule_destinations', [ $this, 'ajax_save_schedule_destinations' ] );
 	}
@@ -68,9 +70,7 @@ final class Schedules_Controller {
 	 * is selected.
 	 */
 	public function render(): void {
-		if ( ! current_user_can( Menu::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to access this page.', 'fuelchef-subscriptions' ) );
-		}
+		$this->verify_page_access();
 
 		$all       = $this->schedules->all();
 		$requested = absint( Narrow::string( $_GET['schedule_id'] ?? null ) );
@@ -88,7 +88,7 @@ final class Schedules_Controller {
 					'weekdays'     => $this->weekdays_for_js( $this->weekdays->find_by_schedule( $schedule_id ) ),
 					'blackouts'    => $this->blackouts_for_js( $this->blackouts->find_by_schedule( $schedule_id ) ),
 					'destinations' => $this->destinations_for_js( $this->destinations->find_by_schedule( $schedule_id ) ),
-					'catalog'      => $this->catalog_for_js(),
+					'catalog'      => $this->catalog_for_js( $schedule_id ),
 				]
 			);
 		}
@@ -185,25 +185,33 @@ final class Schedules_Controller {
 	}
 
 	/**
-	 * Shapes the destination catalog for the "add a destination" script.
+	 * Shapes the destination catalog for the "add a destination" script, noting which
+	 * destinations are already assigned to a different schedule so the picker can grey
+	 * them out instead of letting an admin hit the same conflict on save.
 	 *
 	 * @return list<array{
 	 *     type: string,
 	 *     key: string,
 	 *     label: string,
 	 *     description: string|null,
-	 *     enabled: bool
+	 *     enabled: bool,
+	 *     assignedTo: string|null
 	 * }> The shaped catalog.
 	 */
-	private function catalog_for_js(): array {
+	private function catalog_for_js( int $schedule_id ): array {
 		return array_map(
-			static fn ( Destination_Option $option ): array => [
-				'type'        => $option->type(),
-				'key'         => $option->key(),
-				'label'       => $option->label(),
-				'description' => $option->description(),
-				'enabled'     => $option->enabled(),
-			],
+			function ( Destination_Option $option ) use ( $schedule_id ): array {
+				$owner = $this->schedule_service->destination_owner( $option->type(), $option->key(), $schedule_id );
+
+				return [
+					'type'        => $option->type(),
+					'key'         => $option->key(),
+					'label'       => $option->label(),
+					'description' => $option->description(),
+					'enabled'     => $option->enabled(),
+					'assignedTo'  => $owner?->name(),
+				];
+			},
 			$this->destination_catalog->all()
 		);
 	}
@@ -245,44 +253,26 @@ final class Schedules_Controller {
 	}
 
 	/**
-	 * Updates every weekday's availability, start time and end time in one batch - the
-	 * screen's own "Save Schedule" button is the only thing that triggers this, never an
-	 * individual toggle or time field, so every pending edit is saved (or rejected)
-	 * together instead of firing one request per change.
+	 * Updates one weekday's availability, start time and end time - the screen calls
+	 * this the moment the admin toggles a day or changes a time, not behind any
+	 * separate save action.
 	 */
-	public function ajax_save_schedule_weekdays(): void {
+	public function ajax_save_schedule_weekday(): void {
 		$this->verify_ajax_request();
 
-		$schedule_id = $this->posted_int( 'schedule_id' );
-
-		/** @var array<int, array{day_of_week?: string, enabled?: string, start_time?: string, end_time?: string}> $raw */
-		$raw = wp_unslash( Narrow::array( $_POST['weekdays'] ?? null ) );
-
-		$rows = [];
-
-		foreach ( $raw as $entry ) {
-			if ( ! isset( $entry['day_of_week'], $entry['start_time'], $entry['end_time'] ) ) {
-				continue;
-			}
-
-			$rows[] = [
-				'day_of_week' => absint( $entry['day_of_week'] ),
-				// A checkbox posts '1' when checked and is omitted entirely when not -
-				// this plugin's own JS always sends the key either way, with '' for
-				// unchecked, but isset() alone would be true for both.
-				'enabled'     => '1' === ( $entry['enabled'] ?? '' ),
-				'start_time'  => sanitize_text_field( $entry['start_time'] ),
-				'end_time'    => sanitize_text_field( $entry['end_time'] ),
-			];
-		}
-
 		try {
-			$weekdays = $this->schedule_service->update_weekdays( $schedule_id, $rows );
+			$weekday = $this->schedule_service->update_weekday(
+				$this->posted_int( 'schedule_id' ),
+				$this->posted_int( 'day_of_week' ),
+				$this->posted_bool( 'enabled' ),
+				$this->posted_text( 'start_time' ),
+				$this->posted_text( 'end_time' )
+			);
 		} catch ( Validation_Exception $exception ) {
 			wp_send_json_error( [ 'message' => $exception->getMessage() ] );
 		}
 
-		wp_send_json_success( [ 'weekdays' => array_map( [ $this, 'weekday_for_js' ], $weekdays ) ] );
+		wp_send_json_success( [ 'weekday' => $this->weekday_for_js( $weekday ) ] );
 	}
 
 	/**
@@ -304,13 +294,8 @@ final class Schedules_Controller {
 	}
 
 	/**
-	 * Replaces every destination assigned to a schedule.
-	 *
-	 * No validation service: the one rule here (the destination must currently exist in
-	 * WooCommerce) is answered entirely by `Destination_Catalog_Service::find()`, so there
-	 * is no business rule left for a service to hold - see docs/technical/data-layer.md. An
-	 * entry the catalog no longer recognises is silently dropped rather than failing the
-	 * whole save.
+	 * Replaces every destination assigned to a schedule, rejecting the batch when any of
+	 * them is already assigned to a different schedule.
 	 */
 	public function ajax_save_schedule_destinations(): void {
 		$this->verify_ajax_request();
@@ -327,17 +312,17 @@ final class Schedules_Controller {
 				continue;
 			}
 
-			$type = sanitize_text_field( $entry['type'] );
-			$key  = sanitize_text_field( $entry['key'] );
-
-			if ( null === $this->destination_catalog->find( $type, $key ) ) {
-				continue;
-			}
-
-			$destinations[] = new Schedule_Destination( $schedule_id, $type, $key );
+			$destinations[] = [
+				'type' => sanitize_text_field( $entry['type'] ),
+				'key'  => sanitize_text_field( $entry['key'] ),
+			];
 		}
 
-		$this->destinations->replace_for_schedule( $schedule_id, $destinations );
+		try {
+			$this->schedule_service->assign_destinations( $schedule_id, $destinations );
+		} catch ( Validation_Exception $exception ) {
+			wp_send_json_error( [ 'message' => $exception->getMessage() ] );
+		}
 
 		wp_send_json_success();
 	}

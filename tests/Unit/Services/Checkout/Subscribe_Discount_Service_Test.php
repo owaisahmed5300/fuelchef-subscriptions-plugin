@@ -26,7 +26,7 @@ final class Subscribe_Discount_Service_Test extends TestCase {
 	}
 
 	private function settings( int $percent, string $applicability ): Settings {
-		return new Settings( 1, '17:00:00', $percent, $applicability, 60, 'Fulfilment date', '', 'Subscribe & Save {percent}%', '' );
+		return new Settings( 1, '17:00:00', $percent, $applicability, 60, 'Delivery date', 'Pickup date', '', 'Subscribe & Save {percent}%', '' );
 	}
 
 	private function subject(): Subscribe_Discount_Service {
@@ -61,5 +61,16 @@ final class Subscribe_Discount_Service_Test extends TestCase {
 		$settings = $this->settings( 10, Subscribe_Applicability::INITIAL_AND_RENEWALS );
 
 		$this->assertSame( 0.0, $this->subject()->discount_amount( 0.0, $settings ) );
+	}
+
+	/**
+	 * `WC_Cart::get_subtotal()` is never validated as non-negative before it reaches
+	 * this service, so a negative subtotal must still yield zero, not a negative
+	 * discount that would increase the cart total instead of reducing it.
+	 */
+	public function test_discount_amount_is_zero_for_a_negative_subtotal(): void {
+		$settings = $this->settings( 10, Subscribe_Applicability::INITIAL_AND_RENEWALS );
+
+		$this->assertSame( 0.0, $this->subject()->discount_amount( -50.0, $settings ) );
 	}
 }

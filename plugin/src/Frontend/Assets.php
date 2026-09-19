@@ -9,6 +9,7 @@ namespace FuelChef\Subscriptions\Frontend;
 
 use FuelChef\Subscriptions\Frontend\Checkout\Block\Fulfilment_Date_Field as Block_Fulfilment_Date_Field;
 use FuelChef\Subscriptions\Services\Checkout\Checkout_Presence_Service;
+use FuelChef\Subscriptions\Services\Checkout\Chosen_Shipping_Destination_Service;
 use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Utils\Locale;
 use FuelChef\Subscriptions\Values\Settings;
@@ -91,6 +92,9 @@ final class Assets {
 			[
 				'startOfWeek'               => $this->start_of_week(),
 				'eligibleDatesUrl'          => rest_url( Block_Fulfilment_Date_Field::REST_NAMESPACE . Block_Fulfilment_Date_Field::REST_ROUTE ),
+				'pickupRatePrefix'          => Chosen_Shipping_Destination_Service::PICKUP_RATE_PREFIX,
+				'deliveryDateLabel'         => $settings->delivery_date_label(),
+				'pickupDateLabel'           => $settings->pickup_date_label(),
 				'fulfilmentDateDescription' => $settings->fulfilment_date_description(),
 				'subscribeSaveDescription'  => $settings->subscribe_save_description_resolved(),
 				'minimumOrderAmount'        => $settings->minimum_order_amount(),
@@ -218,7 +222,7 @@ final class Assets {
 		return [
 			'chooseDate'              => __( 'Choose a date', 'fuelchef-subscriptions' ),
 			'logIn'                   => __( 'Log in', 'fuelchef-subscriptions' ),
-			'noFulfilmentDateMatch'   => __( 'No fulfilment dates are available for this location.', 'fuelchef-subscriptions' ),
+			'noFulfilmentDateMatch'   => __( 'No delivery/pickup dates are currently available for this destination.', 'fuelchef-subscriptions' ),
 			// The store's configured (or default) wording, still carrying the literal
 			// {start}/{end} placeholders for the enhancement scripts to fill in per date -
 			// passing the placeholder names themselves back in as the substitution values
@@ -228,6 +232,10 @@ final class Assets {
 			'singleDeliveryNotice'    => __( 'Your order will be delivered on %s.', 'fuelchef-subscriptions' ),
 			/* translators: %1$s: weekday name, e.g. "Thursday". %2$s: the first fulfilment date, e.g. "14 October 2026". Both resolved client-side. */
 			'recurringDeliveryNotice' => __( 'Your meals will be delivered every %1$s, starting %2$s.', 'fuelchef-subscriptions' ),
+			/* translators: %s: the chosen fulfilment date, e.g. "14 October 2026". Resolved client-side. */
+			'singlePickupNotice'      => __( 'Your order will be ready for pickup on %s.', 'fuelchef-subscriptions' ),
+			/* translators: %1$s: weekday name, e.g. "Thursday". %2$s: the first fulfilment date, e.g. "14 October 2026". Both resolved client-side. */
+			'recurringPickupNotice'   => __( 'Your meals will be ready for pickup every %1$s, starting %2$s.', 'fuelchef-subscriptions' ),
 			'monthNames'              => array_values( Locale::current()->month ),
 			'monthNamesShort'         => array_values( Locale::current()->month_abbrev ),
 			'dayNames'                => array_values( Locale::current()->weekday ),

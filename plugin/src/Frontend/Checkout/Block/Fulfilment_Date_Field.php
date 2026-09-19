@@ -84,13 +84,22 @@ final class Fulfilment_Date_Field {
 	 * lookahead window, since WooCommerce validates a submission against the registered
 	 * set, not the live DOM - `assets/checkout/js/block-fulfilment-date-field.js` only
 	 * toggles which options are `disabled`.
+	 *
+	 * The label registered here is always the delivery-context one: `woocommerce_init`
+	 * fires long before any address or pickup location is known, the same registration-
+	 * time constraint `window_options()`'s own docblock and "Why a custom REST route at
+	 * all" in `docs/technical/data-layer.md` describe for the eligible-dates list. Once
+	 * the customer's destination resolves, `assets/checkout/js/block-fulfilment-date-field.js`
+	 * swaps the rendered label's text to the pickup one if that is what they chose -
+	 * `validate()`/`validate_order()` below use the real, resolved label regardless, since
+	 * both only ever run once a destination is actually known.
 	 */
 	public function register_field(): void {
 		if ( ! function_exists( 'woocommerce_register_additional_checkout_field' ) ) {
 			return;
 		}
 
-		$label = $this->settings->get()->fulfilment_date_label();
+		$label = $this->settings->get()->delivery_date_label();
 
 		woocommerce_register_additional_checkout_field(
 			[
@@ -191,7 +200,11 @@ final class Fulfilment_Date_Field {
 
 		$errors->add(
 			'fcs_fulfilment_date',
-			__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' )
+			sprintf(
+				/* translators: %s: the admin-configured delivery or pickup date field label. */
+				__( 'Please choose a %s to complete your order.', 'fuelchef-subscriptions' ),
+				$this->settings->get()->date_label_resolved( $this->window->destination_type() )
+			)
 		);
 	}
 
@@ -221,7 +234,11 @@ final class Fulfilment_Date_Field {
 
 		throw new RouteException(
 			'fcs_fulfilment_date_required',
-			__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' ),
+			sprintf(
+				/* translators: %s: the admin-configured delivery or pickup date field label. */
+				__( 'Please choose a %s to complete your order.', 'fuelchef-subscriptions' ),
+				$this->settings->get()->date_label_resolved( $this->window->destination_type() )
+			),
 			400
 		);
 	}

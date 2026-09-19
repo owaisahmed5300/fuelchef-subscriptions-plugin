@@ -89,11 +89,12 @@ final class Fulfilment_Date_Field {
 
 		$schedule = $this->window->schedule();
 		$settings = $this->settings->get();
+		$label    = $settings->date_label_resolved( $this->window->destination_type() );
 
 		if ( null === $schedule ) {
 			$html = $this->renderer->render(
 				'frontend/checkout/fulfilment-date-no-match',
-				[ 'label' => $settings->fulfilment_date_label() ]
+				[ 'label' => $label ]
 			);
 
 			echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -112,7 +113,7 @@ final class Fulfilment_Date_Field {
 			[
 				'eligible_dates'  => $eligible_dates,
 				'windows'         => $this->window->windows_for_dates( $schedule, $eligible_dates ),
-				'label'           => $settings->fulfilment_date_label(),
+				'label'           => $label,
 				'description'     => $settings->fulfilment_date_description(),
 				'selected_date'   => $selected_date,
 				'selected_window' => $selected_window,
@@ -164,7 +165,11 @@ final class Fulfilment_Date_Field {
 
 		$errors->add(
 			'fcs_fulfilment_date',
-			__( 'A fulfilment date is required to complete this order.', 'fuelchef-subscriptions' )
+			sprintf(
+				/* translators: %s: the admin-configured delivery or pickup date field label. */
+				__( 'Please choose a %s to complete your order.', 'fuelchef-subscriptions' ),
+				$this->settings->get()->date_label_resolved( $this->window->destination_type() )
+			)
 		);
 	}
 

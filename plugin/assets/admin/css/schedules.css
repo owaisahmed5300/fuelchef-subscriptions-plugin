@@ -45,12 +45,75 @@
 }
 .fcs-admin .fcs-schedule-nav__title { font-size: 13px; font-weight: 600; line-height: 1.35; }
 .fcs-admin .fcs-schedule-nav__meta { margin-top: 2px; color: var(--fcs-color-text-secondary); font-size: 11px; }
-.fcs-admin .fcs-schedule-nav__chev { flex: 0 0 auto; color: var(--fcs-color-text-tertiary); }
+.fcs-admin .fcs-schedule-nav__chev { flex: 0 0 auto; color: var(--fcs-color-text-tertiary); transition: opacity .1s ease; }
 .fcs-admin .fcs-schedule-nav__link:hover .fcs-schedule-nav__chev,
 .fcs-admin .fcs-schedule-nav__link--active .fcs-schedule-nav__chev { color: var(--fcs-color-primary); }
+/* The three-dots menu button occupies this same slot (see its negative margin below) once
+   shown, so the chevron must hide under the same conditions or the two visibly collide. */
+.fcs-admin .fcs-schedule-nav__item:hover .fcs-schedule-nav__chev,
+.fcs-admin .fcs-schedule-nav__item:focus-within .fcs-schedule-nav__chev,
+.fcs-admin .fcs-schedule-nav__link--active .fcs-schedule-nav__chev,
+.fcs-admin .fcs-schedule-nav__item:has(.fcs-schedule-nav__more[aria-expanded="true"]) .fcs-schedule-nav__chev {
+  opacity: 0;
+}
 .fcs-admin .fcs-sidebar-action { width: 100%; margin-top: 12px; }
 
-.fcs-admin .fcs-title-wrap { margin: 0 0 20px; }
+.fcs-admin .fcs-schedule-nav__item { position: relative; display: flex; align-items: stretch; }
+.fcs-admin .fcs-schedule-nav__item .fcs-schedule-nav__link { flex: 1 1 auto; min-width: 0; }
+.fcs-admin .fcs-schedule-nav__menu-wrap { position: relative; flex: 0 0 auto; display: flex; align-items: center; }
+.fcs-admin .fcs-schedule-nav__more {
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: -32px;
+  border: 1px solid transparent;
+  border-radius: var(--fcs-control-radius);
+  background: transparent;
+  color: var(--fcs-color-text-tertiary);
+  cursor: pointer;
+  transition: opacity .1s ease;
+}
+.fcs-admin .fcs-schedule-nav__item:hover .fcs-schedule-nav__more,
+.fcs-admin .fcs-schedule-nav__item:focus-within .fcs-schedule-nav__more,
+.fcs-admin .fcs-schedule-nav__link--active ~ .fcs-schedule-nav__menu-wrap .fcs-schedule-nav__more,
+.fcs-admin .fcs-schedule-nav__more[aria-expanded="true"] { opacity: 1; }
+.fcs-admin .fcs-schedule-nav__more:hover { background: #f6f7f7; color: var(--fcs-color-text); }
+.fcs-admin .fcs-schedule-nav__more:focus-visible { outline: none; box-shadow: var(--fcs-focus); }
+.fcs-admin .fcs-schedule-nav__menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 8px;
+  z-index: 10;
+  min-width: 140px;
+  margin-top: 4px;
+  padding: 4px;
+  border: 1px solid var(--fcs-color-border-subtle);
+  border-radius: var(--fcs-control-radius);
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+}
+.fcs-admin .fcs-schedule-nav__menu--show { display: block; }
+.fcs-admin .fcs-schedule-nav__menu-item {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: calc(var(--fcs-control-radius) - 2px);
+  background: transparent;
+  color: var(--fcs-color-text);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.fcs-admin .fcs-schedule-nav__menu-item:hover { background: #f6f7f7; }
+.fcs-admin .fcs-schedule-nav__menu-item--danger { color: var(--fcs-color-danger); }
+
+.fcs-admin .fcs-title-wrap { display: flex; align-items: center; gap: 12px; margin: 0 0 20px; }
+.fcs-admin .fcs-title-wrap .fcs-title-input { flex: 1 1 auto; }
 .fcs-admin .fcs-title-input {
   max-width: 620px !important;
   min-height: 48px;
@@ -66,6 +129,17 @@
   border: 1px solid var(--fcs-color-border-subtle);
   border-radius: var(--fcs-control-radius);
   overflow: hidden;
+}
+.fcs-admin .fcs-weekday-table thead th {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--fcs-color-border-subtle);
+  background: #f9f9f9;
+  color: var(--fcs-color-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: .02em;
 }
 .fcs-admin .fcs-weekday-row { transition: background-color 100ms ease; }
 .fcs-admin .fcs-weekday-row + .fcs-weekday-row td { border-top: 1px solid var(--fcs-color-border-subtle); }

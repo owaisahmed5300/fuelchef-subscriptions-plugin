@@ -17,6 +17,7 @@ use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
 use FuelChef\Subscriptions\Services\Scheduling\Availability_Service;
 use FuelChef\Subscriptions\Services\Settings_Service;
 use FuelChef\Subscriptions\Tests\Unit\Repositories\Repository_TestCase;
+use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 
 /**
@@ -192,6 +193,25 @@ final class Availability_Service_Test extends Repository_TestCase {
 		$service = $this->service();
 
 		$this->assertSame( [], $service->open_dates( 4, '2026-09-20', '2026-09-14' ) );
+	}
+
+	/**
+	 * A range far larger than the plugin's own maximum fulfilment window must not walk
+	 * every day in it - the internal safety cap exists precisely so a pathological range
+	 * (a bad date passed in from elsewhere) cannot turn one call into thousands of day
+	 * comparisons.
+	 */
+	public function test_open_dates_stops_after_the_maximum_window_for_an_enormous_range(): void {
+		$service = $this->service(
+			array_map(
+				fn ( int $day ): array => $this->weekday_row( 4, $day, true ),
+				range( 0, 6 )
+			)
+		);
+
+		$dates = $service->open_dates( 4, '2026-01-01', '2036-01-01' );
+
+		$this->assertCount( Settings::MAX_FULFILMENT_WINDOW_DAYS, $dates );
 	}
 
 	public function test_cutoff_deadline_is_null_when_the_schedule_is_null(): void {

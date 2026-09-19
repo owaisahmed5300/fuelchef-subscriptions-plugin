@@ -26,10 +26,11 @@ business logic.
    (`use Entities\Concerns\Has_Timestamps`) if it has `date_created`/`date_updated` columns,
    which every table here does so far.
 3. Add a repository under `Repositories\` extending
-   `Repositories\Abstract_Repository<TheEntity>`. It supplies `$table`,
-   `$cache_group`, `hydrate()` and `dehydrate()`; `find()`/`insert()`/`update()`/
-   `delete()` come from the base, and fire the actions described in "Hooks" below with no
-   extra work. Register it in `Repositories\Provider`.
+   `Repositories\Abstract_Repository<TheEntity>`. It supplies `$table`, `hydrate()` and
+   `dehydrate()` - the cache group is `cache_group()`'s own `fcs_` plus `$table`, so it
+   never needs declaring separately; `find()`/`insert()`/`update()`/`delete()` come from
+   the base, and fire the actions described in "Hooks" below with no extra work. Register
+   it in `Repositories\Provider`.
 4. Any query beyond `find()` (e.g. `find_by_schedule()`) is the concrete repository's own
    method, caching its own key and clearing it in an `invalidate_related()` override. A
    query whose parameters vary too widely to cache usefully (e.g. a date range) skips
@@ -114,6 +115,40 @@ layout" below.
   default in `Services\Settings_Service`, and - if its valid values are a fixed set - a
   `Values\*` enum-shaped class alongside `Subscribe_Applicability`/`Day_Of_Week`.
 
+## Internal names vs. customer-facing copy
+
+Two established pairs, both deliberate, both worth extending the same way rather than
+"fixing" into one word:
+
+- **`Blackout` (entities, repositories, services, option/meta keys) vs. "Closure"
+  (every admin label: the Closures/Schedules screens, field labels, popover text).**
+  "Closure" is what a store owner actually calls blocking a date; "Blackout" is the
+  internal domain term, accurate but never shown to anyone.
+- **`fulfilment_date_*`/`Fulfilment_Date_Field`/`Current_Fulfilment_Window_Service`
+  (properties, classes, option keys) vs. "Delivery date"/"Pickup date" (the checkout
+  field's label, resolved per order via `Settings::date_label_resolved()` and shown in
+  help text and validation/AJAX messages a customer sees).** "Fulfilment" correctly
+  abstracts over both a shipping zone and a pickup location; a customer has never chosen
+  to "fulfil" anything, so the copy names whichever concrete thing they actually picked
+  instead - two labels and two settings fields (`delivery_date_label`/`pickup_date_label`),
+  not one generic "Delivery/Pickup Date" compromise. The "Directory layout" section below, which retired the
+  top-level `WooCommerce\` namespace and merged `Utils\Input`/`Utils\Row_Caster`, is the
+  same instinct in a different shape: don't let a
+  distinction that matters in one place (delivery vs. pickup, to a customer) force a split
+  that doesn't matter in another (the code handling both, which never needs to care which
+  one it's looking at).
+
+When a rename request could touch either side, treat them separately: does *this specific
+string* face a customer or store admin acting as one (rename it to the clear, natural
+term), or is it internal plumbing describing the domain concept (keep the accurate
+internal term, even if a customer would never use that word). Don't blanket-replace every
+occurrence of the old term just because the customer-facing one changed - and don't leave
+a class named after the customer-facing term either, since that drifts the moment someone
+changes the copy again without touching the code. Admin-only *operational* language (the
+Schedules screen's "fulfilment days"/"fulfilment hours" - literally which days/hours the
+kitchen operates) is its own third case: internal-sounding, but correctly so, since its
+audience is staff configuring the business, not a customer.
+
 ## Directory layout
 
 A namespace gets its own directory when more than one thing belongs there, or a second
@@ -169,9 +204,21 @@ asset registration around it.
 - A controller's own ajax actions are registered in its `register()` method, called from
   `Admin\Provider::boot()` - not gated to when its own screen is being viewed, since an
   ajax request to `admin-ajax.php` carries no "current screen". Two screens sharing one
-  underlying resource (the Schedules screen's local blackouts and the Settings screen's
+  underlying resource (the Schedules screen's local blackouts and the Closures screen's
   store-wide ones) share one registered action rather than each registering the same
   `wp_ajax_*` hook, which would run both callbacks on every request.
+- **An icon-only button's tooltip is `title` + `aria-label` with the same text, plus
+  `FCS.initTooltips(selector)`** (`common.js`) applied to it - never a bespoke tooltip
+  implementation. Tippy (vendored under `plugin/assets/lib/tippy/`, the base build reusing
+  the Popper.js already vendored for the date popover) reads and strips `title` itself, so
+  a page where the script fails to load still falls back to the plain native tooltip
+  rather than showing none. A JS-rendered element (the weekday table's "Copy Down"
+  button) needs its own `FCS.initTooltips()` call after every re-render, since it only
+  wires up whatever currently matches the selector.
+- **A field with a `.fcs-field__hint`/`.fcs-weekday-time-error` paragraph below it links
+  that paragraph via `aria-describedby`**, not just visual proximity - a screen reader
+  announces the label on focus, not sibling text lower in the DOM. Give the hint/error
+  paragraph an `id`, put it on the corresponding input/select/textarea.
 
 ## Frontend checkout
 
@@ -254,15 +301,22 @@ the block-specific pieces (`Frontend\Checkout\Block\*`) that consume them.
   date field above, but needs none of that field's capture/restore machinery: `render()`
   already re-derives `checked` fresh from `$_POST` on every call (see below), so a refreshed
   render is already correct on its own, with nothing to restore.
-- `Frontend\Checkout\Subscribe_And_Save` reads nothing across requests - whether the
-  checkbox is checked is read straight from `$_POST` (`post_data` on an AJAX refresh, the
-  field directly on the final submission) every time it is needed, rather than cached in
-  `WC()->session`. A session flag would have to be reset somewhere on every full page
-  load, and by the time a page-load hook could run, `WC_Cart::calculate_totals()` has
-  already run too - a session-based design either shows a stale discount on first paint,
-  or leaks a stale one onto the cart page after an abandoned checkout. Reading `$_POST`
-  fresh on every use makes a plain page load (no relevant `$_POST` at all) unchecked by
-  construction, with nothing to reset.
+- **`Frontend\Checkout\Subscribe_And_Save` is a mix, not a pure "never cache" design.**
+  The *rendered* checkbox is read straight from `$_POST` every time (`post_data` on an
+  AJAX refresh, the field directly on final submission), never from session - a plain page
+  load has no relevant `$_POST` at all, so `render()` is unchecked by construction, with
+  nothing to reset. But `maybe_apply_discount()` (the fee itself, on
+  `woocommerce_cart_calculate_fees`) falls back to `WC()->session` when the request has no
+  relevant `$_POST` key at all - true of block checkout's own Store API requests, which
+  never carry classic's `post_data`/field shape. Block's `extensionCartUpdate()` call
+  writes the checkbox's live value there (`set_session_checked()`, see "Block checkout"
+  below) so this one shared discount rule can see it without a Store API-specific fee
+  mechanism of its own. What makes the session fallback safe rather than a stale-value
+  leak across visits: `reset_session_on_fresh_visit()`, hooked to `template_redirect`
+  (fires before `WC_Cart::calculate_totals()` runs on that request), clears the flag the
+  moment a customer lands on either checkout page - never fighting a choice already made
+  during the *current* visit, since nothing later in that visit re-fires
+  `template_redirect`.
 - **Both fields' final `validate()`/`persist()` read `$_POST` directly, not the `$data`
   those hooks are also given.** `$data` is `WC_Checkout::get_posted_data()`'s own curated
   array, built strictly from WC's own registered checkout fieldsets (billing, shipping,
@@ -368,12 +422,34 @@ never per-date exclusion, which this field needs for closed weekdays and blackou
   equivalent fix: `Fulfilment_Date_Field::validate()` hooks `woocommerce_after_checkout_
   validation` directly, which always runs for every submission regardless of any
   `required` concept - there is no such gap on that side, confirmed by the same order
-  placement test attempted there instead (correctly blocked, "Please choose a fulfilment
-  date.").
+  placement test attempted there instead (correctly blocked with a validation error naming
+  the configured field label).
 - **`register_field()` also sets `optionalLabel` to the same text as `label`.** Left at
   its default, WooCommerce appends "(optional)" to a non-required field's label - true for
   a destination with no schedule, but misleading everywhere else, since `validate_order()`
   above still rejects the order without a date whenever a schedule does apply.
+- **The registered label is always the delivery-context one, for the same
+  registration-time reason `window_options()` above needs a REST route: nothing is known
+  about the customer's destination yet at `woocommerce_init`.** Once one resolves,
+  `assets/checkout/js/block-fulfilment-date-field.js`'s `updateFieldLabel()` corrects the
+  *rendered* label's text to the pickup wording if that is what they chose - a plain text
+  swap on whatever `<label>` it finds in the field's wrapper, not a re-registration (there
+  is no supported way to re-register a field's `label` after the fact). `validate()`/
+  `validate_order()` never have this problem: both only run once a destination is actually
+  resolvable, so they read the real, resolved label directly from `Settings`.
+- **Resetting a registered field's value must fire a real DOM event, not just set the
+  property.** Both the date `<select>` and the subscribe checkbox are React-controlled
+  components backed by the Checkout block's own additional-fields store - on mount, each
+  script blanks/unchecks the field once (a `hasReset` flag) so a value WooCommerce
+  hydrated from an earlier attempt is never silently kept. Setting `$select.val('')` or
+  `$checkbox.prop('checked', false)` directly only changes the DOM; it never reaches
+  React's own state, which keeps whatever it was hydrated with and submits that instead of
+  what the now-blank field visually shows. Confirmed the hard way for the checkbox first
+  (`block-subscribe-and-save.js`'s `uncheckIfChecked()` uses a real `$checkbox[0].click()`
+  instead), then found to apply identically to the date field once checked
+  (`block-fulfilment-date-field.js` now also dispatches a real bubbling `change` event
+  after `.val('')`). Any future registered field's own reset-on-mount needs the same
+  real-event treatment, not just a property assignment.
 - **`Frontend\Checkout\Block\Concerns\Reads_Persisted_Field`** is a small shared trait,
   not a `Services\` class: reading one of this plugin's own registered fields back off an
   order through `CheckoutFields::get_field_from_object()` is Blocks-integration
@@ -418,6 +494,6 @@ itself. `wpdb->prepare()` is stubbed to interpolate placeholders literally; the 
 these tests is the repository's own logic (hydration, caching, cascades), not
 WordPress's SQL escaping.
 
-Controllers are not unit-tested — they're view/glue code (pull request data, call a
-service, render a template or send a response). Only repositories and services get unit
-tests.
+Controllers are not unit-tested, per
+[`../guidelines/03-testing.md`](../guidelines/03-testing.md#what-not-to-test). Only
+repositories and services in this layer get unit tests.

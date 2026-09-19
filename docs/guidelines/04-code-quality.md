@@ -62,7 +62,10 @@ memory of why.
   the dev tree and then fatals in a release.
 - Constructor injection, always. A class that constructs its own collaborators cannot be
   tested, and this is the most common reason a test needs an awkward fixture.
-- Register services in `plugin/src/Container.php`. No service locators, no statics
+- Register a new service in its namespace's own `Provider.php` (`Admin\Provider`,
+  `Services\Provider`, `Repositories\Provider`, `Frontend\Provider`) —
+  `plugin/src/Container.php` only wires those four providers together, plus a handful of
+  cross-cutting singletons (`wpdb`, `Clock`, `Renderer`). No service locators, no statics
   reaching for globals.
 
 ---

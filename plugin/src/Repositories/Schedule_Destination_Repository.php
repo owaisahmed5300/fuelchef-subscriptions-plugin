@@ -27,11 +27,6 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 	protected static string $table = Tables::SCHEDULE_DESTINATIONS;
 
 	/**
-	 * WordPress object cache group.
-	 */
-	protected static string $cache_group = 'fcs_schedule_destinations';
-
-	/**
 	 * Every destination assigned to a schedule.
 	 *
 	 * @return list<Schedule_Destination> The schedule's destinations.
@@ -40,7 +35,7 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 		$cache_key = $this->by_schedule_cache_key( $schedule_id );
 
 		/** @var list<Schedule_Destination>|false $cached */
-		$cached = wp_cache_get( $cache_key, self::$cache_group );
+		$cached = wp_cache_get( $cache_key, $this->cache_group() );
 
 		if ( is_array( $cached ) ) {
 			return $cached;
@@ -58,7 +53,7 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 
 		$destinations = $this->hydrate_all( $rows );
 
-		wp_cache_set( $cache_key, $destinations, self::$cache_group );
+		wp_cache_set( $cache_key, $destinations, $this->cache_group() );
 
 		return $destinations;
 	}
@@ -78,7 +73,7 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 		$cache_key = $this->by_destination_cache_key( $destination_type, $destination_key );
 
 		/** @var list<Schedule_Destination>|false $cached */
-		$cached = wp_cache_get( $cache_key, self::$cache_group );
+		$cached = wp_cache_get( $cache_key, $this->cache_group() );
 
 		if ( is_array( $cached ) ) {
 			return $cached;
@@ -97,7 +92,7 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 
 		$destinations = $this->hydrate_all( $rows );
 
-		wp_cache_set( $cache_key, $destinations, self::$cache_group );
+		wp_cache_set( $cache_key, $destinations, $this->cache_group() );
 
 		return $destinations;
 	}
@@ -169,18 +164,11 @@ final class Schedule_Destination_Repository extends Abstract_Repository {
 	 * for the destination it is assigned to.
 	 */
 	protected function invalidate_related( Entity $entity ): void {
-		wp_cache_delete( $this->by_schedule_cache_key( $entity->schedule_id() ), self::$cache_group );
+		wp_cache_delete( $this->by_schedule_cache_key( $entity->schedule_id() ), $this->cache_group() );
 		wp_cache_delete(
 			$this->by_destination_cache_key( $entity->destination_type(), $entity->destination_key() ),
-			self::$cache_group
+			$this->cache_group()
 		);
-	}
-
-	/**
-	 * Cache key for a schedule's destination list.
-	 */
-	private function by_schedule_cache_key( int $schedule_id ): string {
-		return 'by_schedule_' . $schedule_id;
 	}
 
 	/**

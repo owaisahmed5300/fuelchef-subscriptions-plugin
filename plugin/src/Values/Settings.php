@@ -48,7 +48,10 @@ final class Settings {
 	 *                                        constants.
 	 * @param int    $max_fulfilment_window_days How many days into the future a customer
 	 *                                           can choose a fulfilment date.
-	 * @param string $fulfilment_date_label Checkout field label for the fulfilment date.
+	 * @param string $delivery_date_label Checkout field label shown once the customer's
+	 *                                    chosen destination resolves to a shipping zone.
+	 * @param string $pickup_date_label Checkout field label shown once the customer's
+	 *                                  chosen destination resolves to a pickup location.
 	 * @param string $fulfilment_date_description Checkout help text for the fulfilment
 	 *                                            date, or an empty string to show none.
 	 * @param string $subscribe_save_label Checkout checkbox label for the subscribe
@@ -79,7 +82,8 @@ final class Settings {
 		private int $subscribe_discount_percent,
 		private string $subscribe_applicability,
 		private int $max_fulfilment_window_days,
-		private string $fulfilment_date_label,
+		private string $delivery_date_label,
+		private string $pickup_date_label,
 		private string $fulfilment_date_description,
 		private string $subscribe_save_label,
 		private string $subscribe_save_description,
@@ -109,13 +113,13 @@ final class Settings {
 
 		if ( $max_fulfilment_window_days < 1 ) {
 			throw new InvalidArgumentException(
-				__( 'Maximum fulfilment window must be at least 1 day.', 'fuelchef-subscriptions' )
+				__( 'Maximum delivery/pickup window must be at least 1 day.', 'fuelchef-subscriptions' )
 			);
 		}
 
 		if ( $max_fulfilment_window_days > self::MAX_FULFILMENT_WINDOW_DAYS ) {
 			throw new InvalidArgumentException(
-				__( 'Maximum fulfilment window is too far in the future.', 'fuelchef-subscriptions' )
+				__( 'Maximum delivery/pickup window is too far in the future.', 'fuelchef-subscriptions' )
 			);
 		}
 
@@ -134,8 +138,8 @@ final class Settings {
 	}
 
 	/**
-	 * Rejects a blank or over-length fulfilment date or subscribe-discount label, or an
-	 * over-length description. A description may be blank - that means the store shows
+	 * Rejects a blank or over-length delivery/pickup date or subscribe-discount label, or
+	 * an over-length description. A description may be blank - that means the store shows
 	 * none.
 	 *
 	 * Every message below is `__()`, not `esc_html__()`: a controller catches the
@@ -144,16 +148,24 @@ final class Settings {
 	 * full reasoning.
 	 */
 	private function validate_checkout_copy(): void {
-		if ( '' === trim( $this->fulfilment_date_label ) ) {
-			throw new InvalidArgumentException( __( 'Fulfilment date label cannot be blank.', 'fuelchef-subscriptions' ) );
+		if ( '' === trim( $this->delivery_date_label ) ) {
+			throw new InvalidArgumentException( __( 'Delivery date label cannot be blank.', 'fuelchef-subscriptions' ) );
 		}
 
-		if ( strlen( $this->fulfilment_date_label ) > self::MAX_LABEL_LENGTH ) {
-			throw new InvalidArgumentException( __( 'Fulfilment date label is too long.', 'fuelchef-subscriptions' ) );
+		if ( strlen( $this->delivery_date_label ) > self::MAX_LABEL_LENGTH ) {
+			throw new InvalidArgumentException( __( 'Delivery date label is too long.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( '' === trim( $this->pickup_date_label ) ) {
+			throw new InvalidArgumentException( __( 'Pickup date label cannot be blank.', 'fuelchef-subscriptions' ) );
+		}
+
+		if ( strlen( $this->pickup_date_label ) > self::MAX_LABEL_LENGTH ) {
+			throw new InvalidArgumentException( __( 'Pickup date label is too long.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( strlen( $this->fulfilment_date_description ) > self::MAX_DESCRIPTION_LENGTH ) {
-			throw new InvalidArgumentException( __( 'Fulfilment date description is too long.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Delivery/pickup date description is too long.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( '' === trim( $this->subscribe_save_label ) ) {
@@ -183,7 +195,7 @@ final class Settings {
 		}
 
 		if ( strlen( $this->fulfilment_window_message ) > self::MAX_DESCRIPTION_LENGTH ) {
-			throw new InvalidArgumentException( __( 'Fulfilment window message is too long.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Delivery/pickup window message is too long.', 'fuelchef-subscriptions' ) );
 		}
 	}
 
@@ -224,10 +236,34 @@ final class Settings {
 	}
 
 	/**
-	 * Checkout field label for the fulfilment date.
+	 * Checkout field label shown once the customer's chosen destination resolves to a
+	 * shipping zone.
 	 */
-	public function fulfilment_date_label(): string {
-		return $this->fulfilment_date_label;
+	public function delivery_date_label(): string {
+		return $this->delivery_date_label;
+	}
+
+	/**
+	 * Checkout field label shown once the customer's chosen destination resolves to a
+	 * pickup location.
+	 */
+	public function pickup_date_label(): string {
+		return $this->pickup_date_label;
+	}
+
+	/**
+	 * The field label appropriate for the customer's current destination - the pickup
+	 * label when it resolves to a pickup location, the delivery label otherwise (a
+	 * shipping zone, or no destination chosen yet, which defaults to delivery wording
+	 * since that is the more common case).
+	 *
+	 * @param string|null $destination_type One of the `Destination_Type` constants, or
+	 *                                      null when no destination is chosen yet.
+	 */
+	public function date_label_resolved( ?string $destination_type ): string {
+		return Destination_Type::PICKUP_LOCATION === $destination_type
+			? $this->pickup_date_label
+			: $this->delivery_date_label;
 	}
 
 	/**
@@ -350,7 +386,7 @@ final class Settings {
 	public function fulfilment_window_message_resolved( string $start, string $end ): string {
 		$message = '' !== $this->fulfilment_window_message
 			? $this->fulfilment_window_message
-			: __( 'Fulfilment available between {start} and {end}.', 'fuelchef-subscriptions' );
+			: __( 'Available between {start} and {end}.', 'fuelchef-subscriptions' );
 
 		return str_replace( [ '{start}', '{end}' ], [ $start, $end ], $message );
 	}

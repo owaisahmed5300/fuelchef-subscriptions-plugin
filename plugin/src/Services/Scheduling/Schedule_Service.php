@@ -9,6 +9,7 @@ namespace FuelChef\Subscriptions\Services\Scheduling;
 
 use FuelChef\Subscriptions\Database\Transaction_Manager;
 use FuelChef\Subscriptions\Entities\Schedule;
+use FuelChef\Subscriptions\Entities\Schedule_Destination;
 use FuelChef\Subscriptions\Entities\Schedule_Weekday;
 use FuelChef\Subscriptions\Repositories\Blackout_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
@@ -46,6 +47,7 @@ final class Schedule_Service {
 		private Schedule_Weekday_Repository $weekdays,
 		private Blackout_Repository $blackouts,
 		private Schedule_Destination_Repository $destinations,
+		private Destination_Catalog_Service $destination_catalog,
 		private Transaction_Manager $transactions
 	) {
 	}
@@ -116,38 +118,6 @@ final class Schedule_Service {
 	}
 
 	/**
-	 * Updates every weekday row passed in, as one atomic change - the admin screen batches
-	 * every pending weekday edit behind its own "Save Schedule" button rather than saving
-	 * each toggle or time change individually, so this either applies the whole batch or
-	 * rejects it and leaves every row exactly as it was.
-	 *
-	 * @param int                                                                                $schedule_id The schedule every row belongs to.
-	 * @param list<array{day_of_week: int, enabled: bool, start_time: string, end_time: string}> $rows The weekdays to update.
-	 *
-	 * @throws Validation_Exception When any row's times are invalid or out of order, or the
-	 *                               schedule has no row for one of the given days - nothing
-	 *                               in the batch is saved when this is thrown.
-	 *
-	 * @return list<Schedule_Weekday> The updated weekdays, in the order they were given.
-	 */
-	public function update_weekdays( int $schedule_id, array $rows ): array {
-		return $this->transactions->run(
-			function () use ( $schedule_id, $rows ): array {
-				return array_map(
-					fn ( array $row ): Schedule_Weekday => $this->update_weekday(
-						$schedule_id,
-						$row['day_of_week'],
-						$row['enabled'],
-						$row['start_time'],
-						$row['end_time']
-					),
-					$rows
-				);
-			}
-		);
-	}
-
-	/**
 	 * Copies one weekday's enabled state, start time and end time onto every day below it
 	 * in the site's configured week order.
 	 *
@@ -176,6 +146,72 @@ final class Schedule_Service {
 		}
 
 		return $updated;
+	}
+
+	/**
+	 * Replaces every destination assigned to a schedule, rejecting the whole batch when any
+	 * of them is already assigned to a different schedule. An entry the catalog no longer
+	 * recognises (a zone or pickup location since deleted in WooCommerce) is silently
+	 * dropped rather than failing the save.
+	 *
+	 * @param int                                    $schedule_id The schedule to assign destinations to.
+	 * @param list<array{type: string, key: string}> $destinations Destinations to assign.
+	 *
+	 * @throws Validation_Exception When any destination is already assigned to a different
+	 *                               schedule - nothing is saved when this is thrown.
+	 *
+	 * @return list<Schedule_Destination> The schedule's destinations after saving.
+	 */
+	public function assign_destinations( int $schedule_id, array $destinations ): array {
+		$resolved  = [];
+		$conflicts = [];
+
+		foreach ( $destinations as $destination ) {
+			$option = $this->destination_catalog->find( $destination['type'], $destination['key'] );
+
+			if ( null === $option ) {
+				continue;
+			}
+
+			$owner = $this->destination_owner( $destination['type'], $destination['key'], $schedule_id );
+
+			if ( null !== $owner ) {
+				$conflicts[] = [
+					'label'         => $option->label(),
+					'schedule_name' => $owner->name(),
+				];
+
+				continue;
+			}
+
+			$resolved[] = new Schedule_Destination( $schedule_id, $destination['type'], $destination['key'] );
+		}
+
+		if ( [] !== $conflicts ) {
+			throw Validation_Exception::for_destinations_already_assigned( $conflicts );
+		}
+
+		return $this->transactions->run(
+			function () use ( $schedule_id, $resolved ): array {
+				$this->destinations->replace_for_schedule( $schedule_id, $resolved );
+
+				return $this->destinations->find_by_schedule( $schedule_id );
+			}
+		);
+	}
+
+	/**
+	 * The schedule already assigned to a destination, other than the one given - null when
+	 * none is.
+	 */
+	public function destination_owner( string $destination_type, string $destination_key, int $excluding_schedule_id ): ?Schedule {
+		foreach ( $this->destinations->find_by_destination( $destination_type, $destination_key ) as $assignment ) {
+			if ( $assignment->schedule_id() !== $excluding_schedule_id ) {
+				return $this->schedules->find( $assignment->schedule_id() );
+			}
+		}
+
+		return null;
 	}
 
 	/**
