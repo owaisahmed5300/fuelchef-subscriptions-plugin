@@ -148,16 +148,37 @@ defined( 'ABSPATH' ) || exit;
 						</div>
 
 						<div class="fcs-field">
-							<label for="fulfilmentDateLabel">
-								<?php esc_html_e( 'Field label', 'fuelchef-subscriptions' ); ?>
+							<label for="deliveryDateLabel">
+								<?php esc_html_e( 'Field label (delivery)', 'fuelchef-subscriptions' ); ?>
 							</label>
 							<input
 								class="fcs-input"
-								id="fulfilmentDateLabel"
+								id="deliveryDateLabel"
 								type="text"
 								maxlength="190"
-								value="<?php echo esc_attr( $settings->fulfilment_date_label() ); ?>"
+								value="<?php echo esc_attr( $settings->delivery_date_label() ); ?>"
+								aria-describedby="deliveryDateLabelHint"
 							>
+							<p class="fcs-field__hint" id="deliveryDateLabelHint">
+								<?php esc_html_e( 'Shown once the customer\'s address resolves to a shipping zone.', 'fuelchef-subscriptions' ); ?>
+							</p>
+						</div>
+
+						<div class="fcs-field">
+							<label for="pickupDateLabel">
+								<?php esc_html_e( 'Field label (pickup)', 'fuelchef-subscriptions' ); ?>
+							</label>
+							<input
+								class="fcs-input"
+								id="pickupDateLabel"
+								type="text"
+								maxlength="190"
+								value="<?php echo esc_attr( $settings->pickup_date_label() ); ?>"
+								aria-describedby="pickupDateLabelHint"
+							>
+							<p class="fcs-field__hint" id="pickupDateLabelHint">
+								<?php esc_html_e( 'Shown once the customer chooses a pickup location.', 'fuelchef-subscriptions' ); ?>
+							</p>
 						</div>
 
 						<div class="fcs-field">

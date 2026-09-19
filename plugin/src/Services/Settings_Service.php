@@ -51,7 +51,8 @@ final class Settings_Service {
 			subscribe_discount_percent: $this->discount_percent( $this->raw( $stored, 'subscribe_discount_percent' ) ),
 			subscribe_applicability: $this->applicability( $this->raw( $stored, 'subscribe_applicability' ) ),
 			max_fulfilment_window_days: $this->max_fulfilment_window_days( $this->raw( $stored, 'max_fulfilment_window_days' ) ),
-			fulfilment_date_label: $this->label( $this->raw( $stored, 'fulfilment_date_label' ), $this->default_fulfilment_date_label() ),
+			delivery_date_label: $this->label( $this->raw( $stored, 'delivery_date_label' ), $this->default_delivery_date_label() ),
+			pickup_date_label: $this->label( $this->raw( $stored, 'pickup_date_label' ), $this->default_pickup_date_label() ),
 			fulfilment_date_description: $this->description( $this->raw( $stored, 'fulfilment_date_description' ) ),
 			subscribe_save_label: $this->label( $this->raw( $stored, 'subscribe_save_label' ), $this->default_subscribe_save_label() ),
 			subscribe_save_description: $this->description( $this->raw( $stored, 'subscribe_save_description' ) ),
@@ -84,7 +85,8 @@ final class Settings_Service {
 				'subscribe_discount_percent'  => $settings->subscribe_discount_percent(),
 				'subscribe_applicability'     => $settings->subscribe_applicability(),
 				'max_fulfilment_window_days'  => $settings->max_fulfilment_window_days(),
-				'fulfilment_date_label'       => $settings->fulfilment_date_label(),
+				'delivery_date_label'         => $settings->delivery_date_label(),
+				'pickup_date_label'           => $settings->pickup_date_label(),
 				'fulfilment_date_description' => $settings->fulfilment_date_description(),
 				'subscribe_save_label'        => $settings->subscribe_save_label(),
 				'subscribe_save_description'  => $settings->subscribe_save_description(),
@@ -105,8 +107,9 @@ final class Settings_Service {
 	}
 
 	/**
-	 * The default fulfilment date checkout field label, translated once here rather than
-	 * hardcoded in `Settings`, which has no access to WordPress i18n context at call time.
+	 * The default checkout field label shown when the destination resolves to a shipping
+	 * zone, translated once here rather than hardcoded in `Settings`, which has no access
+	 * to WordPress i18n context at call time.
 	 *
 	 * Deliberately `__()`, not `esc_html__()`: classic checkout renders a label through
 	 * `woocommerce_form_field()`'s own `wp_kses_post()`, and block checkout renders it as
@@ -115,13 +118,22 @@ final class Settings_Service {
 	 * of the character it represents. The store's own customised label, read via
 	 * `label()` below, is raw for the same reason.
 	 */
-	private function default_fulfilment_date_label(): string {
-		return __( 'Delivery/pickup date', 'fuelchef-subscriptions' );
+	private function default_delivery_date_label(): string {
+		return __( 'Delivery date', 'fuelchef-subscriptions' );
+	}
+
+	/**
+	 * The default checkout field label shown when the destination resolves to a pickup
+	 * location. See {@see self::default_delivery_date_label()} for why this is `__()`, not
+	 * `esc_html__()`.
+	 */
+	private function default_pickup_date_label(): string {
+		return __( 'Pickup date', 'fuelchef-subscriptions' );
 	}
 
 	/**
 	 * The default subscribe-discount checkbox label. See
-	 * {@see self::default_fulfilment_date_label()} for why this is `__()`, not
+	 * {@see self::default_delivery_date_label()} for why this is `__()`, not
 	 * `esc_html__()`.
 	 */
 	private function default_subscribe_save_label(): string {

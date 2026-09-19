@@ -9,6 +9,7 @@ namespace FuelChef\Subscriptions\Tests\Unit\Values;
 
 use Brain\Monkey\Functions;
 use FuelChef\Subscriptions\Tests\TestCase;
+use FuelChef\Subscriptions\Values\Destination_Type;
 use FuelChef\Subscriptions\Values\Settings;
 use FuelChef\Subscriptions\Values\Subscribe_Applicability;
 use InvalidArgumentException;
@@ -32,10 +33,10 @@ final class Settings_Test extends TestCase {
 	 * PHP 8.0 (this plugin's floor) cannot combine argument unpacking with named
 	 * arguments in the same call.
 	 *
-	 * @return array{0: int, 1: string, 2: int, 3: string, 4: int, 5: string, 6: string, 7: string, 8: string, 9: float, 10: int, 11: string, 12: string}
+	 * @return array{0: int, 1: string, 2: int, 3: string, 4: int, 5: string, 6: string, 7: string, 8: string, 9: string, 10: float, 11: int, 12: string, 13: string}
 	 */
 	private function valid_args(): array {
-		return [ 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS, 60, 'Fulfilment date', '', 'Subscribe & Save {percent}%', '', 0.0, 0, '', '' ];
+		return [ 1, '17:00:00', 5, Subscribe_Applicability::INITIAL_AND_RENEWALS, 60, 'Delivery date', 'Pickup date', '', 'Subscribe & Save {percent}%', '', 0.0, 0, '', '' ];
 	}
 
 	public function test_accepts_valid_values(): void {
@@ -46,7 +47,8 @@ final class Settings_Test extends TestCase {
 		$this->assertSame( 5, $settings->subscribe_discount_percent() );
 		$this->assertSame( Subscribe_Applicability::INITIAL_AND_RENEWALS, $settings->subscribe_applicability() );
 		$this->assertSame( 60, $settings->max_fulfilment_window_days() );
-		$this->assertSame( 'Fulfilment date', $settings->fulfilment_date_label() );
+		$this->assertSame( 'Delivery date', $settings->delivery_date_label() );
+		$this->assertSame( 'Pickup date', $settings->pickup_date_label() );
 		$this->assertSame( '', $settings->fulfilment_date_description() );
 		$this->assertSame( 'Subscribe & Save {percent}%', $settings->subscribe_save_label() );
 		$this->assertSame( '', $settings->subscribe_save_description() );
@@ -58,10 +60,10 @@ final class Settings_Test extends TestCase {
 
 	public function test_accepts_custom_eligibility_values(): void {
 		$args     = $this->valid_args();
-		$args[9]  = 50.0;
-		$args[10] = 3;
-		$args[11] = 'Add more to unlock this.';
-		$args[12] = 'Log in to unlock this.';
+		$args[10] = 50.0;
+		$args[11] = 3;
+		$args[12] = 'Add more to unlock this.';
+		$args[13] = 'Log in to unlock this.';
 
 		$settings = new Settings( ...$args );
 
@@ -79,7 +81,7 @@ final class Settings_Test extends TestCase {
 
 	public function test_ineligible_message_resolved_returns_the_custom_message_when_set(): void {
 		$args     = $this->valid_args();
-		$args[11] = 'Add more to unlock this.';
+		$args[12] = 'Add more to unlock this.';
 
 		$settings = new Settings( ...$args );
 
@@ -94,7 +96,7 @@ final class Settings_Test extends TestCase {
 
 	public function test_logged_out_message_resolved_returns_the_custom_message_when_set(): void {
 		$args     = $this->valid_args();
-		$args[12] = 'Log in to unlock this.';
+		$args[13] = 'Log in to unlock this.';
 
 		$settings = new Settings( ...$args );
 
@@ -103,7 +105,7 @@ final class Settings_Test extends TestCase {
 
 	public function test_rejects_a_logged_out_message_over_the_length_limit(): void {
 		$args     = $this->valid_args();
-		$args[12] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
+		$args[13] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
 
 		$this->expectException( InvalidArgumentException::class );
 
@@ -111,8 +113,8 @@ final class Settings_Test extends TestCase {
 	}
 
 	public function test_rejects_a_negative_minimum_order_amount(): void {
-		$args    = $this->valid_args();
-		$args[9] = -0.01;
+		$args     = $this->valid_args();
+		$args[10] = -0.01;
 
 		$this->expectException( InvalidArgumentException::class );
 
@@ -121,7 +123,7 @@ final class Settings_Test extends TestCase {
 
 	public function test_rejects_a_negative_minimum_cart_quantity(): void {
 		$args     = $this->valid_args();
-		$args[10] = -1;
+		$args[11] = -1;
 
 		$this->expectException( InvalidArgumentException::class );
 
@@ -130,7 +132,7 @@ final class Settings_Test extends TestCase {
 
 	public function test_rejects_an_ineligible_message_over_the_length_limit(): void {
 		$args     = $this->valid_args();
-		$args[11] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
+		$args[12] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
 
 		$this->expectException( InvalidArgumentException::class );
 
@@ -140,7 +142,7 @@ final class Settings_Test extends TestCase {
 	public function test_subscribe_save_label_resolved_replaces_the_percent_placeholder(): void {
 		$args    = $this->valid_args();
 		$args[2] = 12;
-		$args[7] = 'Subscribe & Save {percent}% today';
+		$args[8] = 'Subscribe & Save {percent}% today';
 
 		$settings = new Settings( ...$args );
 
@@ -150,7 +152,7 @@ final class Settings_Test extends TestCase {
 	public function test_subscribe_save_description_resolved_replaces_the_percent_placeholder(): void {
 		$args    = $this->valid_args();
 		$args[2] = 12;
-		$args[8] = 'Save {percent}% on this order and every renewal.';
+		$args[9] = 'Save {percent}% on this order and every renewal.';
 
 		$settings = new Settings( ...$args );
 
@@ -253,7 +255,7 @@ final class Settings_Test extends TestCase {
 		$this->assertSame( Settings::MAX_FULFILMENT_WINDOW_DAYS, $settings->max_fulfilment_window_days() );
 	}
 
-	public function test_rejects_a_blank_fulfilment_date_label(): void {
+	public function test_rejects_a_blank_delivery_date_label(): void {
 		$args    = $this->valid_args();
 		$args[5] = '   ';
 
@@ -262,7 +264,7 @@ final class Settings_Test extends TestCase {
 		new Settings( ...$args );
 	}
 
-	public function test_rejects_a_fulfilment_date_label_over_the_length_limit(): void {
+	public function test_rejects_a_delivery_date_label_over_the_length_limit(): void {
 		$args    = $this->valid_args();
 		$args[5] = str_repeat( 'a', Settings::MAX_LABEL_LENGTH + 1 );
 
@@ -271,9 +273,27 @@ final class Settings_Test extends TestCase {
 		new Settings( ...$args );
 	}
 
+	public function test_rejects_a_blank_pickup_date_label(): void {
+		$args    = $this->valid_args();
+		$args[6] = '   ';
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
+	public function test_rejects_a_pickup_date_label_over_the_length_limit(): void {
+		$args    = $this->valid_args();
+		$args[6] = str_repeat( 'a', Settings::MAX_LABEL_LENGTH + 1 );
+
+		$this->expectException( InvalidArgumentException::class );
+
+		new Settings( ...$args );
+	}
+
 	public function test_rejects_a_fulfilment_date_description_over_the_length_limit(): void {
 		$args    = $this->valid_args();
-		$args[6] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
+		$args[7] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
 
 		$this->expectException( InvalidArgumentException::class );
 
@@ -282,7 +302,7 @@ final class Settings_Test extends TestCase {
 
 	public function test_rejects_a_blank_subscribe_save_label(): void {
 		$args    = $this->valid_args();
-		$args[7] = '';
+		$args[8] = '';
 
 		$this->expectException( InvalidArgumentException::class );
 
@@ -291,7 +311,7 @@ final class Settings_Test extends TestCase {
 
 	public function test_rejects_a_subscribe_save_description_over_the_length_limit(): void {
 		$args    = $this->valid_args();
-		$args[8] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
+		$args[9] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH + 1 );
 
 		$this->expectException( InvalidArgumentException::class );
 
@@ -300,10 +320,28 @@ final class Settings_Test extends TestCase {
 
 	public function test_accepts_an_empty_description_at_exactly_the_length_limit(): void {
 		$args    = $this->valid_args();
-		$args[6] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH );
+		$args[7] = str_repeat( 'a', Settings::MAX_DESCRIPTION_LENGTH );
 
 		$settings = new Settings( ...$args );
 
-		$this->assertSame( $args[6], $settings->fulfilment_date_description() );
+		$this->assertSame( $args[7], $settings->fulfilment_date_description() );
+	}
+
+	public function test_date_label_resolved_returns_the_pickup_label_for_a_pickup_location(): void {
+		$settings = new Settings( ...$this->valid_args() );
+
+		$this->assertSame( 'Pickup date', $settings->date_label_resolved( Destination_Type::PICKUP_LOCATION ) );
+	}
+
+	public function test_date_label_resolved_returns_the_delivery_label_for_a_shipping_zone(): void {
+		$settings = new Settings( ...$this->valid_args() );
+
+		$this->assertSame( 'Delivery date', $settings->date_label_resolved( Destination_Type::SHIPPING_ZONE ) );
+	}
+
+	public function test_date_label_resolved_returns_the_delivery_label_when_nothing_is_chosen_yet(): void {
+		$settings = new Settings( ...$this->valid_args() );
+
+		$this->assertSame( 'Delivery date', $settings->date_label_resolved( null ) );
 	}
 }
