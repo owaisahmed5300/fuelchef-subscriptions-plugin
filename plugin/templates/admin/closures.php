@@ -118,7 +118,7 @@ defined( 'ABSPATH' ) || exit;
 				</button>
 			</div>
 			<label class="fcs-popover__label">
-				<?php esc_html_e( 'Closure note (optional)', 'fuelchef-subscriptions' ); ?>
+				<?php esc_html_e( 'Closure reason (optional)', 'fuelchef-subscriptions' ); ?>
 			</label>
 			<textarea
 				class="fcs-textarea"
