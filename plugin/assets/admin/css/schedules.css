@@ -45,9 +45,17 @@
 }
 .fcs-admin .fcs-schedule-nav__title { font-size: 13px; font-weight: 600; line-height: 1.35; }
 .fcs-admin .fcs-schedule-nav__meta { margin-top: 2px; color: var(--fcs-color-text-secondary); font-size: 11px; }
-.fcs-admin .fcs-schedule-nav__chev { flex: 0 0 auto; color: var(--fcs-color-text-tertiary); }
+.fcs-admin .fcs-schedule-nav__chev { flex: 0 0 auto; color: var(--fcs-color-text-tertiary); transition: opacity .1s ease; }
 .fcs-admin .fcs-schedule-nav__link:hover .fcs-schedule-nav__chev,
 .fcs-admin .fcs-schedule-nav__link--active .fcs-schedule-nav__chev { color: var(--fcs-color-primary); }
+/* The three-dots menu button occupies this same slot (see its negative margin below) once
+   shown, so the chevron must hide under the same conditions or the two visibly collide. */
+.fcs-admin .fcs-schedule-nav__item:hover .fcs-schedule-nav__chev,
+.fcs-admin .fcs-schedule-nav__item:focus-within .fcs-schedule-nav__chev,
+.fcs-admin .fcs-schedule-nav__link--active .fcs-schedule-nav__chev,
+.fcs-admin .fcs-schedule-nav__item:has(.fcs-schedule-nav__more[aria-expanded="true"]) .fcs-schedule-nav__chev {
+  opacity: 0;
+}
 .fcs-admin .fcs-sidebar-action { width: 100%; margin-top: 12px; }
 
 .fcs-admin .fcs-schedule-nav__item { position: relative; display: flex; align-items: stretch; }
@@ -66,9 +74,11 @@
   background: transparent;
   color: var(--fcs-color-text-tertiary);
   cursor: pointer;
+  transition: opacity .1s ease;
 }
 .fcs-admin .fcs-schedule-nav__item:hover .fcs-schedule-nav__more,
 .fcs-admin .fcs-schedule-nav__item:focus-within .fcs-schedule-nav__more,
+.fcs-admin .fcs-schedule-nav__link--active ~ .fcs-schedule-nav__menu-wrap .fcs-schedule-nav__more,
 .fcs-admin .fcs-schedule-nav__more[aria-expanded="true"] { opacity: 1; }
 .fcs-admin .fcs-schedule-nav__more:hover { background: #f6f7f7; color: var(--fcs-color-text); }
 .fcs-admin .fcs-schedule-nav__more:focus-visible { outline: none; box-shadow: var(--fcs-focus); }
