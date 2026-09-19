@@ -31,7 +31,7 @@ now costs less than a day of the wrong thing. See
 
 ```sh
 git checkout main && git pull --ff-only
-git checkout -b feat/m05-recurring-engine
+git checkout -b feat/destination-overlap-prevention
 ```
 
 Naming and the rest of the rules: [02-version-control.md](02-version-control.md).
