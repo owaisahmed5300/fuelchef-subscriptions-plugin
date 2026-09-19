@@ -47,10 +47,15 @@ $base_url = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
 						<ul class="fcs-schedule-nav">
 							<?php
 							foreach ( $schedules as $schedule ) :
-								$destination_count = $destination_counts[ (int) $schedule->id() ] ?? 0;
-								$is_active         = null !== $selected && $selected->id() === $schedule->id();
+								$destination_count  = $destination_counts[ (int) $schedule->id() ] ?? 0;
+								$is_active          = null !== $selected && $selected->id() === $schedule->id();
+								$more_actions_label = sprintf(
+									/* translators: %s: schedule name. */
+									__( 'More actions for %s', 'fuelchef-subscriptions' ),
+									$schedule->name()
+								);
 								?>
-								<li>
+								<li class="fcs-schedule-nav__item">
 									<a
 										class="fcs-schedule-nav__link<?php echo $is_active ? ' fcs-schedule-nav__link--active' : ''; ?>"
 										href="<?php echo esc_url( $base_url . '&schedule_id=' . $schedule->id() ); ?>"
@@ -83,6 +88,32 @@ $base_url = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
 													stroke-linecap="round" stroke-linejoin="round"/>
 										</svg>
 									</a>
+									<div class="fcs-schedule-nav__menu-wrap">
+										<button
+											type="button"
+											class="fcs-schedule-nav__more"
+											aria-haspopup="true"
+											aria-expanded="false"
+											aria-label="<?php echo esc_attr( $more_actions_label ); ?>"
+										>
+											<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+												<circle cx="8" cy="3.2" r="1.3" fill="currentColor"/>
+												<circle cx="8" cy="8" r="1.3" fill="currentColor"/>
+												<circle cx="8" cy="12.8" r="1.3" fill="currentColor"/>
+											</svg>
+										</button>
+										<div class="fcs-schedule-nav__menu" role="menu">
+											<button
+												type="button"
+												class="fcs-schedule-nav__menu-item fcs-schedule-nav__menu-item--danger"
+												role="menuitem"
+												data-action="delete-schedule"
+												data-schedule-id="<?php echo esc_attr( (string) $schedule->id() ); ?>"
+											>
+												<?php esc_html_e( 'Delete', 'fuelchef-subscriptions' ); ?>
+											</button>
+										</div>
+									</div>
 								</li>
 								<?php
 							endforeach;
@@ -123,6 +154,12 @@ $base_url = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
 							placeholder="<?php echo esc_attr( $schedule_name_placeholder ); ?>"
 							aria-label="<?php echo esc_attr( $schedule_name_placeholder ); ?>"
 						>
+						<button type="button" class="fcs-btn fcs-btn--danger" id="deleteScheduleBtn">
+							<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+								<path d="M2.5 3.5h9M5.5 3.5v-1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1m-5.5 0 .5 8.2a1 1 0 0 0 1 .8h4a1 1 0 0 0 1-.8l.5-8.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+							<?php esc_html_e( 'Delete Schedule', 'fuelchef-subscriptions' ); ?>
+						</button>
 					</div>
 
 					<nav class="fcs-nav-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Schedule Tabs', 'fuelchef-subscriptions' ); ?>">
@@ -242,21 +279,6 @@ $base_url = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
 							</div>
 						</div>
 					</section>
-
-					<div class="fcs-submit-bar">
-						<div class="fcs-submit-bar__actions">
-							<button type="button" class="fcs-btn fcs-btn--primary" id="saveScheduleBtn">
-								<?php esc_html_e( 'Save Schedule', 'fuelchef-subscriptions' ); ?>
-							</button>
-							<button type="button" class="fcs-btn fcs-btn--danger" id="deleteScheduleBtn">
-								<?php esc_html_e( 'Delete Schedule', 'fuelchef-subscriptions' ); ?>
-							</button>
-						</div>
-						<span class="fcs-save-status fcs-save-status--saved" id="fcsSaveStatus">
-					&#10003;
-					<?php esc_html_e( 'All changes saved', 'fuelchef-subscriptions' ); ?>
-				</span>
-					</div>
 					<?php
 				endif;
 				?>
@@ -294,7 +316,7 @@ $base_url = admin_url( 'admin.php?page=' . Menu::SCHEDULES_SLUG );
 						<?php esc_html_e( 'Delete this schedule?', 'fuelchef-subscriptions' ); ?>
 					</h3>
 					<p class="fcs-modal__body">
-						<?php esc_html_e( 'Its weekdays, local closure dates and destination assignments are removed with it. This cannot be undone.', 'fuelchef-subscriptions' ); ?>
+						<?php esc_html_e( 'This cannot be undone.', 'fuelchef-subscriptions' ); ?>
 					</p>
 					<div class="fcs-modal__actions">
 						<button type="button" class="fcs-btn" id="cancelDeleteBtn">

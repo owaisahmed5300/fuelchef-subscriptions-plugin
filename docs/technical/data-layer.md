@@ -26,10 +26,11 @@ business logic.
    (`use Entities\Concerns\Has_Timestamps`) if it has `date_created`/`date_updated` columns,
    which every table here does so far.
 3. Add a repository under `Repositories\` extending
-   `Repositories\Abstract_Repository<TheEntity>`. It supplies `$table`,
-   `$cache_group`, `hydrate()` and `dehydrate()`; `find()`/`insert()`/`update()`/
-   `delete()` come from the base, and fire the actions described in "Hooks" below with no
-   extra work. Register it in `Repositories\Provider`.
+   `Repositories\Abstract_Repository<TheEntity>`. It supplies `$table`, `hydrate()` and
+   `dehydrate()` - the cache group is `cache_group()`'s own `fcs_` plus `$table`, so it
+   never needs declaring separately; `find()`/`insert()`/`update()`/`delete()` come from
+   the base, and fire the actions described in "Hooks" below with no extra work. Register
+   it in `Repositories\Provider`.
 4. Any query beyond `find()` (e.g. `find_by_schedule()`) is the concrete repository's own
    method, caching its own key and clearing it in an `invalidate_related()` override. A
    query whose parameters vary too widely to cache usefully (e.g. a date range) skips
@@ -169,7 +170,7 @@ asset registration around it.
 - A controller's own ajax actions are registered in its `register()` method, called from
   `Admin\Provider::boot()` - not gated to when its own screen is being viewed, since an
   ajax request to `admin-ajax.php` carries no "current screen". Two screens sharing one
-  underlying resource (the Schedules screen's local blackouts and the Settings screen's
+  underlying resource (the Schedules screen's local blackouts and the Closures screen's
   store-wide ones) share one registered action rather than each registering the same
   `wp_ajax_*` hook, which would run both callbacks on every request.
 
@@ -368,8 +369,8 @@ never per-date exclusion, which this field needs for closed weekdays and blackou
   equivalent fix: `Fulfilment_Date_Field::validate()` hooks `woocommerce_after_checkout_
   validation` directly, which always runs for every submission regardless of any
   `required` concept - there is no such gap on that side, confirmed by the same order
-  placement test attempted there instead (correctly blocked, "Please choose a fulfilment
-  date.").
+  placement test attempted there instead (correctly blocked with a validation error naming
+  the configured field label).
 - **`register_field()` also sets `optionalLabel` to the same text as `label`.** Left at
   its default, WooCommerce appends "(optional)" to a non-required field's label - true for
   a destination with no schedule, but misleading everywhere else, since `validate_order()`
@@ -418,6 +419,6 @@ itself. `wpdb->prepare()` is stubbed to interpolate placeholders literally; the 
 these tests is the repository's own logic (hydration, caching, cascades), not
 WordPress's SQL escaping.
 
-Controllers are not unit-tested — they're view/glue code (pull request data, call a
-service, render a template or send a response). Only repositories and services get unit
-tests.
+Controllers are not unit-tested, per
+[`../guidelines/03-testing.md`](../guidelines/03-testing.md#what-not-to-test). Only
+repositories and services in this layer get unit tests.
