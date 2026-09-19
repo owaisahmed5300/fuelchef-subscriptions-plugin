@@ -126,7 +126,7 @@ final class Settings_Service {
 	 */
 	private function default_subscribe_save_label(): string {
 		/* translators: {percent} is replaced with the discount percentage at render time, not a PHP placeholder. */
-		return __( 'Subscribe for {percent}% off weekly delivery', 'fuelchef-subscriptions' );
+		return __( 'Subscribe for {percent}% off every order', 'fuelchef-subscriptions' );
 	}
 
 	/**
