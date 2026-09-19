@@ -27,11 +27,6 @@ final class Blackout_Repository extends Abstract_Repository {
 	protected static string $table = Tables::BLACKOUTS;
 
 	/**
-	 * WordPress object cache group.
-	 */
-	protected static string $cache_group = 'fcs_blackouts';
-
-	/**
 	 * Every blackout for a schedule, or every store-wide one when null,
 	 * ordered by date.
 	 *
@@ -41,7 +36,7 @@ final class Blackout_Repository extends Abstract_Repository {
 		$cache_key = $this->by_schedule_cache_key( $schedule_id );
 
 		/** @var list<Blackout>|false $cached */
-		$cached = wp_cache_get( $cache_key, self::$cache_group );
+		$cached = wp_cache_get( $cache_key, $this->cache_group() );
 
 		if ( is_array( $cached ) ) {
 			return $cached;
@@ -70,7 +65,7 @@ final class Blackout_Repository extends Abstract_Repository {
 
 		$blackouts = $this->hydrate_all( $rows );
 
-		wp_cache_set( $cache_key, $blackouts, self::$cache_group );
+		wp_cache_set( $cache_key, $blackouts, $this->cache_group() );
 
 		return $blackouts;
 	}
@@ -204,13 +199,6 @@ final class Blackout_Repository extends Abstract_Repository {
 	 * store-wide list, when it is a global blackout).
 	 */
 	protected function invalidate_related( Entity $entity ): void {
-		wp_cache_delete( $this->by_schedule_cache_key( $entity->schedule_id() ), self::$cache_group );
-	}
-
-	/**
-	 * Cache key for a schedule's blackout list, or the store-wide one.
-	 */
-	private function by_schedule_cache_key( ?int $schedule_id ): string {
-		return 'by_schedule_' . ( null === $schedule_id ? 'global' : (string) $schedule_id );
+		wp_cache_delete( $this->by_schedule_cache_key( $entity->schedule_id() ), $this->cache_group() );
 	}
 }

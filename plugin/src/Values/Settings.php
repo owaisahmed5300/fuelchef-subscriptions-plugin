@@ -350,7 +350,7 @@ final class Settings {
 	public function fulfilment_window_message_resolved( string $start, string $end ): string {
 		$message = '' !== $this->fulfilment_window_message
 			? $this->fulfilment_window_message
-			: __( 'Fulfilment available between {start} and {end}.', 'fuelchef-subscriptions' );
+			: __( 'Available between {start} and {end}.', 'fuelchef-subscriptions' );
 
 		return str_replace( [ '{start}', '{end}' ], [ $start, $end ], $message );
 	}
