@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 	</th>
 	<td>
 		<p class="fcs-fulfilment-date-no-match">
-			<?php esc_html_e( 'No fulfilment dates are available for this location.', 'fuelchef-subscriptions' ); ?>
+			<?php esc_html_e( 'No delivery/pickup dates are available for this location.', 'fuelchef-subscriptions' ); ?>
 		</p>
 	</td>
 </tr>
