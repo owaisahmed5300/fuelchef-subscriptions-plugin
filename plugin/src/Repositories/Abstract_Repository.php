@@ -35,18 +35,20 @@ abstract class Abstract_Repository {
 	protected static string $table = '';
 
 	/**
-	 * WordPress object cache group for this repository's rows. Set by each
-	 * subclass.
-	 */
-	protected static string $cache_group = '';
-
-	/**
 	 * Creates a repository.
 	 */
 	public function __construct(
 		protected wpdb $wpdb,
 		protected Clock $clock
 	) {
+	}
+
+	/**
+	 * WordPress object cache group for this repository's rows - `fcs_` plus the bare table
+	 * name, so it never needs declaring separately from `$table`.
+	 */
+	protected function cache_group(): string {
+		return 'fcs_' . static::$table;
 	}
 
 	/**
@@ -106,7 +108,7 @@ abstract class Abstract_Repository {
 	 */
 	public function find( int $id ): ?Entity {
 		/** @var TEntity|false $cached */
-		$cached = wp_cache_get( $id, static::$cache_group );
+		$cached = wp_cache_get( $id, $this->cache_group() );
 
 		if ( $cached instanceof Entity ) {
 			return $cached;
@@ -128,7 +130,7 @@ abstract class Abstract_Repository {
 
 		$entity = $this->hydrate( $row );
 
-		wp_cache_set( $id, $entity, static::$cache_group );
+		wp_cache_set( $id, $entity, $this->cache_group() );
 
 		return $entity;
 	}
@@ -181,7 +183,7 @@ abstract class Abstract_Repository {
 			$entity->set_date_updated( $now );
 		}
 
-		wp_cache_set( $id, $entity, static::$cache_group );
+		wp_cache_set( $id, $entity, $this->cache_group() );
 
 		$this->invalidate_related( $entity );
 
@@ -226,7 +228,7 @@ abstract class Abstract_Repository {
 			$entity->set_date_updated( $now );
 		}
 
-		wp_cache_set( $id, $entity, static::$cache_group );
+		wp_cache_set( $id, $entity, $this->cache_group() );
 
 		$this->invalidate_related( $entity );
 
@@ -254,7 +256,7 @@ abstract class Abstract_Repository {
 			throw Repository_Exception::for_wpdb_error( static::class, 'delete', $this->wpdb->last_error );
 		}
 
-		wp_cache_delete( $id, static::$cache_group );
+		wp_cache_delete( $id, $this->cache_group() );
 
 		if ( null === $entity ) {
 			return;
@@ -276,5 +278,13 @@ abstract class Abstract_Repository {
 	 */
 	protected function table_name(): string {
 		return Tables::prefixed( $this->wpdb->prefix, static::$table );
+	}
+
+	/**
+	 * Cache key for a schedule's own list of rows in this table, or the store-wide list
+	 * when a subclass's list is not scoped to a schedule at all - null means the latter.
+	 */
+	protected function by_schedule_cache_key( ?int $schedule_id ): string {
+		return 'by_schedule_' . ( null === $schedule_id ? 'global' : (string) $schedule_id );
 	}
 }

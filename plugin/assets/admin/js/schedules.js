@@ -3,7 +3,6 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  FCS.State.init();
   FCS.initTabs();
 
   const data = window.fcsSchedulesData;
@@ -88,9 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
         endInput.removeAttribute('aria-invalid');
       };
 
-      // No AJAX here - a toggle or time change only updates the in-memory model and marks
-      // the screen dirty. Every pending change across every day is only ever sent together,
-      // when the admin clicks "Save Schedule" below, instead of one request per field.
       const validateTimes = () => {
         if (checkbox.checked && startInput.value && endInput.value && endInput.value <= startInput.value) {
           showError(window.fcsAdmin.i18n.endBeforeStart);
@@ -101,22 +97,51 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
       };
 
+      function weekdayPayload() {
+        return {
+          schedule_id: data.selectedId,
+          day_of_week: day.day_of_week,
+          enabled: day.enabled ? 1 : '',
+          start_time: day.start_time,
+          end_time: day.end_time
+        };
+      }
+
+      // Every weekday change - a toggle or a time edit - saves itself immediately, the
+      // moment it's made, instead of waiting behind a separate save action. A rejected
+      // change reverts the field and toasts the error, mirroring how the closure
+      // calendar below already behaves.
+      function saveWeekday(revert) {
+        FCS.post('fcs_save_schedule_weekday', weekdayPayload()).done((response) => {
+          if (!response.success) {
+            revert();
+            renderDays();
+            FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveDay), 'error');
+            return;
+          }
+          FCS.toast(window.fcsAdmin.i18n.weekdaySaved);
+        });
+      }
+
       checkbox.addEventListener('change', () => {
+        const previousEnabled = day.enabled;
         day.enabled = checkbox.checked;
         renderDays();
-        FCS.State.markDirty();
+        saveWeekday(() => { day.enabled = previousEnabled; });
       });
 
       startInput.addEventListener('change', () => {
+        const previous = day.start_time;
         day.start_time = `${startInput.value}:00`;
-        validateTimes();
-        FCS.State.markDirty();
+        if (!validateTimes()) return;
+        saveWeekday(() => { day.start_time = previous; });
       });
 
       endInput.addEventListener('change', () => {
+        const previous = day.end_time;
         day.end_time = `${endInput.value}:00`;
-        validateTimes();
-        FCS.State.markDirty();
+        if (!validateTimes()) return;
+        saveWeekday(() => { day.end_time = previous; });
       });
 
       copyBtn?.addEventListener('click', () => {
@@ -156,73 +181,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // No ajax here - a name edit only marks the screen dirty, like a weekday toggle or time
-  // change. It is sent, along with every other pending edit, only when the admin clicks
-  // "Save Schedule" below.
+  // Saves on blur, not on every keystroke, and reverts to the last saved name if the
+  // server rejects it (e.g. blank). Also keeps the sidebar's own copy of the name in
+  // sync - it's a separate render of the same data and would otherwise go stale.
   if (titleInput) {
-    titleInput.addEventListener('input', () => FCS.State.markDirty());
-  }
+    let savedName = titleInput.value;
 
-  function weekdaysPayload() {
-    const payload = { schedule_id: data.selectedId };
+    titleInput.addEventListener('blur', () => {
+      const name = titleInput.value.trim();
+      if (name === savedName) return;
 
-    data.weekdays.forEach((day, i) => {
-      payload[`weekdays[${i}][day_of_week]`] = day.day_of_week;
-      payload[`weekdays[${i}][enabled]`] = day.enabled ? 1 : '';
-      payload[`weekdays[${i}][start_time]`] = day.start_time;
-      payload[`weekdays[${i}][end_time]`] = day.end_time;
-    });
-
-    return payload;
-  }
-
-  document.getElementById('saveScheduleBtn')?.addEventListener('click', (event) => {
-    if (tableBody?.querySelector('.fcs-weekday-time-error:not([hidden])')) {
-      FCS.toast(window.fcsAdmin.i18n.endBeforeStart, 'error');
-      return;
-    }
-
-    const trigger = event.currentTarget;
-    FCS.setBusy(trigger, true);
-
-    jQuery.when(
-      FCS.post('fcs_save_schedule', { schedule_id: data.selectedId, name: titleInput.value }),
-      FCS.post('fcs_save_schedule_weekdays', weekdaysPayload()),
-      FCS.post('fcs_save_schedule_destinations', destinationsPayload())
-    ).done((nameResult, weekdaysResult, destinationsResult) => {
-      const [nameResponse] = nameResult;
-      const [weekdaysResponse] = weekdaysResult;
-      const [destinationsResponse] = destinationsResult;
-
-      if (!nameResponse.success) {
-        FCS.toast(saveMessage(nameResponse, window.fcsAdmin.i18n.couldNotSaveScheduleName), 'error');
-        return;
-      }
-
-      if (!weekdaysResponse.success) {
-        FCS.toast(saveMessage(weekdaysResponse, window.fcsAdmin.i18n.couldNotSaveDay), 'error');
-        return;
-      }
-
-      if (!destinationsResponse.success) {
-        FCS.toast(saveMessage(destinationsResponse, window.fcsAdmin.i18n.couldNotSaveDestinations), 'error');
-        return;
-      }
-
-      weekdaysResponse.data.weekdays.forEach((updated) => {
-        const target = data.weekdays.find((d) => d.day_of_week === updated.day_of_week);
-        if (target) {
-          target.enabled = updated.enabled;
-          target.start_time = updated.start_time;
-          target.end_time = updated.end_time;
+      FCS.post('fcs_save_schedule', { schedule_id: data.selectedId, name }).done((response) => {
+        if (!response.success) {
+          titleInput.value = savedName;
+          FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveScheduleName), 'error');
+          return;
         }
-      });
 
-      renderDays();
-      FCS.State.markClean();
-      FCS.toast(window.fcsAdmin.i18n.scheduleSaved);
-    }).always(() => FCS.setBusy(trigger, false));
-  });
+        savedName = response.data.name;
+        titleInput.value = response.data.name;
+
+        const sidebarTitle = document.querySelector(`a[href$="schedule_id=${data.selectedId}"] .fcs-schedule-nav__title`);
+        if (sidebarTitle) sidebarTitle.textContent = response.data.name;
+      });
+    });
+  }
 
   // Add a schedule
   const addOverlay = document.getElementById('addScheduleModalOverlay');
@@ -282,11 +265,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('cancelAddScheduleBtn')?.addEventListener('click', closeAddScheduleModal);
   document.getElementById('confirmAddScheduleBtn')?.addEventListener('click', submitAddSchedule);
 
-  // Delete modal
+  // Delete modal - opened either from the title row's own Delete Schedule button (the
+  // currently open schedule) or from a sidebar row's "more actions" menu (any schedule,
+  // without opening it first). pendingDeleteId tracks which one a confirm applies to.
   const overlay = document.getElementById('deleteModalOverlay');
   const deleteModal = overlay?.querySelector('.fcs-modal');
   const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
   let deleteModalTrigger = null;
+  let pendingDeleteId = data.selectedId;
 
   function openDeleteModal() {
     if (!overlay) return;
@@ -316,15 +302,59 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  document.getElementById('deleteScheduleBtn')?.addEventListener('click', openDeleteModal);
+  // Sidebar "more actions" menu
+  function closeAllScheduleMenus() {
+    document.querySelectorAll('.fcs-schedule-nav__menu--show').forEach((menu) => menu.classList.remove('fcs-schedule-nav__menu--show'));
+    document.querySelectorAll('.fcs-schedule-nav__more[aria-expanded="true"]').forEach((btn) => btn.setAttribute('aria-expanded', 'false'));
+  }
+
+  document.querySelectorAll('.fcs-schedule-nav__more').forEach((btn) => {
+    btn.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const menu = btn.nextElementSibling;
+      const isOpen = menu.classList.contains('fcs-schedule-nav__menu--show');
+      closeAllScheduleMenus();
+      if (!isOpen) {
+        menu.classList.add('fcs-schedule-nav__menu--show');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  document.addEventListener('click', closeAllScheduleMenus);
+
+  document.querySelectorAll('[data-action="delete-schedule"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      closeAllScheduleMenus();
+      pendingDeleteId = Number(btn.dataset.scheduleId);
+      openDeleteModal();
+    });
+  });
+
+  document.getElementById('deleteScheduleBtn')?.addEventListener('click', () => {
+    pendingDeleteId = data.selectedId;
+    openDeleteModal();
+  });
+
   cancelDeleteBtn?.addEventListener('click', closeDeleteModal);
+
   document.getElementById('confirmDeleteBtn')?.addEventListener('click', () => {
-    FCS.post('fcs_delete_schedule', { schedule_id: data.selectedId }).done((response) => {
+    FCS.post('fcs_delete_schedule', { schedule_id: pendingDeleteId }).done((response) => {
       if (!response.success) {
         FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotDeleteSchedule), 'error');
         return;
       }
-      window.location.href = data.baseUrl;
+
+      closeDeleteModal();
+
+      if (pendingDeleteId === data.selectedId) {
+        window.location.href = data.baseUrl;
+        return;
+      }
+
+      document.querySelector(`[data-schedule-id="${pendingDeleteId}"]`)?.closest('.fcs-schedule-nav__item')?.remove();
+      FCS.toast(window.fcsAdmin.i18n.scheduleDeleted);
     });
   });
 
@@ -384,11 +414,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const items = catalog.filter(option => option.type === type && option.enabled && !isAssigned(option.type, option.key));
       if (!items.length) return '';
 
-      const optionsHtml = items.map(option => `
-        <option value="${FCS.escapeHtml(option.type)}|${FCS.escapeHtml(option.key)}" data-type="${FCS.escapeHtml(option.type)}" data-key="${FCS.escapeHtml(option.key)}">
-          ${FCS.escapeHtml(option.label)}${option.description ? ` (${FCS.escapeHtml(option.description)})` : ''}
-        </option>
-      `).join('');
+      // An already-claimed destination stays visible, disabled, and names the schedule
+      // that has it - hiding it outright would just leave an admin wondering where it went.
+      const optionsHtml = items.map(option => {
+        const label = option.assignedTo
+          ? `${option.label} — ${window.fcsAdmin.i18n.destinationAlreadyAssigned.replace('{schedule}', option.assignedTo)}`
+          : `${option.label}${option.description ? ` (${option.description})` : ''}`;
+
+        return `
+          <option value="${FCS.escapeHtml(option.type)}|${FCS.escapeHtml(option.key)}" data-type="${FCS.escapeHtml(option.type)}" data-key="${FCS.escapeHtml(option.key)}" ${option.assignedTo ? 'disabled' : ''}>
+            ${FCS.escapeHtml(label)}
+          </option>
+        `;
+      }).join('');
 
       return `<optgroup label="${FCS.escapeHtml(groups[type])}">${optionsHtml}</optgroup>`;
     }).join('');
@@ -446,15 +484,24 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }).join('');
 
-    // No ajax here - removing a destination only updates the in-memory list and marks the
-    // screen dirty, like a weekday toggle or a name edit. It is sent, along with every
-    // other pending edit, only when the admin clicks "Save Schedule" below.
+    // Removing a destination saves immediately, the same as adding one below.
     destList.querySelectorAll('[data-index]').forEach(btn => {
       btn.onclick = () => {
+        const previous = destinations.slice();
         destinations.splice(Number(btn.dataset.index), 1);
         renderDestinations();
         renderCatalogOptions();
-        FCS.State.markDirty();
+
+        FCS.post('fcs_save_schedule_destinations', destinationsPayload()).done((response) => {
+          if (!response.success) {
+            destinations = previous;
+            renderDestinations();
+            renderCatalogOptions();
+            FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveDestinations), 'error');
+            return;
+          }
+          FCS.toast(window.fcsAdmin.i18n.destinationRemoved);
+        });
       };
     });
   }
@@ -464,16 +511,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!selected) return;
 
     const option = catalog.find(o => o.type === selected.dataset.type && o.key === selected.dataset.key);
-    if (!option) return;
+    if (!option || option.assignedTo) return;
 
+    const previous = destinations.slice();
     destinations.push({ type: option.type, key: option.key, label: option.label, available: true });
     renderDestinations();
     renderCatalogOptions();
-    FCS.State.markDirty();
+
+    FCS.post('fcs_save_schedule_destinations', destinationsPayload()).done((response) => {
+      if (!response.success) {
+        destinations = previous;
+        renderDestinations();
+        renderCatalogOptions();
+        FCS.toast(saveMessage(response, window.fcsAdmin.i18n.couldNotSaveDestinations), 'error');
+        return;
+      }
+      FCS.toast(window.fcsAdmin.i18n.destinationAdded);
+    });
   });
 
   renderDays();
   renderCatalogOptions();
   renderDestinations();
 });
-
