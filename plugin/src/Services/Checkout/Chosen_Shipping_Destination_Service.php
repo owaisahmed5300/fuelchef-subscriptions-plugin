@@ -25,9 +25,11 @@ final class Chosen_Shipping_Destination_Service {
 
 	/**
 	 * The rate ID prefix WooCommerce's local pickup gives every pickup location rate,
-	 * e.g. `pickup_location:2`.
+	 * e.g. `pickup_location:2`. Public: `Frontend\Assets` localizes it too, so the
+	 * checkout scripts can tell a pickup rate from a shipping one the same way this class
+	 * does, without duplicating the literal.
 	 */
-	private const PICKUP_RATE_PREFIX = 'pickup_location:';
+	public const PICKUP_RATE_PREFIX = 'pickup_location:';
 
 	/**
 	 * Creates the resolver.
