@@ -27,6 +27,12 @@ final class Assets {
 	private const POPPER_VERSION = '2.11.8';
 
 	/**
+	 * The vendored Tippy.js build's version, used as its own cache-busting query arg
+	 * since it does not change with plugin releases.
+	 */
+	private const TIPPY_VERSION = '6.3.7';
+
+	/**
 	 * Registers the enqueue hook.
 	 */
 	public function register(): void {
@@ -71,10 +77,28 @@ final class Assets {
 			true
 		);
 
+		// The base (non-"bundle") Tippy build, which expects Popper as a global rather than
+		// carrying its own copy - `fcs-popper` above already is one, so this only adds
+		// Tippy's own ~24KB rather than a second Popper alongside it.
+		wp_enqueue_style(
+			'fcs-tippy',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/lib/tippy/tippy.css',
+			[],
+			self::TIPPY_VERSION
+		);
+
+		wp_enqueue_script(
+			'fcs-tippy',
+			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/lib/tippy/tippy.umd.min.js',
+			[ 'fcs-popper' ],
+			self::TIPPY_VERSION,
+			true
+		);
+
 		wp_enqueue_script(
 			'fcs-admin-common',
 			FUELCHEF_SUBSCRIPTIONS_URL . 'assets/admin/js/common.js',
-			[ 'jquery', 'fcs-popper' ],
+			[ 'jquery', 'fcs-popper', 'fcs-tippy' ],
 			FUELCHEF_SUBSCRIPTIONS_VERSION,
 			true
 		);

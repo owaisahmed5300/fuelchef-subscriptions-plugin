@@ -179,6 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       tableBody.appendChild(tr);
     });
+
+    FCS.initTooltips('.fcs-copy-down-btn');
   }
 
   // Saves on blur, not on every keystroke, and reverts to the last saved name if the
@@ -323,6 +325,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('click', closeAllScheduleMenus);
+
+  // FCS.closeTransientUI (common.js) only handles the modal overlays - a keyboard user
+  // who opened this menu with Enter/Space had no way to dismiss it without a mouse click
+  // elsewhere. Returns focus to the button that opened it, matching the modals' own
+  // return-focus-to-trigger behaviour.
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+
+    const openBtn = document.querySelector('.fcs-schedule-nav__more[aria-expanded="true"]');
+    if (!openBtn) return;
+
+    closeAllScheduleMenus();
+    openBtn.focus();
+  });
 
   document.querySelectorAll('[data-action="delete-schedule"]').forEach((btn) => {
     btn.addEventListener('click', () => {

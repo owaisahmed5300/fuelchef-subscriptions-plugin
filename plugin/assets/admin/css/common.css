@@ -827,9 +827,27 @@
     font-size: 12px;
 }
 
-.fcs-admin .fcs-pill:hover {
+.fcs-admin .fcs-pill:hover,
+.fcs-admin .fcs-pill:focus-within {
     border-color: var(--fcs-color-primary);
     background: var(--fcs-color-primary-soft);
+}
+
+.fcs-admin .fcs-pill__label {
+    display: inline-flex;
+    align-items: center;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.fcs-admin .fcs-pill__label:focus-visible {
+    outline: none;
+    box-shadow: var(--fcs-focus);
+    border-radius: 2px;
 }
 
 .fcs-admin .fcs-pill__remove {
