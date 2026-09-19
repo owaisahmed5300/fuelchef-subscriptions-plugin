@@ -154,6 +154,40 @@ final class Settings_Service_Test extends TestCase {
 		$this->assertSame( 60, $settings->max_fulfilment_window_days() );
 	}
 
+	public function test_get_accepts_a_stored_max_fulfilment_window_exactly_at_the_ceiling(): void {
+		Functions\when( 'get_option' )->justReturn(
+			[ 'max_fulfilment_window_days' => Settings::MAX_FULFILMENT_WINDOW_DAYS ]
+		);
+
+		$settings = ( new Settings_Service() )->get();
+
+		$this->assertSame( Settings::MAX_FULFILMENT_WINDOW_DAYS, $settings->max_fulfilment_window_days() );
+	}
+
+	public function test_get_falls_back_to_the_default_discount_when_the_stored_one_is_negative(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'subscribe_discount_percent' => -1 ] );
+
+		$settings = ( new Settings_Service() )->get();
+
+		$this->assertSame( 5, $settings->subscribe_discount_percent() );
+	}
+
+	public function test_get_accepts_a_stored_discount_of_exactly_100(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'subscribe_discount_percent' => 100 ] );
+
+		$settings = ( new Settings_Service() )->get();
+
+		$this->assertSame( 100, $settings->subscribe_discount_percent() );
+	}
+
+	public function test_get_accepts_a_stored_discount_of_exactly_zero(): void {
+		Functions\when( 'get_option' )->justReturn( [ 'subscribe_discount_percent' => 0 ] );
+
+		$settings = ( new Settings_Service() )->get();
+
+		$this->assertSame( 0, $settings->subscribe_discount_percent() );
+	}
+
 	public function test_get_falls_back_to_the_default_fulfilment_date_label_when_the_stored_one_is_blank(): void {
 		Functions\when( 'get_option' )->justReturn( [ 'fulfilment_date_label' => '   ' ] );
 

@@ -113,6 +113,26 @@ final class Current_Fulfilment_Window_Service_Test extends Repository_TestCase {
 		$this->assertSame( [], $window->windows_for_dates( $schedule, [] ) );
 	}
 
+	/**
+	 * A site with `time_format` unset (a fresh, hand-edited, or corrupted options table)
+	 * returns `''`, not `false` or the key missing entirely - falls back to a sensible
+	 * default rather than formatting hours with an empty format string.
+	 */
+	public function test_windows_for_dates_falls_back_to_a_default_time_format_when_the_option_is_empty(): void {
+		Functions\when( 'get_option' )->alias(
+			static fn ( string $key, mixed $default = false ): mixed => 'time_format' === $key ? '' : []
+		);
+
+		// 2026-09-14 is a Monday (day_of_week 1).
+		$window   = $this->window( [ $this->weekday_row( 1, '09:00:00', '17:00:00' ) ] );
+		$schedule = ( new Schedule( 'Test' ) )->set_id( 4 );
+
+		$this->assertSame(
+			[ '2026-09-14' => [ 'start' => '9:00 am', 'end' => '5:00 pm' ] ],
+			$window->windows_for_dates( $schedule, [ '2026-09-14' ] )
+		);
+	}
+
 	public function test_eligible_dates_is_bounded_by_the_configured_max_fulfilment_window(): void {
 		Functions\when( 'get_option' )->alias(
 			static fn ( string $key, mixed $default = false ): mixed => match ( $key ) {
