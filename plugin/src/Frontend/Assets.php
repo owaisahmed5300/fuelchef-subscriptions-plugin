@@ -93,6 +93,8 @@ final class Assets {
 				'startOfWeek'               => $this->start_of_week(),
 				'eligibleDatesUrl'          => rest_url( Block_Fulfilment_Date_Field::REST_NAMESPACE . Block_Fulfilment_Date_Field::REST_ROUTE ),
 				'pickupRatePrefix'          => Chosen_Shipping_Destination_Service::PICKUP_RATE_PREFIX,
+				'deliveryDateLabel'         => $settings->delivery_date_label(),
+				'pickupDateLabel'           => $settings->pickup_date_label(),
 				'fulfilmentDateDescription' => $settings->fulfilment_date_description(),
 				'subscribeSaveDescription'  => $settings->subscribe_save_description_resolved(),
 				'minimumOrderAmount'        => $settings->minimum_order_amount(),
