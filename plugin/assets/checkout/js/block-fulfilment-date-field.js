@@ -261,9 +261,17 @@ jQuery(function ($) {
     // first time the field mounts; a later remount of the same field (e.g. an
     // eligibility-driven re-render) is left alone, so a date already chosen during this
     // same visit is never silently cleared.
+    //
+    // Setting .val('') alone only updates the DOM - this select is a React-controlled
+    // component backed by the Checkout block's own additional-fields store, the same as
+    // block-subscribe-and-save.js's checkbox (see its uncheckIfChecked() for the same
+    // lesson learned there). Without a real change event, that store still holds
+    // whatever value WooCommerce hydrated it with, and submits that stale value
+    // regardless of what the now-blank field visually shows.
     if (!hasReset) {
       hasReset = true;
       $select.val('');
+      $select[0].dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     disableGroupHeadings($select);
