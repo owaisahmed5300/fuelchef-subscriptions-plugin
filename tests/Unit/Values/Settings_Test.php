@@ -176,7 +176,7 @@ final class Settings_Test extends TestCase {
 		$settings = new Settings( ...$this->valid_args() );
 
 		$this->assertSame(
-			'Fulfilment available between 9:00 am and 7:00 pm.',
+			'Available between 9:00 am and 7:00 pm.',
 			$settings->fulfilment_window_message_resolved( '9:00 am', '7:00 pm' )
 		);
 	}
