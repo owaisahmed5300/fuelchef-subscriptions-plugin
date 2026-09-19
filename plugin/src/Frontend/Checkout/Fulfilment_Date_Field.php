@@ -166,7 +166,7 @@ final class Fulfilment_Date_Field {
 			'fcs_fulfilment_date',
 			sprintf(
 				/* translators: %s: the admin-configured fulfilment date field label. */
-				__( '%s is required to complete this order.', 'fuelchef-subscriptions' ),
+				__( 'Please choose a %s to complete your order.', 'fuelchef-subscriptions' ),
 				$this->settings->get()->fulfilment_date_label()
 			)
 		);
