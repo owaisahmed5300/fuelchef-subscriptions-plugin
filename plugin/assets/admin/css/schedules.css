@@ -120,6 +120,17 @@
   border-radius: var(--fcs-control-radius);
   overflow: hidden;
 }
+.fcs-admin .fcs-weekday-table thead th {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--fcs-color-border-subtle);
+  background: #f9f9f9;
+  color: var(--fcs-color-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
 .fcs-admin .fcs-weekday-row { transition: background-color 100ms ease; }
 .fcs-admin .fcs-weekday-row + .fcs-weekday-row td { border-top: 1px solid var(--fcs-color-border-subtle); }
 .fcs-admin .fcs-weekday-row:hover { background: #f6f7f7; }

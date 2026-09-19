@@ -117,16 +117,18 @@ defined( 'ABSPATH' ) || exit;
 					</svg>
 				</button>
 			</div>
-			<label class="fcs-popover__label">
+			<label class="fcs-popover__label" for="globalClosureReason">
 				<?php esc_html_e( 'Closure note (optional)', 'fuelchef-subscriptions' ); ?>
 			</label>
 			<textarea
 				class="fcs-textarea"
+				id="globalClosureReason"
 				data-pop-reason
 				maxlength="255"
 				placeholder="<?php esc_attr_e( 'e.g. National Holiday', 'fuelchef-subscriptions' ); ?>"
+				aria-describedby="globalClosureReasonCount"
 			></textarea>
-			<div class="fcs-popover__count"><span data-pop-count>0</span> / 255</div>
+			<div class="fcs-popover__count" id="globalClosureReasonCount"><span data-pop-count>0</span> / 255</div>
 			<div class="fcs-popover__actions">
 				<button type="button" class="fcs-btn fcs-btn--danger" data-pop-remove>
 					<?php esc_html_e( 'Remove date', 'fuelchef-subscriptions' ); ?>
