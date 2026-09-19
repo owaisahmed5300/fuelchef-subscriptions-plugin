@@ -369,8 +369,8 @@ never per-date exclusion, which this field needs for closed weekdays and blackou
   equivalent fix: `Fulfilment_Date_Field::validate()` hooks `woocommerce_after_checkout_
   validation` directly, which always runs for every submission regardless of any
   `required` concept - there is no such gap on that side, confirmed by the same order
-  placement test attempted there instead (correctly blocked, "Please choose a fulfilment
-  date.").
+  placement test attempted there instead (correctly blocked with a validation error naming
+  the configured field label).
 - **`register_field()` also sets `optionalLabel` to the same text as `label`.** Left at
   its default, WooCommerce appends "(optional)" to a non-required field's label - true for
   a destination with no schedule, but misleading everywhere else, since `validate_order()`
@@ -419,6 +419,6 @@ itself. `wpdb->prepare()` is stubbed to interpolate placeholders literally; the 
 these tests is the repository's own logic (hydration, caching, cascades), not
 WordPress's SQL escaping.
 
-Controllers are not unit-tested — they're view/glue code (pull request data, call a
-service, render a template or send a response). Only repositories and services get unit
-tests.
+Controllers are not unit-tested, per
+[`../guidelines/03-testing.md`](../guidelines/03-testing.md#what-not-to-test). Only
+repositories and services in this layer get unit tests.
