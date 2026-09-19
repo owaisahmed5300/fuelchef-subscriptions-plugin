@@ -223,7 +223,7 @@ defined( 'ABSPATH' ) || exit;
 						<p class="fcs-card__intro">
 							<?php
 							esc_html_e(
-								'Configure the discount a customer gets for subscribing to weekly delivery at checkout, and the wording shown next to the checkbox.',
+								'Configure the discount a customer gets for subscribing to recurring orders at checkout, and the wording shown next to the checkbox.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -276,7 +276,7 @@ defined( 'ABSPATH' ) || exit;
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Use {percent} anywhere you want the current discount to appear, e.g. "Subscribe for {percent}% off weekly delivery".',
+									'Use {percent} anywhere you want the current discount to appear, e.g. "Subscribe for {percent}% off every order".',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -289,7 +289,7 @@ defined( 'ABSPATH' ) || exit;
 							</label>
 							<?php
 							$subscribe_save_description_placeholder = __(
-								'e.g. Get {percent}% off every scheduled delivery.',
+								'e.g. Get {percent}% off every scheduled order.',
 								'fuelchef-subscriptions'
 							);
 							?>

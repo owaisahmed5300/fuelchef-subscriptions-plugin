@@ -42,7 +42,7 @@ final class Settings_Service_Test extends TestCase {
 		$this->assertSame( 60, $settings->max_fulfilment_window_days() );
 		$this->assertSame( 'Fulfilment date', $settings->fulfilment_date_label() );
 		$this->assertSame( '', $settings->fulfilment_date_description() );
-		$this->assertSame( 'Subscribe for {percent}% off weekly delivery', $settings->subscribe_save_label() );
+		$this->assertSame( 'Subscribe for {percent}% off every order', $settings->subscribe_save_label() );
 		$this->assertSame( '', $settings->subscribe_save_description() );
 		$this->assertSame( 0.0, $settings->minimum_order_amount() );
 		$this->assertSame( 0, $settings->minimum_cart_quantity() );
