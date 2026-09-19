@@ -59,7 +59,7 @@ defined( 'ABSPATH' ) || exit;
 						<p class="fcs-card__intro">
 							<?php
 							esc_html_e(
-								'Customers can no longer place, change or cancel an order for a fulfilment date once that date\'s cutoff has passed.',
+								'Customers can no longer place, change or cancel an order for a delivery/pickup date once that date\'s cutoff has passed.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -77,7 +77,7 @@ defined( 'ABSPATH' ) || exit;
 								value="<?php echo esc_attr( (string) $settings->cutoff_days() ); ?>"
 							>
 							<span>
-								<?php esc_html_e( 'day(s) before the fulfilment date, at', 'fuelchef-subscriptions' ); ?>
+								<?php esc_html_e( 'day(s) before the delivery/pickup date, at', 'fuelchef-subscriptions' ); ?>
 							</span>
 							<input
 								class="fcs-input fcs-input--time"
@@ -106,14 +106,14 @@ defined( 'ABSPATH' ) || exit;
 				<div class="fcs-card">
 					<div class="fcs-card__header">
 						<h2 class="fcs-card__title">
-							<?php esc_html_e( 'Fulfilment Date Field', 'fuelchef-subscriptions' ); ?>
+							<?php esc_html_e( 'Delivery/Pickup Date Field', 'fuelchef-subscriptions' ); ?>
 						</h2>
 					</div>
 					<div class="fcs-card__body">
 						<p class="fcs-card__intro">
 							<?php
 							esc_html_e(
-								'Customize how the fulfilment date field appears to customers at checkout.',
+								'Customize how the delivery/pickup date field appears to customers at checkout.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -121,7 +121,7 @@ defined( 'ABSPATH' ) || exit;
 
 						<div class="fcs-field">
 							<label for="maxFulfilmentWindowDays">
-								<?php esc_html_e( 'Maximum fulfilment window', 'fuelchef-subscriptions' ); ?>
+								<?php esc_html_e( 'Maximum delivery/pickup window', 'fuelchef-subscriptions' ); ?>
 							</label>
 							<div class="fcs-inline-value">
 								<input
@@ -139,7 +139,7 @@ defined( 'ABSPATH' ) || exit;
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'How far ahead customers can choose a fulfilment date, still subject to schedules, closure dates and the order cutoff.',
+									'How far ahead customers can choose a delivery/pickup date, still subject to schedules, closure dates and the order cutoff.',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -165,7 +165,7 @@ defined( 'ABSPATH' ) || exit;
 							</label>
 							<?php
 							$fulfilment_date_description_placeholder = __(
-								'e.g. Choose the day you\'d like this order fulfilled.',
+								'e.g. Choose the day you\'d like to receive this order.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -187,11 +187,11 @@ defined( 'ABSPATH' ) || exit;
 
 						<div class="fcs-field">
 							<label for="fulfilmentWindowMessage">
-								<?php esc_html_e( 'Fulfilment window message (optional)', 'fuelchef-subscriptions' ); ?>
+								<?php esc_html_e( 'Delivery/pickup window message (optional)', 'fuelchef-subscriptions' ); ?>
 							</label>
 							<?php
 							$fulfilment_window_message_placeholder = __(
-								'Fulfilment available between {start} and {end}.',
+								'Available between {start} and {end}.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -204,7 +204,7 @@ defined( 'ABSPATH' ) || exit;
 							<p class="fcs-field__hint">
 								<?php
 								esc_html_e(
-									'Shown once a date is chosen. Use {start} and {end} anywhere you want the fulfilment hours to appear. Leave blank to use the default wording.',
+									'Shown once a date is chosen. Use {start} and {end} anywhere you want the delivery/pickup hours to appear. Leave blank to use the default wording.',
 									'fuelchef-subscriptions'
 								);
 								?>

@@ -109,13 +109,13 @@ final class Settings {
 
 		if ( $max_fulfilment_window_days < 1 ) {
 			throw new InvalidArgumentException(
-				__( 'Maximum fulfilment window must be at least 1 day.', 'fuelchef-subscriptions' )
+				__( 'Maximum delivery/pickup window must be at least 1 day.', 'fuelchef-subscriptions' )
 			);
 		}
 
 		if ( $max_fulfilment_window_days > self::MAX_FULFILMENT_WINDOW_DAYS ) {
 			throw new InvalidArgumentException(
-				__( 'Maximum fulfilment window is too far in the future.', 'fuelchef-subscriptions' )
+				__( 'Maximum delivery/pickup window is too far in the future.', 'fuelchef-subscriptions' )
 			);
 		}
 
@@ -145,15 +145,15 @@ final class Settings {
 	 */
 	private function validate_checkout_copy(): void {
 		if ( '' === trim( $this->fulfilment_date_label ) ) {
-			throw new InvalidArgumentException( __( 'Fulfilment date label cannot be blank.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Delivery/pickup date label cannot be blank.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( strlen( $this->fulfilment_date_label ) > self::MAX_LABEL_LENGTH ) {
-			throw new InvalidArgumentException( __( 'Fulfilment date label is too long.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Delivery/pickup date label is too long.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( strlen( $this->fulfilment_date_description ) > self::MAX_DESCRIPTION_LENGTH ) {
-			throw new InvalidArgumentException( __( 'Fulfilment date description is too long.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Delivery/pickup date description is too long.', 'fuelchef-subscriptions' ) );
 		}
 
 		if ( '' === trim( $this->subscribe_save_label ) ) {
@@ -183,7 +183,7 @@ final class Settings {
 		}
 
 		if ( strlen( $this->fulfilment_window_message ) > self::MAX_DESCRIPTION_LENGTH ) {
-			throw new InvalidArgumentException( __( 'Fulfilment window message is too long.', 'fuelchef-subscriptions' ) );
+			throw new InvalidArgumentException( __( 'Delivery/pickup window message is too long.', 'fuelchef-subscriptions' ) );
 		}
 	}
 

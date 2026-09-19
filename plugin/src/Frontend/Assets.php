@@ -218,7 +218,7 @@ final class Assets {
 		return [
 			'chooseDate'              => __( 'Choose a date', 'fuelchef-subscriptions' ),
 			'logIn'                   => __( 'Log in', 'fuelchef-subscriptions' ),
-			'noFulfilmentDateMatch'   => __( 'No fulfilment dates are currently available for this destination.', 'fuelchef-subscriptions' ),
+			'noFulfilmentDateMatch'   => __( 'No delivery/pickup dates are currently available for this destination.', 'fuelchef-subscriptions' ),
 			// The store's configured (or default) wording, still carrying the literal
 			// {start}/{end} placeholders for the enhancement scripts to fill in per date -
 			// passing the placeholder names themselves back in as the substitution values
