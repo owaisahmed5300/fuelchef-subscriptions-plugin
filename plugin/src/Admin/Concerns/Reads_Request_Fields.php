@@ -37,4 +37,11 @@ trait Reads_Request_Fields {
 	private function posted_float( string $key ): float {
 		return max( 0.0, (float) Narrow::string( $_POST[ $key ] ?? null ) );
 	}
+
+	/**
+	 * A posted checkbox field, true only when it was submitted as '1'.
+	 */
+	private function posted_bool( string $key ): bool {
+		return '1' === sanitize_text_field( wp_unslash( Narrow::string( $_POST[ $key ] ?? null ) ) );
+	}
 }

@@ -11,6 +11,14 @@
 *.sublime-workspace
 .phpstorm.meta.php
 _nbproject/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
 
 # PHP
 vendor/
@@ -47,7 +55,8 @@ scripts/docker/.env
 
 # temp
 *.tmp
-.opencode
+*.orig
+*.rej
 
 plugin/templates/admin/html/*
 plugin/templates/frontend/html/*

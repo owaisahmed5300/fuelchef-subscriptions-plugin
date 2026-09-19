@@ -27,11 +27,6 @@ final class Schedule_Weekday_Repository extends Abstract_Repository {
 	protected static string $table = Tables::SCHEDULE_WEEKDAYS;
 
 	/**
-	 * WordPress object cache group.
-	 */
-	protected static string $cache_group = 'fcs_schedule_weekdays';
-
-	/**
 	 * Every weekday row for a schedule, ordered by day of week.
 	 *
 	 * @return list<Schedule_Weekday> The schedule's weekday rows.
@@ -40,7 +35,7 @@ final class Schedule_Weekday_Repository extends Abstract_Repository {
 		$cache_key = $this->by_schedule_cache_key( $schedule_id );
 
 		/** @var list<Schedule_Weekday>|false $cached */
-		$cached = wp_cache_get( $cache_key, self::$cache_group );
+		$cached = wp_cache_get( $cache_key, $this->cache_group() );
 
 		if ( is_array( $cached ) ) {
 			return $cached;
@@ -58,7 +53,7 @@ final class Schedule_Weekday_Repository extends Abstract_Repository {
 
 		$weekdays = $this->hydrate_all( $rows );
 
-		wp_cache_set( $cache_key, $weekdays, self::$cache_group );
+		wp_cache_set( $cache_key, $weekdays, $this->cache_group() );
 
 		return $weekdays;
 	}
@@ -119,13 +114,6 @@ final class Schedule_Weekday_Repository extends Abstract_Repository {
 	 * Invalidates the cached weekday list for this entity's schedule.
 	 */
 	protected function invalidate_related( Entity $entity ): void {
-		wp_cache_delete( $this->by_schedule_cache_key( $entity->schedule_id() ), self::$cache_group );
-	}
-
-	/**
-	 * Cache key for a schedule's weekday list.
-	 */
-	private function by_schedule_cache_key( int $schedule_id ): string {
-		return 'by_schedule_' . $schedule_id;
+		wp_cache_delete( $this->by_schedule_cache_key( $entity->schedule_id() ), $this->cache_group() );
 	}
 }

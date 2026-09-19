@@ -107,4 +107,26 @@ final class Validation_Exception extends RuntimeException {
 			)
 		);
 	}
+
+	/**
+	 * Creates the exception for one or more destinations already assigned to another
+	 * schedule. Each conflict becomes its own sentence, so every conflict is reported at
+	 * once instead of one at a time across repeated save attempts.
+	 *
+	 * @param list<array{label: string, schedule_name: string}> $conflicts The rejected
+	 *                                                                     destinations.
+	 */
+	public static function for_destinations_already_assigned( array $conflicts ): self {
+		$sentences = array_map(
+			static fn ( array $conflict ): string => sprintf(
+				/* translators: 1: destination name. 2: the schedule it is already assigned to. */
+				__( '"%1$s" is already assigned to "%2$s".', 'fuelchef-subscriptions' ),
+				$conflict['label'],
+				$conflict['schedule_name']
+			),
+			$conflicts
+		);
+
+		return new self( implode( ' ', $sentences ) );
+	}
 }

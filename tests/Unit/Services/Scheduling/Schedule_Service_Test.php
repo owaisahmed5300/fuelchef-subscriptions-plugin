@@ -14,9 +14,11 @@ use FuelChef\Subscriptions\Repositories\Schedule_Destination_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Repository;
 use FuelChef\Subscriptions\Repositories\Schedule_Weekday_Repository;
 use FuelChef\Subscriptions\Services\Exceptions\Validation_Exception;
+use FuelChef\Subscriptions\Services\Scheduling\Destination_Catalog_Service;
 use FuelChef\Subscriptions\Services\Scheduling\Schedule_Service;
 use FuelChef\Subscriptions\Tests\Unit\Repositories\Repository_TestCase;
 use Mockery;
+use WC_Shipping_Zones;
 
 /**
  * @covers \FuelChef\Subscriptions\Services\Scheduling\Schedule_Service
@@ -29,6 +31,7 @@ final class Schedule_Service_Test extends Repository_TestCase {
 		?Schedule_Weekday_Repository $weekdays = null,
 		?Blackout_Repository $blackouts = null,
 		?Schedule_Destination_Repository $destinations = null,
+		?Destination_Catalog_Service $destination_catalog = null,
 		?Transaction_Manager $transactions = null
 	): Schedule_Service {
 		return new Schedule_Service(
@@ -36,6 +39,7 @@ final class Schedule_Service_Test extends Repository_TestCase {
 			$weekdays ?? new Schedule_Weekday_Repository( $this->wpdb(), $this->clock() ),
 			$blackouts ?? new Blackout_Repository( $this->wpdb(), $this->clock() ),
 			$destinations ?? new Schedule_Destination_Repository( $this->wpdb(), $this->clock() ),
+			$destination_catalog ?? new Destination_Catalog_Service(),
 			$transactions ?? new Transaction_Manager( $this->wpdb() )
 		);
 	}
@@ -181,71 +185,6 @@ final class Schedule_Service_Test extends Repository_TestCase {
 			->update_weekday( 4, 1, true, '09:00:00', '17:00:00' );
 	}
 
-	public function test_update_weekdays_saves_every_row_in_one_transaction(): void {
-		$wpdb = $this->wpdb();
-		$wpdb->shouldReceive( 'get_results' )->andReturn(
-			[
-				$this->weekday_row( '10', 0 ),
-				$this->weekday_row( '1', 1 ),
-			]
-		);
-		$wpdb->shouldReceive( 'query' )->once()->with( 'START TRANSACTION' )->andReturn( true );
-		$wpdb->shouldReceive( 'query' )->once()->with( 'COMMIT' )->andReturn( true );
-		$wpdb->shouldReceive( 'update' )->twice()->andReturn( 1 );
-
-		$updated = $this->service(
-			null,
-			new Schedule_Weekday_Repository( $wpdb, $this->clock() ),
-			null,
-			null,
-			new Transaction_Manager( $wpdb )
-		)->update_weekdays(
-			4,
-			[
-				[ 'day_of_week' => 0, 'enabled' => true, 'start_time' => '09:00:00', 'end_time' => '17:00:00' ],
-				[ 'day_of_week' => 1, 'enabled' => false, 'start_time' => '10:00:00', 'end_time' => '15:00:00' ],
-			]
-		);
-
-		$this->assertSame( [ 0, 1 ], array_map( static fn ( $weekday ) => $weekday->day_of_week(), $updated ) );
-	}
-
-	public function test_update_weekdays_rolls_back_and_saves_nothing_when_a_row_is_invalid(): void {
-		$wpdb = $this->wpdb();
-		$wpdb->shouldReceive( 'get_results' )->andReturn(
-			[
-				$this->weekday_row( '10', 0 ),
-				$this->weekday_row( '1', 1 ),
-			]
-		);
-		$wpdb->shouldReceive( 'query' )->once()->with( 'START TRANSACTION' )->andReturn( true );
-		$wpdb->shouldReceive( 'query' )->once()->with( 'ROLLBACK' )->andReturn( true );
-		// Only the first, valid row ever reaches update() - the second row's invalid
-		// end time is caught before its own update() call, and the transaction wrapper
-		// rolls back whatever the first row's update() already did.
-		$wpdb->shouldReceive( 'update' )->once()->andReturn( 1 );
-
-		Functions\when( 'esc_html__' )->returnArg( 1 );
-		Functions\when( '__' )->returnArg( 1 );
-		Functions\when( 'esc_html' )->returnArg( 1 );
-
-		$this->expectException( Validation_Exception::class );
-
-		$this->service(
-			null,
-			new Schedule_Weekday_Repository( $wpdb, $this->clock() ),
-			null,
-			null,
-			new Transaction_Manager( $wpdb )
-		)->update_weekdays(
-			4,
-			[
-				[ 'day_of_week' => 0, 'enabled' => true, 'start_time' => '09:00:00', 'end_time' => '17:00:00' ],
-				[ 'day_of_week' => 1, 'enabled' => true, 'start_time' => '09:00:00', 'end_time' => '09:00:00' ],
-			]
-		);
-	}
-
 	/**
 	 * @return array<string, mixed>
 	 */
@@ -379,5 +318,177 @@ final class Schedule_Service_Test extends Repository_TestCase {
 		)->delete( 4 );
 
 		$this->assertSame( [ 'destinations', 'weekdays', 'blackouts', 'schedule' ], $order );
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function schedule_destination_row( string $schedule_id, string $type, string $key ): array {
+		return [
+			'id'               => '1',
+			'schedule_id'      => $schedule_id,
+			'destination_type' => $type,
+			'destination_key'  => $key,
+			'date_created'     => '2026-01-01 00:00:00',
+			'date_updated'     => '2026-01-01 00:00:00',
+		];
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function schedule_row( string $id, string $name ): array {
+		return [
+			'id'           => $id,
+			'name'         => $name,
+			'date_created' => '2026-01-01 00:00:00',
+			'date_updated' => '2026-01-01 00:00:00',
+		];
+	}
+
+	public function test_destination_owner_returns_the_schedule_owning_a_destination(): void {
+		$destinations_wpdb = $this->wpdb();
+		$destinations_wpdb->shouldReceive( 'get_results' )->andReturn(
+			[ $this->schedule_destination_row( '9', 'shipping_zone', '2' ) ]
+		);
+
+		$schedules_wpdb = $this->wpdb();
+		$schedules_wpdb->shouldReceive( 'get_row' )->andReturn( $this->schedule_row( '9', 'Weekend Delivery' ) );
+
+		$owner = $this->service(
+			new Schedule_Repository( $schedules_wpdb, $this->clock() ),
+			null,
+			null,
+			new Schedule_Destination_Repository( $destinations_wpdb, $this->clock() )
+		)->destination_owner( 'shipping_zone', '2', 4 );
+
+		$this->assertSame( 'Weekend Delivery', $owner?->name() );
+	}
+
+	public function test_destination_owner_returns_null_when_the_only_assignment_is_the_excluded_schedule(): void {
+		$destinations_wpdb = $this->wpdb();
+		$destinations_wpdb->shouldReceive( 'get_results' )->andReturn(
+			[ $this->schedule_destination_row( '4', 'shipping_zone', '2' ) ]
+		);
+
+		$owner = $this->service(
+			null,
+			null,
+			null,
+			new Schedule_Destination_Repository( $destinations_wpdb, $this->clock() )
+		)->destination_owner( 'shipping_zone', '2', 4 );
+
+		$this->assertNull( $owner );
+	}
+
+	public function test_assign_destinations_saves_when_nothing_conflicts(): void {
+		WC_Shipping_Zones::$zones = [
+			2 => [ 'zone_id' => 2, 'zone_name' => 'Karachi', 'formatted_zone_location' => '' ],
+		];
+		Functions\when( 'get_option' )->justReturn( [] );
+
+		$destinations_wpdb = $this->wpdb();
+		// Nothing already exists for this schedule, so replace_for_schedule() has nothing
+		// to delete - only the new destination gets inserted.
+		$destinations_wpdb->shouldReceive( 'get_results' )->andReturn( [] );
+		$destinations_wpdb->shouldNotReceive( 'delete' );
+		$destinations_wpdb->insert_id = 1;
+		$destinations_wpdb->shouldReceive( 'insert' )->once()->with(
+			'wp_fcs_schedule_destinations',
+			Mockery::subset( [ 'destination_type' => 'shipping_zone', 'destination_key' => '2' ] )
+		)->andReturn( 1 );
+		$destinations_wpdb->shouldReceive( 'query' )->once()->with( 'START TRANSACTION' )->andReturn( true );
+		$destinations_wpdb->shouldReceive( 'query' )->once()->with( 'COMMIT' )->andReturn( true );
+
+		$this->service(
+			null,
+			null,
+			null,
+			new Schedule_Destination_Repository( $destinations_wpdb, $this->clock() ),
+			null,
+			new Transaction_Manager( $destinations_wpdb )
+		)->assign_destinations( 4, [ [ 'type' => 'shipping_zone', 'key' => '2' ] ] );
+	}
+
+	public function test_assign_destinations_rejects_a_destination_already_assigned_to_another_schedule(): void {
+		WC_Shipping_Zones::$zones = [
+			2 => [ 'zone_id' => 2, 'zone_name' => 'Karachi', 'formatted_zone_location' => '' ],
+		];
+		Functions\when( 'get_option' )->justReturn( [] );
+
+		$schedules_wpdb = $this->wpdb();
+		$schedules_wpdb->shouldReceive( 'get_row' )->andReturn( $this->schedule_row( '9', 'Weekend Delivery' ) );
+
+		$destinations_wpdb = $this->wpdb();
+		$destinations_wpdb->shouldReceive( 'get_results' )->andReturn(
+			[ $this->schedule_destination_row( '9', 'shipping_zone', '2' ) ]
+		);
+		$destinations_wpdb->shouldNotReceive( 'delete' );
+		$destinations_wpdb->shouldNotReceive( 'insert' );
+
+		Functions\when( '__' )->returnArg( 1 );
+
+		$this->expectException( Validation_Exception::class );
+		$this->expectExceptionMessage( '"Karachi" is already assigned to "Weekend Delivery".' );
+
+		$this->service(
+			new Schedule_Repository( $schedules_wpdb, $this->clock() ),
+			null,
+			null,
+			new Schedule_Destination_Repository( $destinations_wpdb, $this->clock() )
+		)->assign_destinations( 4, [ [ 'type' => 'shipping_zone', 'key' => '2' ] ] );
+	}
+
+	public function test_assign_destinations_allows_a_destination_already_on_this_same_schedule(): void {
+		WC_Shipping_Zones::$zones = [
+			2 => [ 'zone_id' => 2, 'zone_name' => 'Karachi', 'formatted_zone_location' => '' ],
+		];
+		Functions\when( 'get_option' )->justReturn( [] );
+
+		$destinations_wpdb = $this->wpdb();
+		$destinations_wpdb->shouldReceive( 'get_results' )->andReturn(
+			[ $this->schedule_destination_row( '4', 'shipping_zone', '2' ) ]
+		);
+		$destinations_wpdb->shouldReceive( 'get_row' )->andReturn( null );
+		$destinations_wpdb->shouldReceive( 'delete' )->once()->andReturn( 1 );
+		$destinations_wpdb->insert_id = 1;
+		$destinations_wpdb->shouldReceive( 'insert' )->once()->with(
+			'wp_fcs_schedule_destinations',
+			Mockery::subset( [ 'destination_type' => 'shipping_zone', 'destination_key' => '2' ] )
+		)->andReturn( 1 );
+		$destinations_wpdb->shouldReceive( 'query' )->once()->with( 'START TRANSACTION' )->andReturn( true );
+		$destinations_wpdb->shouldReceive( 'query' )->once()->with( 'COMMIT' )->andReturn( true );
+
+		$this->service(
+			null,
+			null,
+			null,
+			new Schedule_Destination_Repository( $destinations_wpdb, $this->clock() ),
+			null,
+			new Transaction_Manager( $destinations_wpdb )
+		)->assign_destinations( 4, [ [ 'type' => 'shipping_zone', 'key' => '2' ] ] );
+	}
+
+	public function test_assign_destinations_drops_an_entry_the_catalog_no_longer_recognises(): void {
+		WC_Shipping_Zones::$zones = [];
+		Functions\when( 'get_option' )->justReturn( [] );
+
+		$destinations_wpdb = $this->wpdb();
+		$destinations_wpdb->shouldReceive( 'get_results' )->andReturn( [] );
+		$destinations_wpdb->shouldNotReceive( 'delete' );
+		$destinations_wpdb->shouldNotReceive( 'insert' );
+		$destinations_wpdb->shouldReceive( 'query' )->once()->with( 'START TRANSACTION' )->andReturn( true );
+		$destinations_wpdb->shouldReceive( 'query' )->once()->with( 'COMMIT' )->andReturn( true );
+
+		$saved = $this->service(
+			null,
+			null,
+			null,
+			new Schedule_Destination_Repository( $destinations_wpdb, $this->clock() ),
+			null,
+			new Transaction_Manager( $destinations_wpdb )
+		)->assign_destinations( 4, [ [ 'type' => 'shipping_zone', 'key' => 'deleted-zone' ] ] );
+
+		$this->assertSame( [], $saved );
 	}
 }

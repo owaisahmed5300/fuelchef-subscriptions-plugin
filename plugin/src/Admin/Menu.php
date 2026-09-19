@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace FuelChef\Subscriptions\Admin;
 
+use FuelChef\Subscriptions\Admin\Controllers\Closures_Controller;
 use FuelChef\Subscriptions\Admin\Controllers\Schedules_Controller;
 use FuelChef\Subscriptions\Admin\Controllers\Settings_Controller;
 use FuelChef\Subscriptions\Utils\Narrow;
@@ -39,11 +40,17 @@ final class Menu {
 	public const SCHEDULES_SLUG = 'fuelchef-schedules';
 
 	/**
+	 * Slug of the Closures screen.
+	 */
+	public const CLOSURES_SLUG = 'fuelchef-closures';
+
+	/**
 	 * Creates the menu.
 	 */
 	public function __construct(
 		private Settings_Controller $settings_controller,
-		private Schedules_Controller $schedules_controller
+		private Schedules_Controller $schedules_controller,
+		private Closures_Controller $closures_controller
 	) {
 	}
 
@@ -76,6 +83,15 @@ final class Menu {
 			self::CAPABILITY,
 			self::SCHEDULES_SLUG,
 			[ $this->schedules_controller, 'render' ]
+		);
+
+		add_submenu_page(
+			self::SETTINGS_SLUG,
+			esc_html__( 'Closures', 'fuelchef-subscriptions' ),
+			esc_html__( 'Closures', 'fuelchef-subscriptions' ),
+			self::CAPABILITY,
+			self::CLOSURES_SLUG,
+			[ $this->closures_controller, 'render' ]
 		);
 
 		add_action( 'admin_head', [ $this, 'print_icon_size' ] );
