@@ -66,6 +66,18 @@ final class Current_Fulfilment_Window_Service {
 	}
 
 	/**
+	 * The type of destination the customer has currently chosen - one of the
+	 * `Values\Destination_Type` constants, or null when nothing is chosen yet. Used to
+	 * pick the delivery- or pickup-worded copy for whatever mentions the date field.
+	 *
+	 * @param string|null $explicit_rate_id Forwarded to
+	 *                                      {@see Chosen_Shipping_Destination_Service::resolve()}.
+	 */
+	public function destination_type( ?string $explicit_rate_id = null ): ?string {
+		return $this->destination->resolve( $explicit_rate_id )?->type();
+	}
+
+	/**
 	 * Every date the schedule can fulfil on within the lookahead window.
 	 *
 	 * @return list<string> The eligible dates, in order.
