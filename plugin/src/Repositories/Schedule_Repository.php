@@ -27,11 +27,6 @@ final class Schedule_Repository extends Abstract_Repository {
 	protected static string $table = Tables::SCHEDULES;
 
 	/**
-	 * WordPress object cache group.
-	 */
-	protected static string $cache_group = 'fcs_schedules';
-
-	/**
 	 * Cache key for the full list of schedules.
 	 */
 	private const ALL_CACHE_KEY = 'all';
@@ -43,7 +38,7 @@ final class Schedule_Repository extends Abstract_Repository {
 	 */
 	public function all(): array {
 		/** @var list<Schedule>|false $cached */
-		$cached = wp_cache_get( self::ALL_CACHE_KEY, self::$cache_group );
+		$cached = wp_cache_get( self::ALL_CACHE_KEY, $this->cache_group() );
 
 		if ( is_array( $cached ) ) {
 			return $cached;
@@ -57,7 +52,7 @@ final class Schedule_Repository extends Abstract_Repository {
 
 		$schedules = $this->hydrate_all( $rows );
 
-		wp_cache_set( self::ALL_CACHE_KEY, $schedules, self::$cache_group );
+		wp_cache_set( self::ALL_CACHE_KEY, $schedules, $this->cache_group() );
 
 		return $schedules;
 	}
@@ -93,6 +88,6 @@ final class Schedule_Repository extends Abstract_Repository {
 	 * Invalidates the cached full schedule list.
 	 */
 	protected function invalidate_related( Entity $entity ): void {
-		wp_cache_delete( self::ALL_CACHE_KEY, self::$cache_group );
+		wp_cache_delete( self::ALL_CACHE_KEY, $this->cache_group() );
 	}
 }

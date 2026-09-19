@@ -56,6 +56,42 @@ final class Blackout_Repository_Test extends Repository_TestCase {
 		$repository->find_by_schedule( 4 );
 	}
 
+	public function test_find_by_schedule_hits_the_database_only_once_across_repeated_calls(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'get_results' )->once()->andReturn(
+			[ $this->row( '4', '2026-09-14' ) ]
+		);
+
+		$repository = new Blackout_Repository( $wpdb, $this->clock() );
+
+		$first  = $repository->find_by_schedule( 4 );
+		$second = $repository->find_by_schedule( 4 );
+
+		$this->assertSame( $first, $second );
+	}
+
+	public function test_updating_a_blackout_invalidates_its_schedules_cached_list(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'get_results' )->twice()->andReturn(
+			[ $this->row( '4', '2026-09-14' ) ],
+			[ $this->row( '4', '2026-09-14', 'Updated reason' ) ]
+		);
+		$wpdb->shouldReceive( 'update' )->once()->andReturn( 1 );
+
+		$repository = new Blackout_Repository( $wpdb, $this->clock() );
+
+		$before = $repository->find_by_schedule( 4 );
+
+		$blackout = new Blackout( 4, '2026-09-14', 'Updated reason' );
+		$blackout->set_id( 1 );
+		$repository->update( $blackout );
+
+		$after = $repository->find_by_schedule( 4 );
+
+		$this->assertNull( $before[0]->reason() );
+		$this->assertSame( 'Updated reason', $after[0]->reason() );
+	}
+
 	public function test_find_by_schedule_between_scopes_to_the_date_range_and_schedule(): void {
 		$wpdb = $this->wpdb();
 		$wpdb->shouldReceive( 'get_results' )->once()->with(

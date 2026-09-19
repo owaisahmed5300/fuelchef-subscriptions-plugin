@@ -39,6 +39,16 @@ final class Schedule_Destination_Repository_Test extends Repository_TestCase {
 		$this->assertSame( '2', $destinations[0]->destination_key() );
 	}
 
+	public function test_find_by_schedule_hits_the_database_only_once_across_repeated_calls(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'get_results' )->once()->andReturn( [] );
+
+		$repository = new Schedule_Destination_Repository( $wpdb, $this->clock() );
+
+		$repository->find_by_schedule( 4 );
+		$repository->find_by_schedule( 4 );
+	}
+
 	public function test_find_by_destination_returns_every_schedule_assigned_to_it(): void {
 		$wpdb = $this->wpdb();
 		$wpdb->shouldReceive( 'get_results' )->once()->andReturn(

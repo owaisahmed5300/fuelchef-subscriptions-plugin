@@ -62,4 +62,15 @@ final class Subscribe_Discount_Service_Test extends TestCase {
 
 		$this->assertSame( 0.0, $this->subject()->discount_amount( 0.0, $settings ) );
 	}
+
+	/**
+	 * `WC_Cart::get_subtotal()` is never validated as non-negative before it reaches
+	 * this service, so a negative subtotal must still yield zero, not a negative
+	 * discount that would increase the cart total instead of reducing it.
+	 */
+	public function test_discount_amount_is_zero_for_a_negative_subtotal(): void {
+		$settings = $this->settings( 10, Subscribe_Applicability::INITIAL_AND_RENEWALS );
+
+		$this->assertSame( 0.0, $this->subject()->discount_amount( -50.0, $settings ) );
+	}
 }

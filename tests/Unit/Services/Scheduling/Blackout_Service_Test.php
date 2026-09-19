@@ -71,6 +71,21 @@ final class Blackout_Service_Test extends Repository_TestCase {
 		$this->service( new Blackout_Repository( $wpdb, $this->clock() ) )->add( null, '2026-12-25' );
 	}
 
+	public function test_add_allows_a_date_already_blacked_out_globally_on_a_specific_schedule(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'get_results' )->once()->with(
+			\Mockery::on( static fn ( string $sql ): bool => str_contains( $sql, 'schedule_id = 4' ) ),
+			\Mockery::any()
+		)->andReturn( [] );
+		$wpdb->insert_id = 2;
+		$wpdb->shouldReceive( 'insert' )->once()->andReturn( 1 );
+
+		$blackout = $this->service( new Blackout_Repository( $wpdb, $this->clock() ) )
+			->add( 4, '2026-12-25' );
+
+		$this->assertSame( 4, $blackout->schedule_id() );
+	}
+
 	public function test_add_caps_the_reason_at_255_characters(): void {
 		$wpdb = $this->wpdb();
 		$wpdb->shouldReceive( 'get_results' )->once()->andReturn( [] );
@@ -105,6 +120,30 @@ final class Blackout_Service_Test extends Repository_TestCase {
 			->update_reason( 1, 'New reason' );
 
 		$this->assertSame( 'New reason', $blackout->reason() );
+	}
+
+	public function test_update_reason_clears_an_existing_reason_when_given_null(): void {
+		$wpdb = $this->wpdb();
+		$wpdb->shouldReceive( 'get_row' )->once()->andReturn(
+			[
+				'id'            => '1',
+				'schedule_id'   => null,
+				'blackout_date' => '2026-12-25',
+				'reason'        => 'Old reason',
+				'date_created'  => '2026-01-01 00:00:00',
+				'date_updated'  => '2026-01-01 00:00:00',
+			]
+		);
+		$wpdb->shouldReceive( 'update' )->once()->with(
+			'wp_fcs_blackouts',
+			\Mockery::on( static fn ( array $data ): bool => null === $data['reason'] ),
+			[ 'id' => 1 ]
+		)->andReturn( 1 );
+
+		$blackout = $this->service( new Blackout_Repository( $wpdb, $this->clock() ) )
+			->update_reason( 1, null );
+
+		$this->assertNull( $blackout->reason() );
 	}
 
 	public function test_remove_deletes_the_blackout(): void {

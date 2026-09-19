@@ -12,7 +12,7 @@ Enforced by commitlint and the Husky hooks; the rest is discipline.
 **Never commit to `main`.** Ever, for any reason, however small the change.
 
 ```
-feat/…    a new capability          feat/m05-recurring-engine
+feat/…    a new capability          feat/destination-overlap-prevention
 fix/…     a defect in behaviour     fix/duplicate-order-on-retry
 refactor/…  behaviour unchanged     refactor/extract-delivery-repository
 test/…    tests only                test/requirements-suite-hardening
@@ -22,9 +22,9 @@ ci/…      workflows                 ci/cache-composer
 ```
 
 One concern per branch. A branch that fixes a bug *and* renames a class is two branches,
-and the reviewer of each will do a better job.
-
-For milestone work, one branch per milestone: `feat/m03-classic-checkout`.
+and the reviewer of each will do a better job. Name it for what it does
+(`feat/instant-admin-saves`), not a milestone number — a name says what changed even
+once the roadmap that produced it is long forgotten.
 
 ---
 
