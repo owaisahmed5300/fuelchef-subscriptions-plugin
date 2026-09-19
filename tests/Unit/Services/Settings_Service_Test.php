@@ -40,7 +40,7 @@ final class Settings_Service_Test extends TestCase {
 		$this->assertSame( 5, $settings->subscribe_discount_percent() );
 		$this->assertSame( Subscribe_Applicability::INITIAL_AND_RENEWALS, $settings->subscribe_applicability() );
 		$this->assertSame( 60, $settings->max_fulfilment_window_days() );
-		$this->assertSame( 'Fulfilment date', $settings->fulfilment_date_label() );
+		$this->assertSame( 'Delivery/pickup date', $settings->fulfilment_date_label() );
 		$this->assertSame( '', $settings->fulfilment_date_description() );
 		$this->assertSame( 'Subscribe for {percent}% off every order', $settings->subscribe_save_label() );
 		$this->assertSame( '', $settings->subscribe_save_description() );
@@ -193,7 +193,7 @@ final class Settings_Service_Test extends TestCase {
 
 		$settings = ( new Settings_Service() )->get();
 
-		$this->assertSame( 'Fulfilment date', $settings->fulfilment_date_label() );
+		$this->assertSame( 'Delivery/pickup date', $settings->fulfilment_date_label() );
 	}
 
 	public function test_get_falls_back_to_the_default_fulfilment_date_label_when_the_stored_one_is_too_long(): void {
@@ -201,7 +201,7 @@ final class Settings_Service_Test extends TestCase {
 
 		$settings = ( new Settings_Service() )->get();
 
-		$this->assertSame( 'Fulfilment date', $settings->fulfilment_date_label() );
+		$this->assertSame( 'Delivery/pickup date', $settings->fulfilment_date_label() );
 	}
 
 	public function test_get_keeps_an_empty_stored_fulfilment_date_description(): void {

@@ -116,7 +116,7 @@ final class Settings_Service {
 	 * `label()` below, is raw for the same reason.
 	 */
 	private function default_fulfilment_date_label(): string {
-		return __( 'Fulfilment date', 'fuelchef-subscriptions' );
+		return __( 'Delivery/pickup date', 'fuelchef-subscriptions' );
 	}
 
 	/**

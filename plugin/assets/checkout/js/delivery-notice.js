@@ -1,14 +1,16 @@
 /**
  * FuelChef Subscriptions - Classic checkout delivery-date notice
  *
- * Once a customer has chosen a fulfilment date, tells them when their order arrives -
- * a one-off delivery date normally, or which weekday it will recur on once the
+ * Once a customer has chosen a fulfilment date, tells them when their order will be
+ * delivered or ready for pickup - depending on which the currently chosen shipping rate
+ * actually is - as a one-off date normally, or which weekday it will recur on once the
  * subscribe-discount checkbox is also checked. Shown regardless of whether that checkbox
  * is even visible to this customer (a logged-out or ineligible customer never sees it at
  * all), since every customer deserves to know when their order is coming.
  * `#fcsDeliveryNotice` is server-rendered (see the delivery-notice template) inside the
  * same order review table `update_order_review` replaces wholesale, so this re-reads both
- * fields' current values on every refresh rather than tracking state itself.
+ * fields' current values, and the chosen shipping rate, on every refresh rather than
+ * tracking state itself.
  */
 
 jQuery(function ($) {
@@ -19,6 +21,15 @@ jQuery(function ($) {
   }
 
   const i18n = window.fcsCheckout.i18n;
+
+  // WooCommerce renders either a radio per rate (multiple options) or a single hidden
+  // input carrying the only one available - matching either finds whichever rate is
+  // actually chosen.
+  function currentShippingRateId() {
+    const $chosen = $('input[name^="shipping_method"]:checked, input[name^="shipping_method"][type="hidden"]');
+
+    return $chosen.length ? $chosen.val() : null;
+  }
 
   function update() {
     const $notice = $('#fcsDeliveryNotice');
@@ -34,14 +45,9 @@ jQuery(function ($) {
       return;
     }
 
-    const formattedDate = window.fcsCheckoutShared.formatDisplayDate(date, i18n.monthNames);
     const checked = $('#fcs_subscribe_and_save').is(':checked');
-
-    const message = checked
-      ? i18n.recurringDeliveryNotice
-          .replace('%1$s', window.fcsCheckoutShared.weekdayNameForDate(date, i18n.dayNames))
-          .replace('%2$s', formattedDate)
-      : i18n.singleDeliveryNotice.replace('%s', formattedDate);
+    const isPickup = window.fcsCheckoutShared.isPickupRateId(currentShippingRateId());
+    const message = window.fcsCheckoutShared.deliveryNoticeMessage(isPickup, checked, date, i18n);
 
     $notice.text(message).removeAttr('hidden');
   }

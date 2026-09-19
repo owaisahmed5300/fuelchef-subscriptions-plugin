@@ -52,6 +52,20 @@ FCS.trapFocus = function (container, event) {
   }
 };
 
+// Replaces the slow, unstyled native browser tooltip an icon-only button's `title`
+// attribute would otherwise show with a Tippy one - Tippy reads `title` as its content
+// and removes the attribute itself, so a page where tippy.umd.min.js fails to load still
+// falls back to the native tooltip rather than showing none at all. Callers re-run this
+// for any element created after page load (e.g. a JS-rendered row), since it only wires
+// up whatever currently matches the selector.
+FCS.initTooltips = function (selector) {
+  if (typeof window.tippy === 'function') {
+    window.tippy(selector);
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => FCS.initTooltips('.fcs-btn--icon[title]'));
+
 // Helper: Escape HTML
 FCS.escapeHtml = function (str) {
   return String(str).replace(/[&<>'"]/g, tag => ({
@@ -217,7 +231,7 @@ FCS.createCalendar = function (options) {
             <div class="fcs-pills">
               ${list.map(item => `
                 <div class="fcs-pill" data-id="${item.id}">
-                  <span>${FCS.escapeHtml(item.label)}</span>
+                  <button type="button" class="fcs-pill__label">${FCS.escapeHtml(item.label)}</button>
                   <button type="button" class="fcs-pill__remove" data-remove-id="${item.id}" aria-label="${FCS.escapeHtml(window.fcsAdmin.i18n.removeDate)}">×</button>
                 </div>
               `).join('')}
@@ -227,18 +241,16 @@ FCS.createCalendar = function (options) {
       `;
     }).join('');
 
-    summaryEl.querySelectorAll('.fcs-pill').forEach(pill => {
-      pill.onclick = (e) => {
-        if (!e.target.closest('.fcs-pill__remove')) {
-          const item = findById(Number(pill.dataset.id));
-          if (item) openPopover(item, pill);
-        }
+    summaryEl.querySelectorAll('.fcs-pill__label').forEach(labelBtn => {
+      labelBtn.onclick = () => {
+        const pill = labelBtn.closest('.fcs-pill');
+        const item = findById(Number(pill.dataset.id));
+        if (item) openPopover(item, pill);
       };
     });
 
     summaryEl.querySelectorAll('.fcs-pill__remove').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
+      btn.onclick = () => {
         removeItem(Number(btn.dataset.removeId));
       };
     });
@@ -271,11 +283,12 @@ FCS.createCalendar = function (options) {
       const isToday = curDate.toDateString() === today.toDateString();
 
       const fullDateLabel = `${monthNames[m]} ${d}, ${y}`;
+      const reasonId = `fcsCalReason-${iso}`;
 
       html += `
         <div class="fcs-calendar__cell ${item ? 'fcs-calendar__cell--unavailable ' : ''}${isToday ? 'fcs-calendar__cell--today' : ''}">
-          <button type="button" class="fcs-calendar__date-btn" data-date="${iso}" aria-label="${FCS.escapeHtml(fullDateLabel)}">${d}</button>
-          ${item && item.reason ? `<div class="fcs-calendar__reason">${FCS.escapeHtml(item.reason)}</div>` : ''}
+          <button type="button" class="fcs-calendar__date-btn" data-date="${iso}" aria-label="${FCS.escapeHtml(fullDateLabel)}" ${item && item.reason ? `aria-describedby="${reasonId}"` : ''}>${d}</button>
+          ${item && item.reason ? `<div class="fcs-calendar__reason" id="${reasonId}">${FCS.escapeHtml(item.reason)}</div>` : ''}
         </div>
       `;
     }

@@ -171,30 +171,13 @@ jQuery(function ($) {
     updateWindowCaption($select);
   }
 
-  // The rate the cart store currently shows as selected. Read fresh on every call rather
-  // than cached, since a rate switch updates this store synchronously but WooCommerce's
-  // own session write for "which rate is chosen" is a separate request - passing this
-  // value explicitly (see rate_id below) is what lets the eligible-dates request avoid
-  // racing that write, confirmed live: without it, switching rates could return the
-  // *previous* rate's schedule.
-  function currentSelectedRateId() {
-    const wcData = window.wc && window.wc.wcBlocksData;
-    const wpData = window.wp && window.wp.data;
-
-    if (!wcData || !wpData) {
-      return null;
-    }
-
-    const packages = wpData.select(wcData.cartStore).getShippingRates();
-    const selectedRate = packages[0] && packages[0].shipping_rates
-      ? packages[0].shipping_rates.find(function (rate) { return rate.selected; })
-      : null;
-
-    return selectedRate ? selectedRate.rate_id : null;
-  }
-
   function refetchEligibleDates($select) {
-    const rateId = currentSelectedRateId();
+    // Read fresh on every call rather than cached, since a rate switch updates the cart
+    // store synchronously but WooCommerce's own session write for "which rate is chosen"
+    // is a separate request - passing this value explicitly (see rate_id below) is what
+    // lets the eligible-dates request avoid racing that write, confirmed live: without
+    // it, switching rates could return the *previous* rate's schedule.
+    const rateId = window.fcsCheckoutShared.currentSelectedRateId();
     const url = new URL(window.fcsCheckout.eligibleDatesUrl);
 
     if (rateId) {
@@ -234,7 +217,7 @@ jQuery(function ($) {
 
     return JSON.stringify([
       destination ? [destination.country, destination.state, destination.city, destination.postcode] : null,
-      currentSelectedRateId()
+      window.fcsCheckoutShared.currentSelectedRateId()
     ]);
   }
 
@@ -278,9 +261,17 @@ jQuery(function ($) {
     // first time the field mounts; a later remount of the same field (e.g. an
     // eligibility-driven re-render) is left alone, so a date already chosen during this
     // same visit is never silently cleared.
+    //
+    // Setting .val('') alone only updates the DOM - this select is a React-controlled
+    // component backed by the Checkout block's own additional-fields store, the same as
+    // block-subscribe-and-save.js's checkbox (see its uncheckIfChecked() for the same
+    // lesson learned there). Without a real change event, that store still holds
+    // whatever value WooCommerce hydrated it with, and submits that stale value
+    // regardless of what the now-blank field visually shows.
     if (!hasReset) {
       hasReset = true;
       $select.val('');
+      $select[0].dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     disableGroupHeadings($select);

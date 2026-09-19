@@ -192,7 +192,7 @@ final class Fulfilment_Date_Field {
 		$errors->add(
 			'fcs_fulfilment_date',
 			sprintf(
-				/* translators: %s: the admin-configured fulfilment date field label. */
+				/* translators: %s: the admin-configured delivery/pickup date field label. */
 				__( 'Please choose a %s to complete your order.', 'fuelchef-subscriptions' ),
 				$this->settings->get()->fulfilment_date_label()
 			)
@@ -226,7 +226,7 @@ final class Fulfilment_Date_Field {
 		throw new RouteException(
 			'fcs_fulfilment_date_required',
 			sprintf(
-				/* translators: %s: the admin-configured fulfilment date field label. */
+				/* translators: %s: the admin-configured delivery/pickup date field label. */
 				__( 'Please choose a %s to complete your order.', 'fuelchef-subscriptions' ),
 				$this->settings->get()->fulfilment_date_label()
 			),

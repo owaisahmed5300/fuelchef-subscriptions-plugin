@@ -59,7 +59,7 @@ defined( 'ABSPATH' ) || exit;
 						<p class="fcs-card__intro">
 							<?php
 							esc_html_e(
-								'Customers can no longer place, change or cancel an order for a fulfilment date once that date\'s cutoff has passed.',
+								'Customers can no longer place, change or cancel an order for a delivery/pickup date once that date\'s cutoff has passed.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -77,7 +77,7 @@ defined( 'ABSPATH' ) || exit;
 								value="<?php echo esc_attr( (string) $settings->cutoff_days() ); ?>"
 							>
 							<span>
-								<?php esc_html_e( 'day(s) before the fulfilment date, at', 'fuelchef-subscriptions' ); ?>
+								<?php esc_html_e( 'day(s) before the delivery/pickup date, at', 'fuelchef-subscriptions' ); ?>
 							</span>
 							<input
 								class="fcs-input fcs-input--time"
@@ -106,14 +106,14 @@ defined( 'ABSPATH' ) || exit;
 				<div class="fcs-card">
 					<div class="fcs-card__header">
 						<h2 class="fcs-card__title">
-							<?php esc_html_e( 'Fulfilment Date Field', 'fuelchef-subscriptions' ); ?>
+							<?php esc_html_e( 'Delivery/Pickup Date Field', 'fuelchef-subscriptions' ); ?>
 						</h2>
 					</div>
 					<div class="fcs-card__body">
 						<p class="fcs-card__intro">
 							<?php
 							esc_html_e(
-								'Customize how the fulfilment date field appears to customers at checkout.',
+								'Customize how the delivery/pickup date field appears to customers at checkout.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -121,7 +121,7 @@ defined( 'ABSPATH' ) || exit;
 
 						<div class="fcs-field">
 							<label for="maxFulfilmentWindowDays">
-								<?php esc_html_e( 'Maximum fulfilment window', 'fuelchef-subscriptions' ); ?>
+								<?php esc_html_e( 'Maximum delivery/pickup window', 'fuelchef-subscriptions' ); ?>
 							</label>
 							<div class="fcs-inline-value">
 								<input
@@ -131,15 +131,16 @@ defined( 'ABSPATH' ) || exit;
 									min="1"
 									max="<?php echo esc_attr( (string) Settings::MAX_FULFILMENT_WINDOW_DAYS ); ?>"
 									value="<?php echo esc_attr( (string) $settings->max_fulfilment_window_days() ); ?>"
+									aria-describedby="maxFulfilmentWindowDaysHint"
 								>
 								<span>
 									<?php esc_html_e( 'days into the future', 'fuelchef-subscriptions' ); ?>
 								</span>
 							</div>
-							<p class="fcs-field__hint">
+							<p class="fcs-field__hint" id="maxFulfilmentWindowDaysHint">
 								<?php
 								esc_html_e(
-									'How far ahead customers can choose a fulfilment date, still subject to schedules, closure dates and the order cutoff.',
+									'How far ahead customers can choose a delivery/pickup date, still subject to schedules, closure dates and the order cutoff.',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -165,7 +166,7 @@ defined( 'ABSPATH' ) || exit;
 							</label>
 							<?php
 							$fulfilment_date_description_placeholder = __(
-								'e.g. Choose the day you\'d like this order fulfilled.',
+								'e.g. Choose the day you\'d like to receive this order.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -174,8 +175,9 @@ defined( 'ABSPATH' ) || exit;
 								id="fulfilmentDateDescription"
 								maxlength="300"
 								placeholder="<?php echo esc_attr( $fulfilment_date_description_placeholder ); ?>"
+								aria-describedby="fulfilmentDateDescriptionHint"
 							><?php echo esc_textarea( $settings->fulfilment_date_description() ); ?></textarea>
-							<p class="fcs-field__hint">
+							<p class="fcs-field__hint" id="fulfilmentDateDescriptionHint">
 								<?php
 								esc_html_e(
 									'Shown under the field. Leave blank to show none.',
@@ -187,11 +189,11 @@ defined( 'ABSPATH' ) || exit;
 
 						<div class="fcs-field">
 							<label for="fulfilmentWindowMessage">
-								<?php esc_html_e( 'Fulfilment window message (optional)', 'fuelchef-subscriptions' ); ?>
+								<?php esc_html_e( 'Delivery/pickup window message (optional)', 'fuelchef-subscriptions' ); ?>
 							</label>
 							<?php
 							$fulfilment_window_message_placeholder = __(
-								'Fulfilment available between {start} and {end}.',
+								'Available between {start} and {end}.',
 								'fuelchef-subscriptions'
 							);
 							?>
@@ -200,11 +202,12 @@ defined( 'ABSPATH' ) || exit;
 								id="fulfilmentWindowMessage"
 								maxlength="300"
 								placeholder="<?php echo esc_attr( $fulfilment_window_message_placeholder ); ?>"
+								aria-describedby="fulfilmentWindowMessageHint"
 							><?php echo esc_textarea( $settings->fulfilment_window_message() ); ?></textarea>
-							<p class="fcs-field__hint">
+							<p class="fcs-field__hint" id="fulfilmentWindowMessageHint">
 								<?php
 								esc_html_e(
-									'Shown once a date is chosen. Use {start} and {end} anywhere you want the fulfilment hours to appear. Leave blank to use the default wording.',
+									'Shown once a date is chosen. Use {start} and {end} anywhere you want the delivery/pickup hours to appear. Leave blank to use the default wording.',
 									'fuelchef-subscriptions'
 								);
 								?>
@@ -272,8 +275,9 @@ defined( 'ABSPATH' ) || exit;
 								type="text"
 								maxlength="190"
 								value="<?php echo esc_attr( $settings->subscribe_save_label() ); ?>"
+								aria-describedby="subscribeSaveLabelHint"
 							>
-							<p class="fcs-field__hint">
+							<p class="fcs-field__hint" id="subscribeSaveLabelHint">
 								<?php
 								esc_html_e(
 									'Use {percent} anywhere you want the current discount to appear, e.g. "Subscribe for {percent}% off every order".',
@@ -298,8 +302,9 @@ defined( 'ABSPATH' ) || exit;
 								id="subscribeSaveDescription"
 								maxlength="300"
 								placeholder="<?php echo esc_attr( $subscribe_save_description_placeholder ); ?>"
+								aria-describedby="subscribeSaveDescriptionHint"
 							><?php echo esc_textarea( $settings->subscribe_save_description() ); ?></textarea>
-							<p class="fcs-field__hint">
+							<p class="fcs-field__hint" id="subscribeSaveDescriptionHint">
 								<?php
 								esc_html_e(
 									'Shown under the checkbox. Also accepts {percent}. Leave blank to show none.',
@@ -322,9 +327,10 @@ defined( 'ABSPATH' ) || exit;
 									min="0"
 									step="0.01"
 									value="<?php echo esc_attr( (string) $settings->minimum_order_amount() ); ?>"
+									aria-describedby="minimumOrderAmountHint"
 								>
 							</div>
-							<p class="fcs-field__hint">
+							<p class="fcs-field__hint" id="minimumOrderAmountHint">
 								<?php
 								esc_html_e(
 									'Cart subtotal required before the subscribe discount is offered. 0 means no restriction.',
@@ -344,8 +350,9 @@ defined( 'ABSPATH' ) || exit;
 								type="number"
 								min="0"
 								value="<?php echo esc_attr( (string) $settings->minimum_cart_quantity() ); ?>"
+								aria-describedby="minimumCartQuantityHint"
 							>
-							<p class="fcs-field__hint">
+							<p class="fcs-field__hint" id="minimumCartQuantityHint">
 								<?php
 								esc_html_e(
 									'Cart items required before the subscribe discount is offered. 0 means no restriction.',
@@ -364,8 +371,9 @@ defined( 'ABSPATH' ) || exit;
 								id="ineligibleMessage"
 								maxlength="300"
 								placeholder="<?php echo esc_attr( $settings->ineligible_message_resolved() ); ?>"
+								aria-describedby="ineligibleMessageHint"
 							><?php echo esc_textarea( $settings->ineligible_message() ); ?></textarea>
-							<p class="fcs-field__hint">
+							<p class="fcs-field__hint" id="ineligibleMessageHint">
 								<?php
 								esc_html_e(
 									'Shown instead of the subscribe discount when the cart doesn\'t qualify. Leave blank to use the default wording.',
@@ -384,8 +392,9 @@ defined( 'ABSPATH' ) || exit;
 								id="loggedOutMessage"
 								maxlength="300"
 								placeholder="<?php echo esc_attr( $settings->logged_out_message_resolved() ); ?>"
+								aria-describedby="loggedOutMessageHint"
 							><?php echo esc_textarea( $settings->logged_out_message() ); ?></textarea>
-							<p class="fcs-field__hint">
+							<p class="fcs-field__hint" id="loggedOutMessageHint">
 								<?php
 								esc_html_e(
 									'Shown instead of the subscribe discount when the customer isn\'t logged in, next to a Log in link. Leave blank to use the default wording.',
@@ -402,7 +411,7 @@ defined( 'ABSPATH' ) || exit;
 				<button type="button" class="fcs-btn fcs-btn--primary" id="saveSettingsBtn">
 					<?php esc_html_e( 'Save Changes', 'fuelchef-subscriptions' ); ?>
 				</button>
-				<span class="fcs-save-status fcs-save-status--saved" id="fcsSaveStatus">
+				<span class="fcs-save-status fcs-save-status--saved" id="fcsSaveStatus" role="status" aria-live="polite">
 					&#10003;
 					<?php esc_html_e( 'All changes saved', 'fuelchef-subscriptions' ); ?>
 				</span>

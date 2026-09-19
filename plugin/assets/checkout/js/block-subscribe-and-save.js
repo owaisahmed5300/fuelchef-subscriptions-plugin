@@ -20,11 +20,11 @@
  *   state itself never changes without a full page reload, so it is only ever applied
  *   once, at bind time - `Block\Subscribe_And_Save::apply_discount()` is the authoritative
  *   gate either way; this is only a live preview of the same rule.
- * - Tells the customer when their order will be delivered, once the fulfilment date field
- *   (block-fulfilment-date-field.js) has a value - a one-off date normally, or which
- *   weekday it recurs on once this checkbox is also checked. Shown regardless of whether
- *   this checkbox is even visible (a logged-out or ineligible customer never sees it), so
- *   every customer knows when their order is coming.
+ * - Tells the customer when their order will be delivered or ready for pickup, once the
+ *   fulfilment date field (block-fulfilment-date-field.js) has a value - a one-off date
+ *   normally, or which weekday it recurs on once this checkbox is also checked. Shown
+ *   regardless of whether this checkbox is even visible (a logged-out or ineligible
+ *   customer never sees it), so every customer knows when their order is coming.
  */
 
 jQuery(function ($) {
@@ -226,12 +226,13 @@ jQuery(function ($) {
       return;
     }
 
-    const formattedDate = window.fcsCheckoutShared.formatDisplayDate(date, window.fcsCheckout.i18n.monthNames);
-    const message = $checkbox.is(':checked')
-      ? window.fcsCheckout.i18n.recurringDeliveryNotice
-          .replace('%1$s', window.fcsCheckoutShared.weekdayNameForDate(date, window.fcsCheckout.i18n.dayNames))
-          .replace('%2$s', formattedDate)
-      : window.fcsCheckout.i18n.singleDeliveryNotice.replace('%s', formattedDate);
+    const isPickup = window.fcsCheckoutShared.isPickupRateId(window.fcsCheckoutShared.currentSelectedRateId());
+    const message = window.fcsCheckoutShared.deliveryNoticeMessage(
+      isPickup,
+      $checkbox.is(':checked'),
+      date,
+      window.fcsCheckout.i18n
+    );
 
     if ($notice.prop('hidden') || $notice.text() !== message) {
       $notice.text(message).prop('hidden', false);

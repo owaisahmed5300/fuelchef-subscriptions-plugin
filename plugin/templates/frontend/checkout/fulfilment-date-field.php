@@ -21,7 +21,7 @@ use FuelChef\Subscriptions\Frontend\Checkout\Fulfilment_Date_Field;
 defined( 'ABSPATH' ) || exit;
 
 $description = ( [] === $eligible_dates )
-	? __( 'No fulfilment dates are currently available for this destination.', 'fuelchef-subscriptions' )
+	? __( 'No delivery/pickup dates are currently available for this destination.', 'fuelchef-subscriptions' )
 	: $description;
 ?>
 <tr class="fcs-fulfilment-date-row">
